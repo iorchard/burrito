@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-fs-pvc
+spec:
+  containers:
+    - name: web-server
+      image: nginx
+      volumeMounts:
+        - name: mypvc
+          mountPath: /var/lib/www/html
+  volumes:
+    - name: mypvc
+      persistentVolumeClaim:
+        claimName: fs-pvc
+        readOnly: false
+...
