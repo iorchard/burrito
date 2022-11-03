@@ -8,9 +8,11 @@ data:
   config.json: |-
     [
       {
-        "clusterID": "7350338a-0633-4072-8247-8004f05595f1",
+        "clusterID": "<ceph cluster id>",
         "monitors": [
-          "192.168.24.78:6789"
+          "<monitor1_ip_address>:6789",
+          "<monitor2_ip_address>:6789",
+          "<monitor3_ip_address>:6789"
         ]
       }
     ]
