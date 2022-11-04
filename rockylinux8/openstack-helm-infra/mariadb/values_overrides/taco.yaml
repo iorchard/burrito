@@ -1,0 +1,42 @@
+---
+images:
+  pull_policy: IfNotPresent
+  tags:
+    mariadb: docker.io/openstackhelm/mariadb:latest-ubuntu_focal
+    ingress: k8s.gcr.io/ingress-nginx/controller:v1.1.3
+    error_pages: k8s.gcr.io/defaultbackend:1.4
+    prometheus_create_mysql_user: docker.io/library/mariadb:10.5.9-focal
+    prometheus_mysql_exporter: docker.io/prom/mysqld-exporter:v0.12.1
+    prometheus_mysql_exporter_helm_tests: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
+    dep_check: quay.io/airshipit/kubernetes-entrypoint:v1.0.0
+    image_repo_sync: docker.io/library/docker:17.07.0
+    mariadb_backup: quay.io/airshipit/porthole-mysqlclient-utility:latest-ubuntu_bionic
+    ks_user: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
+    scripted_test: docker.io/openstackhelm/mariadb:ubuntu_focal-20210415
+pod:
+  replicas:
+    server: 3
+    ingress: 3
+volume:
+  enabled: true
+  class_name: ceph
+  size: 30Gi
+  log:
+    class_name: ceph
+    size: 5Gi
+endpoints:
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: <password>
+monitoring:
+  prometheus:
+    enabled: false
+    mysqld_exporter:
+      scrape: false
+conf:
+  db_acl:
+    enabled: true
+    cidr: 10.233.64.0/18
+...
