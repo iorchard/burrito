@@ -1,0 +1,40 @@
+---
+conf:
+  db_acl:
+    enabled: true
+  keystone:
+    DEFAULT:
+      debug: true
+endpoints:
+  identity:
+    auth:
+      admin:
+        username: admin
+        password: <password>
+
+    port:
+      api:
+        default: 8080
+        public: 8080
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: <password>
+
+      keystone:
+        username: keystone
+        password: <password>
+
+  oslo_messaging:
+    auth:
+      admin:
+        username: rabbitmq
+        password: <password>
+
+      keystone:
+        username: keystone
+        password: <password>
+
+    statefulset: null
+...

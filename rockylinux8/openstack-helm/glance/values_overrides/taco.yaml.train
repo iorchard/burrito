@@ -1,0 +1,116 @@
+---
+images:
+  pull_policy: IfNotPresent
+  tags:
+    test: 192.168.21.70:32680/docker.io/xrally/xrally-openstack:1.3.0
+    #glance_storage_init: 192.168.21.70:32680/docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_bionic
+    glance_storage_init: docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_bionic
+    glance_metadefs_load: 192.168.21.70:32680/burrito/kolla/ubuntu-source-glance-api:taco-train-v2.0.0
+    db_init: 192.168.21.70:32680/docker.io/openstackhelm/heat:train-ubuntu_bionic
+    glance_db_sync: 192.168.21.70:32680/burrito/kolla/ubuntu-source-glance-api:taco-train-v2.0.0
+    db_drop: 192.168.21.70:32680/docker.io/openstackhelm/heat:train-ubuntu_bionic
+    ks_user: 192.168.21.70:32680/docker.io/openstackhelm/heat:train-ubuntu_bionic
+    ks_service: 192.168.21.70:32680/docker.io/openstackhelm/heat:train-ubuntu_bionic
+    ks_endpoints: 192.168.21.70:32680/docker.io/openstackhelm/heat:train-ubuntu_bionic
+    rabbit_init: 192.168.21.70:32680/docker.io/rabbitmq:3.7.26-management
+    #glance_api: 192.168.21.70:32680/burrito/kolla/ubuntu-source-glance-api:taco-train-v2.0.0
+    #glance_api: docker.io/openstackhelm/glance:wallaby-ubuntu_focal
+    glance_api: docker.io/openstackhelm/glance:train-ubuntu_bionic
+    glance_registry: 192.168.21.70:32680/burrito/kolla/ubuntu-source-glance-registry:taco-train-v2.0.0
+    # Bootstrap image requires curl
+    bootstrap: 192.168.21.70:32680/docker.io/openstackhelm/heat:train-ubuntu_bionic
+    dep_check: 192.168.21.70:32680/quay.io/airshipit/kubernetes-entrypoint:v1.0.0
+    image_repo_sync: 192.168.21.70:32680/docker.io/docker:17.07.0
+pod:
+  security_context:
+    glance:
+      pod:
+        runAsUser: 42415
+      container:
+        glance_api:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: true
+          privileged: true
+    clean:
+      pod:
+        runAsUser: 42415
+    metadefs_load:
+      pod:
+        runAsUser: 42415
+    storage_init:
+      pod:
+        runAsUser: 42415
+    test:
+      pod:
+        runAsUser: 42415
+  replicas:
+    api: 3
+network:
+  api:
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/proxy-body-size: 102400M
+storage: rbd
+conf:
+  db_acl:
+    enabled: true
+  glance:
+    DEFAULT:
+      debug: true
+      show_image_direct_url: true
+      show_multiple_locations: true
+      enabled_backends: ceph_rbd:rbd
+    glance_store:
+      default_backend: ceph_rbd
+      rbd_store_replication: 2
+      rbd_store_user: glance
+      rbd_store_pool: images
+      rbd_store_ceph_conf: /etc/ceph/ceph.conf
+    ceph_rbd:
+      rbd_store_replication: 2
+      rbd_store_user: glance
+      rbd_store_pool: images
+      rbd_store_ceph_conf: /etc/ceph/ceph.conf
+    keystone_authtoken:
+      service_token_roles_required: true
+  ceph:
+    admin_keyring: AQCLBGFjEHqGGxAAfewBaDYB5MB+LRD+99z9SA==
+bootstrap:
+  enabled: false
+endpoints:
+  identity:
+    auth:
+      admin:
+        username: admin
+        password: <password>
+      glance:
+        username: glance
+        password: <password>
+    port:
+      api:
+        default: 8080
+        public: 8080
+  image:
+    port:
+      api:
+        public: 8080
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: <password>
+      glance:
+        username: glance
+        password: <password>
+  oslo_messaging:
+    auth:
+      admin:
+        username: rabbitmq
+        password: <password>
+      glance:
+        username: glance
+        password: <password>
+    statefulset: null
+manifests:
+  pod_rally_test: false
+...

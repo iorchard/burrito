@@ -1,0 +1,52 @@
+---
+conf:
+  db_acl:
+    enabled: true
+  placement:
+    keystone_authtoken:
+      service_token_roles_required: true
+    oslo_policy:
+      policy_file: /etc/placement/policy.yaml
+endpoints:
+  identity:
+    auth:
+      admin:
+        username: admin
+        password: <password>
+
+      glance:
+        username: glance
+        password: <password>
+
+    port:
+      api:
+        default: 8080
+        public: 8080
+  placement:
+    port:
+      api:
+        public: 8080
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: <password>
+
+      placement:
+        username: placement
+        password: <password>
+
+      nova_api:
+        username: nova
+        password: <password>
+
+  identity:
+    auth:
+      admin:
+        username: admin
+        password: <password>
+
+      placement:
+        username: placement
+        password: <password>
+...

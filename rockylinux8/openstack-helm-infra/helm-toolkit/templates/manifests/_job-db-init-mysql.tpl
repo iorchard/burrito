@@ -88,6 +88,13 @@ spec:
           imagePullPolicy: {{ $envAll.Values.images.pull_policy }}
 {{ tuple $envAll $envAll.Values.pod.resources.jobs.db_init | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}
           env:
+            {{- if $envAll.Values.conf.db_acl.enabled | default "false" }}
+            - name: MYSQL_ACL_CIDR
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-acl
+                  key: MYSQL_ACL_CIDR
+            {{- end }}
             - name: ROOT_DB_CONNECTION
               valueFrom:
                 secretKeyRef:

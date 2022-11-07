@@ -1,0 +1,73 @@
+---
+network:
+  api:
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/proxy-body-size: 102400M
+storage: rbd
+conf:
+  software:
+    rbd:
+      rbd_store_pool_app_name: rbd
+  db_acl:
+    enabled: true
+  glance:
+    DEFAULT:
+      debug: true
+      show_image_direct_url: true
+      show_multiple_locations: true
+      enabled_backends: ceph_rbd:rbd
+    glance_store:
+      default_backend: ceph_rbd
+      rbd_store_replication: 2
+      rbd_store_user: glance
+      rbd_store_pool: images
+      rbd_store_ceph_conf: /etc/ceph/ceph.conf
+    ceph_rbd:
+      rbd_store_replication: 2
+      rbd_store_user: glance
+      rbd_store_pool: images
+      rbd_store_ceph_conf: /etc/ceph/ceph.conf
+    keystone_authtoken:
+      service_token_roles_required: true
+  ceph:
+    admin_keyring: AQCLBGFjEHqGGxAAfewBaDYB5MB+LRD+99z9SA==
+bootstrap:
+  enabled: false
+endpoints:
+  identity:
+    auth:
+      admin:
+        username: admin
+        password: <password>
+      glance:
+        username: glance
+        password: <password>
+    port:
+      api:
+        default: 8080
+        public: 8080
+  image:
+    port:
+      api:
+        public: 8080
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: <password>
+      glance:
+        username: glance
+        password: <password>
+  oslo_messaging:
+    auth:
+      admin:
+        username: rabbitmq
+        password: <password>
+      glance:
+        username: glance
+        password: <password>
+    statefulset: null
+manifests:
+  pod_rally_test: false
+...

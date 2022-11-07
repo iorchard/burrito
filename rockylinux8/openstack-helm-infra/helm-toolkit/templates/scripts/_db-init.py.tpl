@@ -33,6 +33,7 @@ except ImportError:
     PARSER_OPTS = {"strict": False}
 import logging
 from sqlalchemy import create_engine
+from ipaddress import IPv4Network
 
 # Create logger, console handler and formatter
 logger = logging.getLogger('OpenStack-Helm DB Init')
@@ -47,7 +48,9 @@ logger.addHandler(ch)
 
 # Get the MYSQL_ACL_CIDR to set the ACL
 if "MYSQL_ACL_CIDR" in os.environ:
-    mysql_acl_cidr = os.environ['MYSQL_ACL_CIDR']
+    mysql_acl_cidr = "{0}/{1}".format(
+        IPv4Network(os.environ['MYSQL_ACL_CIDR']).network_address,
+        IPv4Network(os.environ['MYSQL_ACL_CIDR']).netmask)
 else:
     mysql_acl_cidr = "%"
 

@@ -1,0 +1,101 @@
+---
+pod:
+  replicas:
+    api: 1
+    backup: 1
+    scheduler: 1
+    volume: 1
+conf:
+  db_acl:
+    enabled: true
+  ceph:
+    admin_keyring: AQCLBGFjEHqGGxAAfewBaDYB5MB+LRD+99z9SA==
+    pools:
+      backups:
+        replication: 2
+        crush_rule: replicated_rule
+        chunk_size: 8
+        app_name: rbd
+      volumes:
+        replication: 2
+        crush_rule: replicated_rule
+        chunk_size: 8
+        app_name: rbd
+  cinder:
+    DEFAULT:
+      debug: true
+      enable_force_upload: true
+      enabled_backends: "rbd1"
+      default_volume_type: "rbd1"
+      backup_driver: cinder.backup.drivers.ceph.CephBackupDriver
+      backup_ceph_user: cinder-backup
+      backup_ceph_pool: backups
+      use_default_quota_class: true
+      quota_driver: cinder.quota.DbQuotaDriver
+      quota_consistencygroups: -1
+      quota_backup_gigabytes: -1
+      quota_backups: -1
+      quota_gigabytes: -1
+      quota_groups: -1
+      quota_snapshots: -1
+      quota_volumes: -1
+  backends:
+    rbd1:
+      volume_driver: cinder.volume.drivers.rbd.RBDDriver
+      volume_backend_name: rbd1
+      rbd_ceph_conf: "/etc/ceph/ceph.conf"
+      rbd_flatten_volume_from_snapshot: false
+      rbd_max_clone_depth: 5
+      rbd_store_chunk_size: 8
+      rados_connect_timeout: -1
+      rbd_user: "cinder"
+      rbd_pool: "volumes"
+      rbd_secret_uuid: "582393ff-9a5c-4a2e-ae0d-86ec18c36afc"
+      rbd_exclusive_cinder_pool: true
+endpoints:
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: <password>
+      cinder:
+        username: cinder
+        password: <password>
+  oslo_messaging:
+    auth:
+      admin:
+        username: rabbitmq
+        password: <password>
+      cinder:
+        username: cinder
+        password: <password>
+    statefulset: null
+  identity:
+    auth:
+      admin:
+        username: admin
+        password: <password>
+      cinder:
+        username: cinder
+        password: <password>
+    port:
+      api:
+        default: 8080
+        public: 8080
+  image:
+    port:
+      api:
+        public: 8080
+  volume:
+    name: cinder
+    path:
+      default: /v3/%(tenant_id)s
+    port:
+      api:
+        public: 8080
+  volumev3:
+    name: cinder
+    port:
+      api:
+        public: 8080
+...
