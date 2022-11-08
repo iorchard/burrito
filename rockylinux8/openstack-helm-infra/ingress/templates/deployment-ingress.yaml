@@ -251,7 +251,7 @@ spec:
           command:
             - chown
             - -R
-            - www-data:www-data
+            - 101:82
             - /tmp/client-body
           volumeMounts:
             - name: timezone-config
