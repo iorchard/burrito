@@ -1,0 +1,46 @@
+burrito-ctrl1 ip=192.168.21.71 ansible_connection=local ansible_python_interpreter=/usr/bin/python3
+burrito-ctrl2 ip=192.168.21.72
+burrito-ctrl3 ip=192.168.21.73
+burrito-net1 ip=192.168.21.74
+burrito-net2 ip=192.168.21.75
+burrito-comp1 ip=192.168.21.76
+burrito-comp2 ip=192.168.21.77
+burrito-ceph1 ip=192.168.21.78 radosgw_address=192.168.24.78
+burrito-ceph2 ip=192.168.21.79 radosgw_address=192.168.24.79
+
+[ceph_rgw]
+burrito-ceph[1:2]
+
+[kube-master]
+burrito-ctrl[1:3]
+
+[etcd]
+burrito-ctrl[1:3]
+
+[kube-node]
+burrito-ctrl[1:3]
+burrito-net[1:2]
+burrito-comp[1:2]
+
+[k8s-cluster:children]
+kube-master
+kube-node
+
+[controller-node]
+burrito-ctrl[1:3]
+
+[network-node]
+burrito-net[1:2]
+
+[compute-node]
+burrito-comp[1:2]
+
+[controller-node:vars]
+node_labels={"openstack-control-plane":"enabled"}
+
+[network-node:vars]
+node_labels={"openstack-network-plane":"enabled", "openstack-network-dvr":"enabled", "linuxbridge":"enabled", "openvswitch":"enabled"}
+
+[compute-node:vars]
+node_labels={"openstack-compute-node":"enabled", "openstack-network-dvr":"enabled", "linuxbridge":"enabled", "openvswitch":"enabled"}
+

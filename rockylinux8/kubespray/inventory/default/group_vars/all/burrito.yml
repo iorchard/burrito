@@ -1,0 +1,88 @@
+---
+### kubespray variables
+preinstall_selinux_state: disabled
+#kube_api_anonymous_auth: false
+kube_pods_subnet: 10.233.64.0/18
+
+### common
+common_password: "<password>"
+
+### ceph-csi role variables
+ceph_monitors: 
+  - 192.168.24.78
+
+### haproxy role variables
+ceph_rgw_port: 7480
+
+
+### keepalived role variables
+keepalived_interface: "eth1"
+keepalived_vip: "192.168.21.70"
+keepalived_interface_svc: "eth0"
+keepalived_vip_svc: "192.168.20.70"
+
+## openstack role variables
+# ingress
+ingress:
+  volume_size: "10Gi"
+
+# ceph_provisioners
+ceph_public_network: "192.168.24.0/24"
+ceph_cluster_network: "{{ ceph_public_network }}"
+
+# mariadb
+mariadb:
+  volume_size: "30Gi"
+  admin_password: "{{ common_password }}"
+
+# rabbitmq
+rabbitmq:
+  volume_size: "768Mi"
+  password: "{{ common_password }}"
+
+# keystone
+os_admin_password: "{{ common_password }}"
+keystone:
+  password: "{{ common_password }}"
+
+# glance
+glance:
+  password: "{{ common_password }}"
+
+# placement
+placement:
+  password: "{{ common_password }}"
+
+# neutron
+neutron:
+  tunnel: eth3
+  tunnel_compute: eth3
+  password: "{{ common_password }}"
+neutron_ml2_plugin: "ovs"
+ovs_dvr: true
+ovs_provider:
+  - name: external
+    bridge: br-ex
+    iface: eth2
+    vlan_ranges: ""
+bgp_dragent: true
+
+# libvirt
+ceph_secret_uuid: 55b1a639-3ce3-470c-9205-99ea9b5045f9
+
+# nova
+nova:
+  vncserver_proxyclient_interface: "eth1"
+  hypervisor_host_interface: "eth1"
+  libvirt_live_migration_interface: "eth1"
+  password: "{{ common_password }}"
+  
+# cinder
+cinder:
+  password: "{{ common_password }}"
+
+# horizon
+horizon:
+  password: "{{ common_password }}"
+  timezone: "Asia/Seoul"
+...
