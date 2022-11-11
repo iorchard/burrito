@@ -1,0 +1,20 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ceph-csi-config
+  namespace: ceph-csi
+data:
+  config.json: |-
+    [
+      {
+        "clusterID": "{{ ceph_cluster_id }}",
+        "monitors": [
+{% for mon in ceph_monitors %}
+          "{{ mon }}"{% if not loop.last %},{% endif %}
+{% endfor %}
+
+        ]
+      }
+    ]
+...

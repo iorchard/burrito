@@ -1,0 +1,189 @@
+---
+bootstrap:
+  structured:
+    flavors:
+      enabled: true
+      options:
+        m1_small: null
+        m1_medium: null
+        m1_large: null
+        m1_xlarge: null
+        default:
+          name: "default"
+          id: "auto"
+          ram: 8192
+          disk: 50
+          vcpus: 4
+network:
+  backend:
+  - openvswitch
+  novncproxy:
+    name: nova-novncproxy
+    node_port:
+      enabled: true
+      port: 30608
+console:
+  console_kind: novnc
+  novnc:
+    compute:
+      vncserver_proxyclient_interface: {{ nova.vncserver_proxyclient_interface }}
+conf:
+  db_acl:
+    enabled: true
+  hypervisor:
+    host_interface: {{ nova.hypervisor_host_interface }}
+  libvirt:
+    live_migration_interface: {{ nova.libvirt_live_migration_interface }}
+  ceph:
+    enabled: true
+    admin_keyring: {{ ceph_admin_key }}
+    cinder:
+      user: cinder
+      keyring: {{ ceph_cinder_key }}
+  nova:
+    DEFAULT:
+      debug: true
+      config_drive_cdrom: false
+      force_config_drive: false
+      ram_allocation_ratio: 0.9
+      disk_allocation_ratio: 0.9
+      cpu_allocation_ratio: 3.0
+      my_ip: null
+      weight_classes: nova.scheduler.weights.all_weighers
+      block_device_allocate_retries: 360
+      block_device_allocate_retries_interval: 10
+      vif_plugging_timeout: 1200
+      allow_resize_to_same_host: true
+      notification_format: versioned
+    devices:
+      enabled_vgpu_types: 
+    notifications:
+      bdms_in_notifications: true
+    vnc:
+      novncproxy_base_url: http://{{ keepalived[0].vip }}:30608/vnc_auto.html
+      server_listen_interface: {{ nova.vncserver_proxyclient_interface }}
+    libvirt:
+      connection_uri: "qemu+tcp://127.0.0.1/system"
+      images_type: qcow2
+      images_rbd_pool: vms
+      images_rbd_ceph_conf: /etc/ceph/ceph.conf
+      rbd_user: cinder
+      rbd_secret_uuid: {{ ceph_secret_uuid }}
+      virt_type: kvm
+      disk_cachemodes: "network=writeback"
+      hw_disk_discard: unmap
+    scheduler:
+      driver: filter_scheduler
+      discover_hosts_in_cells_interval: 60
+    filter_scheduler:
+      ram_weight_multiplier: 4.0
+      available_filters: nova.scheduler.filters.all_filters
+      enabled_filters: AvailabilityZoneFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter
+    quota:
+      instances: -1
+      cores: -1
+      ram: -1
+      metadata_items: -1
+      injected_files: -1
+      injected_file_content_bytes: -1
+      injected_file_path_length: -1
+      key_pairs: -1
+      server_groups: -1
+      server_group_members: -1
+    keystone_authtoken:
+      service_token_roles_required: true
+endpoints:
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: {{ mariadb.admin_password }}
+      nova:
+        username: nova
+        password: {{ nova.password }}
+  oslo_db_api:
+    auth:
+      admin:
+        username: root
+        password: {{ mariadb.admin_password }}
+      nova:
+        username: nova
+        password: {{ nova.password }}
+  oslo_db_cell0:
+    auth:
+      admin:
+        username: root
+        password: {{ mariadb.admin_password }}
+      nova:
+        username: nova
+        password: {{ nova.password }}
+  oslo_db_placement:
+    auth:
+      admin:
+        username: root
+        password: {{ mariadb.admin_password }}
+      nova:
+        username: nova
+        password: {{ nova.password }}
+      placement:
+        username: placement
+        password: {{ placement.password }}
+  oslo_messaging:
+    auth:
+      admin:
+        username: rabbitmq
+        password: {{ rabbitmq.password }}
+      nova:
+        username: nova
+        password: {{ nova.password }}
+    statefulset: null
+  identity:
+    auth:
+      admin:
+        username: admin
+        password: {{ os_admin_password }}
+      nova:
+        username: nova
+        password: {{ nova.password }}
+      neutron:
+        username: neutron
+        password: {{ neutron.password }}
+      placement:
+        username: placement
+        password: {{ placement.password }}
+    port:
+      api:
+        default: 8080
+        public: 8080
+  image:
+    port:
+      api:
+        public: 8080
+  compute:
+    port:
+      api:
+        public: 8080
+  compute_metadata:
+    port:
+      metadata:
+        public: 8080
+  compute_novnc_proxy:
+    port:
+      novnc_proxy:
+        public: 8080
+  placement:
+    port:
+      api:
+        public: 8080
+  network:
+    port:
+      api:
+        public: 8080
+pod:
+  replicas:
+    api_metadata: {{ pod.replicas }}
+    osapi: {{ pod.replicas }}
+    conductor: {{ pod.replicas }}
+    scheduler: {{ pod.replicas }}
+    novncproxy: {{ pod.replicas }}
+...

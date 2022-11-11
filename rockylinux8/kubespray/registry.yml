@@ -1,0 +1,15 @@
+---
+- name: Check ansible version
+  import_playbook: ansible_version.yml
+
+- name: Ensure compatibility with old groups
+  import_playbook: legacy_groups.yml
+
+- hosts: kube_control_plane
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment: "{{ proxy_disable_env }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: kubernetes-apps/registry, tags: registry }
+...

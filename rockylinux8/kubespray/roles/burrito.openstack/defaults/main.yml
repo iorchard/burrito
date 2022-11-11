@@ -1,0 +1,93 @@
+---
+## common
+osh_infra_path: "{{ playbook_dir }}/../openstack-helm-infra"
+osh_path: "{{ playbook_dir }}/../openstack-helm"
+os_artifacts_dir: "{{ ansible_env.HOME }}/openstack-artifacts"
+pod:
+  replicas: 1
+storageclass_name: "rbd"
+kube_pod_subnet: ~
+ceph_admin_key: ~
+ceph_secret_uuid: ~
+
+## ingress
+ingress:
+  volume_size: "10Gi"
+
+## ceph_provisioners
+ceph_public_network: ~
+ceph_cluster_network: ~
+
+## mariadba
+mariadb:
+  volume_size: "30Gi"
+  admin_password: ~
+
+## rabbitmq
+rabbitmq:
+  volume_size: "768Mi"
+  password: ~
+
+## libvirt
+ceph_cinder_key: ~
+
+## keystone
+os_admin_password: ~
+keystone:
+  password: ~
+
+## glance
+glance:
+  password: ~
+
+## placement
+placement:
+  password: ~
+
+## neutron
+neutron:
+  tunnel: ~
+  tunnel_compute: ~
+neutron_ml2_plugin: "ovs"
+ovs_dvr: true
+ovs_provider:
+  - name: external
+    bridge: br-ex
+    iface: ~
+    vlan_ranges: ""
+bgp_dragent: false
+
+## nova
+nova:
+  vncserver_proxyclient_interface: ~
+  hypervisor_host_interface: ~
+  libvirt_live_migration_interface: ~
+  password: ~
+
+## cinder
+cinder:
+  password: ~
+
+## horizon
+horizon:
+  password: ~
+  timezone: "UTC"
+
+osh_infra_charts:
+  - ingress
+  - ceph-provisioners
+  - mariadb
+  - rabbitmq
+  - memcached
+  - openvswitch
+  - libvirt
+
+osh_charts:
+#  - horizon
+#  - cinder
+#  - nova
+  - neutron
+#  - keystone
+#  - glance
+#  - placement
+...

@@ -1,0 +1,28 @@
+---
+deployment:
+  type: StatefulSet
+network:
+  host_namespace: true
+monitoring:
+  prometheus:
+    enabled: false
+    ingress_exporter:
+      scrape: false
+pod:
+  replicas:
+    ingress: {{ pod.replicas }}
+    error_page: 1
+endpoints:
+  ingress:
+    port:
+      http:
+        default: 8080
+      https:
+        default: 8443
+client_body_volume:
+  access_modes: "ReadWriteOnce"
+  size: 10Gi
+  class_name: rbd
+manifests:
+  pvc_client_body: true
+...

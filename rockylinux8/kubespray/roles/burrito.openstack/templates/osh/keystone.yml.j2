@@ -1,0 +1,40 @@
+---
+conf:
+  db_acl:
+    enabled: true
+  keystone:
+    DEFAULT:
+      debug: true
+pod:
+  replicas:
+    api: {{ pod.replicas }}
+endpoints:
+  identity:
+    auth:
+      admin:
+        username: admin
+        password: {{ os_admin_password }}
+    port:
+      api:
+        default: 8080
+        public: 8080
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: {{ mariadb.admin_password }}
+      keystone:
+        username: keystone
+        password: {{ keystone.password }}
+
+  oslo_messaging:
+    auth:
+      admin:
+        username: rabbitmq
+        password: {{ rabbitmq.password }}
+      keystone:
+        username: keystone
+        password: {{ keystone.password }}
+
+    statefulset: null
+...

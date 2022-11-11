@@ -1,0 +1,75 @@
+---
+- name: Provision | create openstack namespace
+  community.kubernetes.k8s:
+    name: openstack
+    api_version: v1
+    kind: Namespace
+    state: present
+  become: true
+
+- name: Provision | create openstack artifacts directory
+  ansible.builtin.file:
+    path: "{{ os_artifacts_dir }}"
+    state: directory
+
+- name: Provision | get admin keyring
+  ansible.builtin.command: >-
+    ceph auth get-key client.admin
+  register: result
+  become: true
+
+- name: Provision | set fact for admin keyring
+  ansible.builtin.set_fact:
+    ceph_admin_key: "{{ result.stdout }}"
+
+- name: Provision | get cinder keyring
+  ansible.builtin.command: >-
+    ceph auth get-key client.cinder
+  register: result
+  become: true
+
+- name: Provision | set fact for cinder keyring
+  ansible.builtin.set_fact:
+    ceph_cinder_key: "{{ result.stdout }}"
+
+- name: Provision | templating osh infra values
+  ansible.builtin.template:
+    dest: "{{ os_artifacts_dir }}/{{ item }}.yml"
+    src: "osh_infra/{{ item }}.yml.j2"
+    mode: "0644"
+  loop: "{{ osh_infra_charts }}"
+  tags: osh-infra
+
+- name: Provision | deploy osh infra charts
+  community.kubernetes.helm:
+    name: "{{ item }}"
+    chart_ref: "{{ osh_infra_path }}/{{ item }}"
+    release_namespace: openstack
+    values_files:
+      - "{{ os_artifacts_dir }}/{{ item }}.yml"
+    wait: true
+  become: true
+  loop: "{{ osh_infra_charts }}"
+  tags: osh-infra
+
+- name: Provision | templating osh values
+  ansible.builtin.template:
+    dest: "{{ os_artifacts_dir }}/{{ item }}.yml"
+    src: "osh/{{ item }}.yml.j2"
+    mode: "0644"
+  loop: "{{ osh_charts }}"
+  tags: osh
+
+- name: Provision | deploy osh charts
+  community.kubernetes.helm:
+    release_name: "{{ item }}"
+    chart_ref: "{{ osh_path }}/{{ item }}"
+    release_namespace: openstack
+    values_files:
+      - "{{ os_artifacts_dir }}/{{ item }}.yml"
+      - "{{ osh_path }}/{{ item }}/values_overrides/yoga-ubuntu_focal.yaml"
+    wait: true
+  become: true
+  loop: "{{ osh_charts }}"
+  tags: osh
+...

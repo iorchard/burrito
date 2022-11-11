@@ -1,0 +1,204 @@
+---
+labels:
+  agent:
+    dhcp:
+      node_selector_key: openstack-network-plane
+      node_selector_value: enabled
+    bgp_dragent:
+      node_selector_key: openstack-network-plane
+      node_selector_value: enabled
+    l3:
+      node_selector_key: openstack-network-dvr
+      node_selector_value: enabled
+    metadata:
+      node_selector_key: openstack-network-dvr
+      node_selector_value: enabled
+  job:
+    node_selector_key: openstack-network-plane
+    node_selector_value: enabled
+  netns_cleanup_cron:
+    node_selector_key: openstack-network-plane
+    node_selector_value: enabled
+  test:
+    node_selector_key: openstack-network-plane
+    node_selector_value: enabled
+network:
+  backend:
+  - openvswitch
+  share_namespaces: true
+  interface:
+    tunnel: {{ neutron.tunnel }}
+    tunnel_compute: {{ neutron.tunnel_compute }}
+pod:
+  probes:
+    bgp_dragent:
+      bgp_dragent:
+        readiness:
+          enabled: true
+          params:
+            initialDelaySeconds: 30
+            periodSeconds: 190
+            timeoutSeconds: 185
+        liveness:
+          enabled: true
+          params:
+            initialDelaySeconds: 120
+            periodSeconds: 600
+            timeoutSeconds: 580
+  replicas:
+    server: {{ pod.replicas }}
+  security_context:
+    neutron_bgp_dragent:
+      pod:
+        runAsUser: 42424
+      container:
+        neutron_bgp_dragent_init:
+          runAsUser: 0
+          readOnlyRootFilesystem: true
+  mounts:
+    neutron_server:
+      init_container: null
+      neutron_server:
+        volumeMounts:
+          - name: timezone
+            mountPath: /etc/localtime
+        volumes:
+          - name: timezone
+            hostPath:
+              path: /etc/localtime
+    neutron_bgp_dragent:
+      init_container: null
+      neutron_bgp_dragent:
+        volumeMounts:
+          - name: timezone
+            mountPath: /etc/localtime
+        volumes:
+          - name: timezone
+            hostPath:
+              path: /etc/localtime
+conf:
+  db_acl:
+    enabled: true
+  neutron:
+    DEFAULT:
+      debug: True
+      router_distributed: True
+      core_plugin: ml2
+      global_physnet_mtu: 1500
+      service_plugins: neutron_dynamic_routing.services.bgp.bgp_plugin.BgpPlugin,neutron.services.l3_router.l3_router_plugin.L3RouterPlugin
+      #service_plugins: router
+      l3_ha_network_type: vxlan
+      dhcp_agents_per_network: 2
+    quotas:
+      quota_network: -1
+      quota_subnet: -1
+      quota_port: -1
+      quota_router: -1
+      quota_floatingip: -1
+      quota_security_group: -1
+      quota_security_group_rule: -1
+{% if neutron_ml2_plugin == "ovs" %}
+  auto_bridge_add:
+{% for b in ovs_provider %}
+    {{ b.bridge }}:{{ b.iface }}
+{% endfor %}
+{% endif %}
+
+  plugins:
+    ml2_conf:
+      ml2:
+        extension_drivers: port_security
+        type_drivers: flat{% if ovs_provider[0].vlan_ranges %},vlan{% endif %},vxlan
+        tenant_network_types: vxlan
+      ml2_type_flat:
+        flat_networks: "*"
+{% if neutron_ml2_plugin == "ovs" %}
+{% if ovs_provider[0].vlan_ranges %}
+      ml2_type_vlan:
+        network_vlan_ranges: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.vlan_ranges }},{% endfor %}"
+{% endif %}
+{% endif %}
+{% if neutron_ml2_plugin == "ovs" %}
+    openvswitch_agent:
+      ovs:
+        bridge_mappings: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.bridge }},{% endfor %}"
+      securitygroup:
+        firewall_driver: openvswitch
+      agent:
+        enable_distributed_routing: {{ ovs_dvr | ternary('True', 'False') }}
+        tunnel_types: vxlan
+        l2_population: True
+        arp_responder: True
+  l3_agent:
+    DEFAULT:
+      interface_driver: openvswitch
+      agent_mode: {{ ovs_dvr | ternary('dvr', 'legacy') }}
+{% endif %}
+{% if bgp_dragent %}
+  bgp_dragent:
+    DEFAULT:
+      debug: true
+    bgp:
+      bgp_speaker_driver: neutron_dynamic_routing.services.bgp.agent.driver.os_ken.driver.OsKenBgpDriver
+      bgp_router_id: 127.0.0.1
+{% endif %}
+  dhcp_agent:
+    DEFAULT:
+      force_metadata: True
+  metadata_agent:
+    DEFAULT:
+      nova_metadata_port: 8080
+endpoints:
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: {{ mariadb.admin_password }}
+      neutron:
+        username: neutron
+        password: {{ neutron.password }}
+  oslo_messaging:
+    auth:
+      admin:
+        username: rabbitmq
+        password: {{ rabbitmq.password }}
+      neutron:
+        username: neutron
+        password: {{ neutron.password }}
+    statefulset: null
+  identity:
+    name: keystone
+    auth:
+      admin:
+        username: admin
+        password: {{ os_admin_password }}
+      neutron:
+        username: neutron
+        password: {{ neutron.password }}
+      nova:
+        username: nova
+        password: {{ nova.password }}
+    port:
+      api:
+        default: 8080
+        public: 8080
+  compute:
+    port:
+      api:
+        public: 8080
+  compute_metadata:
+    port:
+      metadata:
+        public: 8080
+  network:
+    port:
+      api:
+        public: 8080
+
+manifests:
+  daemonset_lb_agent: false
+  daemonset_ovs_agent: true
+  daemonset_sriov_agent: false
+  daemonset_metadata_agent: true
+  daemonset_bgp_dragent: true
+...

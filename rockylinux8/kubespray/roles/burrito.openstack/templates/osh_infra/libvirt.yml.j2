@@ -1,0 +1,14 @@
+---
+release_group: null
+network:
+  backend:
+  - openvswitch
+conf:
+  ceph:
+    enabled: true
+    admin_keyring: {{ ceph_admin_key }}
+    cinder:
+      user: cinder
+      keyring: {{ ceph_cinder_key }}
+      secret_uuid: {{ ceph_secret_uuid }}
+...

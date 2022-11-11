@@ -1,0 +1,18 @@
+---
+images:
+  pull_policy: IfNotPresent
+  tags:
+    openvswitch_db_server: docker.io/openstackhelm/openvswitch:latest-ubuntu_focal
+    openvswitch_vswitchd: docker.io/openstackhelm/openvswitch:latest-ubuntu_focal
+#pod:
+#  security_context:
+#    openvswitch_db_server:
+#      pod:
+#        runAsUser: 0
+#      container:
+#        server:
+#          runAsUser: 0
+#  user:
+#    nova:
+#      uid: 42436
+...

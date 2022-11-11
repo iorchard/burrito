@@ -1,0 +1,27 @@
+---
+- name: deploy ceph-csi
+  hosts: localhost
+  any_errors_fatal: true
+  roles:
+    - {role: burrito.ceph-csi, tags: ['ceph-csi', 'burrito']}
+
+- name: setup haproxy
+  hosts: kube-master
+  any_errors_fatal: true
+  become: True
+  roles:
+    - { role: burrito.haproxy, tags: ['haproxy', 'burrito']}
+
+- name: setup keepalived
+  hosts: kube-master
+  any_errors_fatal: true
+  become: True
+  roles:
+    - { role: burrito.keepalived, tags: ['keepalived', 'burrito']}
+
+- name: provision openstack
+  hosts: localhost
+  any_errors_fatal: true
+  roles:
+    - { role: burrito.openstack, tags: ['openstack', 'burrito']}
+...
