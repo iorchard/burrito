@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+action=$1
+# a little bit of sleep time needed
+if [ "$action" = "start" ]; then
+  sleep 1
+fi
+/bin/systemctl $action garb.service
+sleep 5
+if [ "$action" = "start" ]; then
+  # check if wsrep_cluster_status is Primary
+  S=$(mariadb --defaults-file=/root/.my.cnf -Ns -e "select VARIABLE_VALUE from information_schema.SESSION_STATUS where VARIABLE_NAME='WSREP_CLUSTER_STATUS'")
+  if [ x"$S" != x"Primary" ]; then
+    mariadb --defaults-file=/root/.my.cnf -e "set global wsrep_provider_options='pc.bootstrap=YES'" 
+  fi
+fi

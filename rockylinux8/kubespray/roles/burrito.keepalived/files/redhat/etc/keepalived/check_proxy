@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo kill -0 $(cat /run/haproxy.pid 2>/dev/null) &>/dev/null

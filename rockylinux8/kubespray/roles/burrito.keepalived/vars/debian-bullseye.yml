@@ -1,0 +1,18 @@
+---
+pkg_state: "latest"
+
+packages:
+  - "keepalived"
+  - "psmisc"
+
+service_script:
+  - {dest: "/etc/keepalived/check_proxy"}
+
+keepalived_conf: "/etc/keepalived/keepalived.conf"
+
+service_conf:
+  - {dest: "{{ keepalived_conf }}"}
+
+systemd_service_name:
+  - keepalived.service
+...

@@ -1,0 +1,19 @@
+---
+# force_active_standby
+# default hamode is multi-master.
+# If you want to use active-standby mode, enable this.
+force_active_standby: false
+service_name: "haproxy"
+keepalived_vip: ~
+ceph_rgw_port: 7480
+# balance: roundrobin, static-rr, leastconn, source, first. default: roundrobin
+balance: roundrobin
+# check interval in seconds default: 2s
+inter: 2s
+# rise: a server considered as alive after <count> consecutive 
+# successful health checks. default: 2
+rise: 2
+# fall: a server considered as dead after <count> consecutive 
+# successful health checks. default: 3
+fall: 3
+...

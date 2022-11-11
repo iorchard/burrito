@@ -1,0 +1,16 @@
+galaxy_info:
+  namespace: pbos
+  role_name: haproxy
+  author: "Heechul Kim <jijisa@iorchard.net>"
+  description: Ansible Role to Install HAProxy for PBOS
+  company: iOrchard, Inc.
+  license: Apache-2.0
+  min_ansible_version: "2.11"
+  platforms:
+    - name: Debian
+      versions:
+        - bullseye
+  galaxy_tags:
+    - system
+
+dependencies: []

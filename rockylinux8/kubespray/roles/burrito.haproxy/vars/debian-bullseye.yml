@@ -1,0 +1,14 @@
+---
+pkg_state: "latest"
+
+packages:
+  - haproxy
+
+haproxy_conf_dir: "/etc/haproxy"
+
+service_conf:
+  - {dest: "{{ haproxy_conf_dir }}/haproxy.cfg"}
+
+systemd_service_name:
+  - haproxy.service
+...

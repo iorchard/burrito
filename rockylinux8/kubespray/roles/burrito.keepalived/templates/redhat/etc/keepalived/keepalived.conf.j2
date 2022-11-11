@@ -1,0 +1,72 @@
+#jinja2: lstrip_blocks: "True"
+global_defs {
+  router_id {{ inventory_hostname }}
+  vrrp_version 2
+  vrrp_check_unicast_src
+  vrrp_skip_check_adv_addr
+  script_user root
+  enable_script_security
+}
+vrrp_script check_proxy {
+  script "/etc/keepalived/check_proxy"
+  interval {{ vrrp_script_interval }}
+  timeout {{ vrrp_script_timeout }}
+  fall {{ vrrp_script_fall }}
+  rise {{ vrrp_script_rise }}
+}
+vrrp_sync_group VSG {
+  group {
+    VI_BURRITO_MGMT
+    {{ keepalived_svc_exists | ternary("VI_BURRITO_SVC", "") }}
+  }
+  track_script {
+    check_proxy
+  }
+  notify "/etc/keepalived/keepalived_state.sh"
+}
+vrrp_instance VI_BURRITO_MGMT {
+  state BACKUP
+  interface {{ keepalived_interface }}
+  unicast_src_ip {{ hostvars[inventory_hostname]['ansible_' + keepalived_interface].ipv4.address  }}
+  track_src_ip
+  check_unicast_src
+  unicast_peer { 
+    {% for h in groups['kube-master'] %}
+      {% if inventory_hostname != h %}
+    {{ hostvars[h]['ansible_' + keepalived_interface].ipv4.address }}
+      {% endif %}
+    {% endfor %}
+  }
+  virtual_router_id {{ hostvars[groups['kube-master'][0]]['keepalived_vrid'] }}
+  priority {% for h in groups['kube-master'] %}{% if inventory_hostname == h %}{{ 110-(loop.index*10) }}{% endif %}{% endfor %}
+
+  advert_int 1
+  nopreempt
+  virtual_ipaddress {
+    {{ keepalived_vip }}
+  }
+}
+{% if keepalived_svc_exists %}
+vrrp_instance VI_BURRITO_SVC {
+  state BACKUP
+  interface {{ keepalived_interface_svc }}
+  unicast_src_ip {{ hostvars[inventory_hostname]['ansible_' + keepalived_interface_svc].ipv4.address }}
+  track_src_ip
+  check_unicast_src
+  unicast_peer {
+    {% for h in groups['kube-master'] %}
+      {% if inventory_hostname != h %}
+    {{ hostvars[h]['ansible_' + keepalived_interface_svc].ipv4.address }}
+      {% endif %}
+    {% endfor %}
+  }
+  virtual_router_id {{ keepalived_vrid }}
+  priority {% for h in groups['kube-master'] %}{% if inventory_hostname == h %}{{ 110-(loop.index*10) }}{% endif %}{% endfor %}
+
+  advert_int 1
+  nopreempt
+  virtual_ipaddress {
+    {{ keepalived_vip_svc }}
+  }
+}
+{% endif %}

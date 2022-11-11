@@ -1,0 +1,25 @@
+---
+- name: systemctl restart service
+  service:
+    name: "{{ item }}"
+    state: "restarted"
+    enabled: true
+  register: _restart_service
+  until: _restart_service.state == "started"
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ systemd_service_name }}"
+
+- name: systemctl stop service
+  service:
+    name: "{{ item }}"
+    state: "stopped"
+    enabled: true
+  register: _stop_service
+  until: _stop_service.state == "stopped"
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ systemd_service_name }}"
+...

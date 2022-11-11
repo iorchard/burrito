@@ -1,0 +1,5 @@
+---
+pkg_state: "latest"
+haproxy_conf_dir: "/etc/haproxy"
+
+...
