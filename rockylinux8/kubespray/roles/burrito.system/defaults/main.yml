@@ -1,0 +1,22 @@
+---
+keepalived_vip: ~
+openstack_fqdn:
+  - keystone.openstack.svc.cluster.local 
+  - glance.openstack.svc.cluster.local 
+  - nova.openstack.svc.cluster.local 
+  - neutron.openstack.svc.cluster.local 
+  - metadata.openstack.svc.cluster.local 
+  - cinder.openstack.svc.cluster.local
+os_admin_password: ~
+
+tls_tmp_dir: "/tmp/kubeconfig"
+tls_tmp_client:
+  key: "{{ tls_tmp_dir }}/client-key.pem"
+tls_ca: 
+  crt: "/etc/kubernetes/pki/ca.crt"
+  key: "/etc/kubernetes/pki/ca.key"
+tls_days: "+3650d"
+tls_client_dir: "{{ ansible_env.HOME }}/.kube"
+tls_client_key: "{{ tls_client_dir }}/client-key.pem"
+tls_client_cert: "{{ tls_client_dir }}/client-cert.pem"
+...

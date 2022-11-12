@@ -8,16 +8,20 @@
 - name: setup haproxy
   hosts: kube-master
   any_errors_fatal: true
-  become: True
   roles:
     - { role: burrito.haproxy, tags: ['haproxy', 'burrito']}
 
 - name: setup keepalived
   hosts: kube-master
   any_errors_fatal: true
-  become: True
   roles:
     - { role: burrito.keepalived, tags: ['keepalived', 'burrito']}
+
+- name: setup system
+  hosts: k8s-cluster
+  any_errors_fatal: true
+  roles:
+    - { role: burrito.system, tags: ['system', 'burrito']}
 
 - name: provision openstack
   hosts: localhost

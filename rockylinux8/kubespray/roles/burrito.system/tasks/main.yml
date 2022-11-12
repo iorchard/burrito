@@ -1,0 +1,136 @@
+---
+- name: Setup | add openstack each fqdn in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: "/etc/hosts"
+    state: present
+    regexp: "^{{ keepalived_vip }}"
+    line: "{{ keepalived_vip }} {{ openstack_fqdn | join(' ') }}"
+  become: true
+
+- name: Setup | template adminrc on controllers
+  ansible.builtin.template:
+    dest: "{{ ansible_env.HOME }}/.adminrc"
+    src: "adminrc.j2"
+    mode: 0600
+  when: inventory_hostname in groups['kube-master']
+
+- name: Kubeconfig | check if CA certificate exists
+  ansible.builtin.stat:
+    path: "{{ tls_ca.crt }}"
+  register: p
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  run_once: true
+  failed_when: p.stat.isreg is defined and p.stat.isreg == False
+  when: inventory_hostname in groups['kube-master']
+
+- name: Kubeconfig | create temporary certificate directory
+  ansible.builtin.file:
+    path: "{{ tls_tmp_dir }}"
+    state: directory
+    mode: "0700"
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  run_once: true
+
+- name: Kubeconfig | create client certificate directory
+  ansible.builtin.file:
+    path: "{{ tls_client_dir }}"
+    state: directory
+    mode: "0700"
+  when: inventory_hostname in groups['kube-master']
+
+- name: Kubeconfig | create private key for client certificate
+  community.crypto.openssl_privatekey:
+    path: "{{ tls_tmp_client.key }}"
+    select_crypto_backend: auto
+    type: RSA
+    size: 2048
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  run_once: true
+
+- name: Kubeconfig | create CSR for client certificate
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ tls_tmp_client.key }}"
+    common_name: "k8sview"
+    use_common_name_for_san: false
+  register: client_csr
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  run_once: true
+
+- name: TLS | check if client certificate exists
+  ansible.builtin.stat:
+    path: "{{ tls_client_cert }}"
+  register: client_cert_exists
+  when: inventory_hostname in groups['kube-master']
+
+- name: TLS | read client certificate if exists
+  ansible.builtin.slurp:
+    src: "{{ tls_client_cert }}"
+  register: client_certificate
+  when:
+    - inventory_hostname in groups['kube-master']
+    - client_cert_exists.stat.exists
+
+- name: TLS | sign client certificate with CA
+  community.crypto.x509_certificate_pipe:
+    content: "{{ (client_certificate.content | b64decode) if client_cert_exists.stat.exists else omit }}"
+    csr_content: "{{ client_csr.csr }}"
+    provider: ownca
+    ownca_path: "{{ tls_ca.crt }}"
+    ownca_privatekey_path: "{{ tls_ca.key }}"
+    ownca_not_after: "{{ tls_days }}"
+    ownca_not_before: "+0s"
+  become: true
+  register: client_cert
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  run_once: true
+
+- name: Kubeconfig | write client certificate file on server
+  ansible.builtin.copy:
+    dest: "{{ tls_client_cert }}"
+    content: "{{ client_cert.certificate }}"
+    mode: "0644"
+  when: 
+    - inventory_hostname in groups['kube-master']
+    - client_cert is changed
+
+- name: Kubeconfig | copy client key file on server
+  ansible.builtin.copy:
+    dest: "{{ tls_client_key }}"
+    src: "{{ tls_tmp_client.key }}"
+    mode: "0600"
+  when: inventory_hostname in groups['kube-master']
+
+- name: Kubeconfig | set a cluster entry
+  ansible.builtin.command: >-
+    kubectl config set-cluster kubernetes --embed-certs=true \
+      --certificate-authority={{ tls_ca.crt }} \
+      --server=https://127.0.0.1:6443
+  when: inventory_hostname in groups['kube-master']
+
+- name: Kubeconfig | set a user entry
+  ansible.builtin.command: >-
+    kubectl config set-credentials k8sview \
+      --embed-certs=true \
+      --client-certificate={{ tls_client_cert }} \
+      --client-key={{ tls_client_key }}
+  when: inventory_hostname in groups['kube-master']
+
+- name: Kubeconfig | set a context entry
+  ansible.builtin.command: >-
+    kubectl config set-context default --cluster=kubernetes \
+      --user=k8sview
+  when: inventory_hostname in groups['kube-master']
+
+- name: Kubeconfig | set a current context
+  ansible.builtin.command: >-
+    kubectl config use-context default
+  when: inventory_hostname in groups['kube-master']
+
+- name: Kubeconfig | bind user to view clusterrole
+  ansible.builtin.command: >-
+    kubectl create clusterrolebinding k8sview \
+      --clusterrole=view --user=k8sview
+  become: true
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  run_once: true
+...
