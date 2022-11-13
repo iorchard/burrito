@@ -1,0 +1,5 @@
+# These are Python requirements needed to run ceph-ansible main
+ansible-core>=2.12,<2.13
+netaddr
+six
+jmespath

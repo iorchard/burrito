@@ -1,0 +1,6 @@
+[default]
+access_key = {{ ceph_rgw_access_key }}
+secret_key = {{ ceph_rgw_secret_key }}
+host_base = {{ hostvars[inventory_hostname].radosgw_address }}:{{ radosgw_frontend_port }}
+host_bucket = {{ hostvars[inventory_hostname].radosgw_address }}:{{ radosgw_frontend_port }}/%(bucket)
+use_https = false

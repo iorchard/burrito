@@ -1,0 +1,6 @@
+---
+ceph_rgw_uid: "cloudpc"
+ceph_rgw_buckets:
+  - cloudpc-bucket
+  - mng-elastic-backup
+...

@@ -1,0 +1,49 @@
+---
+- name: RGW | Install s3cmd package
+  ansible.builtin.package:
+    name: "s3cmd"
+    state: "present"
+  become: true
+
+- name: RGW | check user
+  ansible.builtin.command: >-
+    radosgw-admin user info --uid="{{ ceph_rgw_uid }}"
+  become: true
+  register: user_info
+  delegate_to: "{{ groups['rgws'][0] }}"
+  run_once: true
+  failed_when: "user_info.rc not in [0, 22]"
+
+- name: RGW | create user and access/secret key
+  ansible.builtin.command: >-
+    radosgw-admin user create \
+      --uid="{{ ceph_rgw_uid }}" \
+      --display-name="rgw for cloudpc"
+  become: true
+  register: create_user
+  delegate_to: "{{ groups['rgws'][0] }}"
+  run_once: true
+  when: "user_info.rc == 22"
+
+- name: RGW | set fact for access key
+  ansible.builtin.set_fact:
+    ceph_rgw_access_key: "{% if create_user.changed %}{{ create_user.stdout | from_json | community.general.json_query('keys[0].access_key') }}{% else %}{{ user_info.stdout | from_json | community.general.json_query('keys[0].access_key') }}{% endif %}"
+
+- name: RGW | set fact for secret key
+  ansible.builtin.set_fact:
+    ceph_rgw_secret_key: "{% if create_user.changed %}{{ create_user.stdout | from_json | community.general.json_query('keys[0].secret_key') }}{% else %}{{ user_info.stdout | from_json | community.general.json_query('keys[0].secret_key') }}{% endif %}"
+
+- name: RGW | template s3 config file
+  ansible.builtin.template:
+    src: "s3cfg.j2"
+    dest: "{{ ansible_env.HOME }}/.s3cfg"
+    mode: "0600"
+  when: inventory_hostname in groups['rgws']
+
+- name: RGW | add a bucket for cloudpc
+  command: >-
+    s3cmd mb s3://{{ item }}
+  loop: "{{ ceph_rgw_buckets }}"
+  delegate_to: "{{ groups['rgws'][0] }}"
+  run_once: true
+...
