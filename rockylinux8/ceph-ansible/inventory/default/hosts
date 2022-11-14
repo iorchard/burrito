@@ -1,4 +1,4 @@
-burrito-ctrl1 ansible_host=192.168.21.71 ansible_port=22 ansible_user=clex ansible_connection=local
+burrito-ctrl1 ansible_host=192.168.21.71 ansible_port=22 ansible_user=clex ansible_connection=local ansible_python_interpreter=/usr/bin/python3
 burrito-ctrl2 ansible_host=192.168.21.72 ansible_port=22 ansible_user=clex
 burrito-ctrl3 ansible_host=192.168.21.73 ansible_port=22 ansible_user=clex
 burrito-comp1 ansible_host=192.168.21.76 ansible_port=22 ansible_user=clex

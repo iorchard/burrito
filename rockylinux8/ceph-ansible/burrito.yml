@@ -1,0 +1,9 @@
+---
+- name: setup rados gateway user
+  hosts: rgws
+  gather_facts: true
+  any_errors_fatal: true
+
+  roles:
+    - { role: burrito.rgw-user, tags: ['rgw-user', 'burrito']}
+...

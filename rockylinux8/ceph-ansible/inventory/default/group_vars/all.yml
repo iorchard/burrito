@@ -1,10 +1,7 @@
 ---
 # ceph network cidr - recommend the same cidr for public/cluster networks.
-public_network: 192.168.24.0/24
+public_network: "192.168.24.0/24"
 cluster_network: "{{ public_network }}"
-
-# replicas - recommend 3 for production, 2 for testing
-ceph_replicas: 2
 
 # ceph osd volume device list 
 lvm_volumes:
@@ -22,15 +19,10 @@ ceph_repository_type: cdn
 ceph_stable_release: quincy
 
 osd_objectstore: bluestore
-# if the number of osd node is 1, set this to true
-{% if (groups['osds']|length) > 3 %}
-ceph_pool_default_size: 3
-ceph_pool_default_min_size: 2
-{% else %}
-ceph_pool_default_size: 2
-ceph_pool_default_min_size: 1
-{% endif %}
 
+# set the size, min_size, and single_osd_node
+ceph_pool_default_size: "{% if (groups['osds']|length) > 3 %}3{% else %}2{% endif %}"
+ceph_pool_default_min_size: "{% if (groups['osds']|length) > 3 %}2{% else %}1{% endif %}"
 single_osd_node: "{% if (groups['osds']|length) == 1 %}{{ true|bool }}{% else %}{{ false|bool }}{% endif %}"
 
 ceph_conf_overrides:
