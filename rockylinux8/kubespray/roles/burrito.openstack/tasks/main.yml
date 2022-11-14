@@ -68,6 +68,22 @@
   loop: "{{ osh_infra_charts }}"
   tags: osh-infra
 
+- name: Provision | create dependency chart directory for osh
+  ansible.builtin.file:
+    path: "{{ osh_infra }}/{{ item }}/charts"
+    state: directory
+    mode: "0755"
+  loop: "{{ osh_charts }}"
+  tags: osh
+
+- name: Provision | symlink helm-toolkit dependency chart for osh
+  ansible.builtin.file:
+    dest: "{{ osh_path }}/{{ item }}/charts/helm-toolkit"
+    src: "{{ osh_infra_path }}/helm-toolkit"
+    state: link
+  loop: "{{ osh_charts }}"
+  tags: osh-infra
+
 - name: Provision | templating osh values
   ansible.builtin.template:
     dest: "{{ os_artifacts_dir }}/{{ item }}.yml"
