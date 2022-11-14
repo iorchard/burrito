@@ -2,6 +2,7 @@
 ## common
 osh_infra_path: "{{ playbook_dir }}/../openstack-helm-infra"
 osh_path: "{{ playbook_dir }}/../openstack-helm"
+btx_path: "{{ playbook_dir }}/../btx/helm"
 os_artifacts_dir: "{{ ansible_env.HOME }}/openstack-artifacts"
 pod:
   replicas: 1
@@ -73,6 +74,11 @@ horizon:
   password: ~
   timezone: "UTC"
 
+## btx
+btx:
+  pvc:
+    size: "20Gi"
+
 osh_infra_charts:
   - ingress
   - ceph-provisioners
@@ -83,11 +89,14 @@ osh_infra_charts:
   - libvirt
 
 osh_charts:
-#  - horizon
-#  - cinder
-#  - nova
+  - keystone
+  - glance
+  - placement
   - neutron
-#  - keystone
-#  - glance
-#  - placement
+  - nova
+  - cinder
+  - horizon
+
+btx_charts:
+  - btx
 ...

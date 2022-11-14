@@ -63,7 +63,6 @@
     release_namespace: openstack
     values_files:
       - "{{ os_artifacts_dir }}/{{ item }}.yml"
-    wait: true
   become: true
   loop: "{{ osh_infra_charts }}"
   tags: osh-infra
@@ -100,8 +99,33 @@
     values_files:
       - "{{ os_artifacts_dir }}/{{ item }}.yml"
       - "{{ osh_path }}/{{ item }}/values_overrides/yoga-ubuntu_focal.yaml"
-    wait: true
   become: true
   loop: "{{ osh_charts }}"
   tags: osh
+
+- name: Provision | templating btx chart values
+  ansible.builtin.template:
+    dest: "{{ os_artifacts_dir }}/{{ item }}.yml"
+    src: "{{ item }}.yml.j2"
+    mode: "0644"
+  loop: "{{ btx_charts }}"
+  tags: btx
+
+- name: Provision | deploy btx charts
+  kubernetes.core.helm:
+    release_name: "{{ item }}"
+    chart_ref: "{{ btx_path }}/{{ item }}"
+    release_namespace: openstack
+    values_files:
+      - "{{ os_artifacts_dir }}/{{ item }}.yml"
+  become: true
+  loop: "{{ btx_charts }}"
+  tags: btx
+
+- name: Provision | create .btx.env
+  ansible.builtin.copy:
+    dest: "{{ ansible_env.HOME }}/.btx.env"
+    src: ".btx.env"
+    mode: "0600"
+  tags: btx
 ...
