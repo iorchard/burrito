@@ -23,14 +23,22 @@ ceph_stable_release: quincy
 
 osd_objectstore: bluestore
 # if the number of osd node is 1, set this to true
+{% if (groups['osds']|length) > 3 %}
+ceph_pool_default_size: 3
+ceph_pool_default_min_size: 2
+{% else %}
+ceph_pool_default_size: 2
+ceph_pool_default_min_size: 1
+{% endif %}
+
 single_osd_node: "{% if (groups['osds']|length) == 1 %}{{ true|bool }}{% else %}{{ false|bool }}{% endif %}"
 
 ceph_conf_overrides:
   global:
     auth_allow_insecure_global_id_reclaim: false
     mon_allow_pool_delete: true
-    osd_pool_default_size: "{{ ceph_replicas }}"
-    osd_pool_default_min_size: "{{ ceph_replicas - 1 }}"
+    osd_pool_default_size: "{{ ceph_pool_default_size }}"
+    osd_pool_default_min_size: "{{ ceph_pool_default_min_size }}"
     osd_crush_chooseleaf_type: "{{ single_osd_node | ternary(0, 1) }}"
 
 # rgw
