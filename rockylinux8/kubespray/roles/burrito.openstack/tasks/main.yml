@@ -82,7 +82,7 @@
     src: "{{ osh_infra_path }}/helm-toolkit"
     state: link
   loop: "{{ osh_charts }}"
-  tags: osh-infra
+  tags: osh
 
 - name: Provision | templating osh values
   ansible.builtin.template:
