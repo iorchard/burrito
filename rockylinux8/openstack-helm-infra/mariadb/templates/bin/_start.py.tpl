@@ -27,6 +27,7 @@ import tempfile
 import time
 import threading
 from datetime import datetime, timedelta
+from ipaddress import IPv4Network
 
 import configparser
 import iso8601
@@ -108,7 +109,9 @@ if check_env_var("MYSQL_DBAUDIT_PASSWORD"):
     mysql_dbaudit_password = os.environ['MYSQL_DBAUDIT_PASSWORD']
 
 if check_env_var("MYSQL_ACL_CIDR"):
-    mysql_acl_cidr = os.environ['MYSQL_ACL_CIDR']
+    mysql_acl_cidr = "{0}/{1}".format(
+        IPv4Network(os.environ['MYSQL_ACL_CIDR']).network_address,
+        IPv4Network(os.environ['MYSQL_ACL_CIDR']).netmask)
 else:
     mysql_acl_cidr = "%"
 
