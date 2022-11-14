@@ -263,6 +263,7 @@ data:
   api_audit_map.conf: {{ include "helm-toolkit.utils.to_oslo_conf" .Values.conf.api_audit_map | b64enc }}
   dhcp_agent.ini: {{ include "helm-toolkit.utils.to_oslo_conf" $envAll.Values.conf.dhcp_agent | b64enc }}
   l3_agent.ini: {{ include "helm-toolkit.utils.to_oslo_conf" $envAll.Values.conf.l3_agent | b64enc }}
+  bgp_dragent.ini: {{ include "helm-toolkit.utils.to_oslo_conf" $envAll.Values.conf.bgp_dragent | b64enc }}
   metadata_agent.ini: {{ include "helm-toolkit.utils.to_oslo_conf" $envAll.Values.conf.metadata_agent | b64enc }}
   metering_agent.ini: {{ default "\"\"" (include "helm-toolkit.utils.to_oslo_conf" $envAll.Values.conf.metering_agent | b64enc) }}
   taas_plugin.ini: {{ default "\"\"" (include "helm-toolkit.utils.to_oslo_conf" $envAll.Values.conf.taas_plugin | b64enc) }}

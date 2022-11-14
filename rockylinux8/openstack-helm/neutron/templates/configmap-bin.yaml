@@ -49,6 +49,10 @@ data:
 {{ tuple "bin/_neutron-dhcp-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-dhcp-agent-init.sh: |
 {{ tuple "bin/_neutron-dhcp-agent-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+  neutron-bgp-dragent.sh: |
+{{ tuple "bin/_neutron-bgp-dragent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+  neutron-bgp-dragent-init.sh: |
+{{ tuple "bin/_neutron-bgp-dragent-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-l3-agent.sh: |
 {{ tuple "bin/_neutron-l3-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-l3-agent-init.sh: |

@@ -157,6 +157,12 @@ dependencies:
       l2gateway: {}
       bagpipe_bgp: {}
       openvswitch:
+        bgp:
+          pod:
+            - requireSameNode: true
+              labels:
+                application: neutron
+                component: neutron-ovs-agent
         dhcp:
           pod:
             - requireSameNode: true
@@ -176,6 +182,12 @@ dependencies:
                 application: neutron
                 component: neutron-ovs-agent
       linuxbridge:
+        bgp:
+          pod:
+            - requireSameNode: true
+              labels:
+                application: neutron
+                component: neutron-lb-agent
         dhcp:
           pod:
             - requireSameNode: true
@@ -217,6 +229,17 @@ dependencies:
       services:
         - endpoint: internal
           service: oslo_db
+    bgp:
+      pod: null
+      jobs:
+        - neutron-rabbit-init
+      services:
+        - endpoint: internal
+          service: oslo_messaging
+        - endpoint: internal
+          service: network
+        - endpoint: internal
+          service: compute
     dhcp:
       pod: null
       jobs:
@@ -343,6 +366,20 @@ pod:
   probes:
     rpc_timeout: 60
     rpc_retries: 2
+    bgp_dragent:
+      bgp_dragent:
+        readiness:
+          enabled: true
+          params:
+            initialDelaySeconds: 30
+            periodSeconds: 190
+            timeoutSeconds: 185
+        liveness:
+          enabled: true
+          params:
+            initialDelaySeconds: 120
+            periodSeconds: 600
+            timeoutSeconds: 580
     dhcp_agent:
       dhcp_agent:
         readiness:
@@ -487,6 +524,13 @@ pod:
         neutron_lb_agent:
           readOnlyRootFilesystem: true
           privileged: true
+    neutron_bgp_dragent:
+      pod:
+        runAsUser: 42424
+      container:
+        neutron_bgp_dragent_init:
+          runAsUser: 0
+          readOnlyRootFilesystem: true
     neutron_metadata_agent:
       pod:
         runAsUser: 42424
@@ -583,6 +627,10 @@ pod:
       neutron_lb_agent:
         volumeMounts:
         volumes:
+    neutron_bgp_dragent:
+      init_container: null
+      neutron_bgp_dragent:
+        volumeMounts:
     neutron_metadata_agent:
       init_container: null
       neutron_metadata_agent:
@@ -658,6 +706,10 @@ pod:
           min_ready_seconds: 0
           max_unavailable: 1
         lb_agent:
+          enabled: true
+          min_ready_seconds: 0
+          max_unavailable: 1
+        bgp_dragent:
           enabled: true
           min_ready_seconds: 0
           max_unavailable: 1
@@ -2557,6 +2609,7 @@ manifests:
   configmap_etc: true
   daemonset_dhcp_agent: true
   daemonset_l3_agent: true
+  daemonset_bgp_dragent: false
   daemonset_lb_agent: true
   daemonset_metadata_agent: true
   daemonset_ovs_agent: true
