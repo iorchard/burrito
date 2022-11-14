@@ -444,7 +444,7 @@ spec:
   - metadata:
       name: ingress-client-body-vol
     spec:
-      accessModes: ["ReadWriteOnce"]
+      accessModes: ["{{ .Values.client_body_volume.access_modes }}"]
       resources:
         requests:
           storage: {{ .Values.client_body_volume.size }}
