@@ -70,7 +70,7 @@
 
 - name: Provision | create dependency chart directory for osh
   ansible.builtin.file:
-    path: "{{ osh_infra }}/{{ item }}/charts"
+    path: "{{ osh_path }}/{{ item }}/charts"
     state: directory
     mode: "0755"
   loop: "{{ osh_charts }}"
