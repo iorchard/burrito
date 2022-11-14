@@ -1,6 +1,6 @@
 ---
 - name: Provision | create openstack namespace
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     name: openstack
     api_version: v1
     kind: Namespace
@@ -40,8 +40,24 @@
   loop: "{{ osh_infra_charts }}"
   tags: osh-infra
 
+- name: Provision | create dependency chart directory
+  ansible.builtin.file:
+    path: "{{ osh_infra_path }}/{{ item }}/charts"
+    state: directory
+    mode: "0755"
+  loop: "{{ osh_infra_charts }}"
+  tags: osh-infra
+
+- name: Provision | symlink helm-toolkit dependency chart
+  ansible.builtin.file:
+    dest: "{{ osh_infra_path }}/{{ item }}/charts/helm-toolkit"
+    src: "{{ osh_infra_path }}/helm-toolkit"
+    state: link
+  loop: "{{ osh_infra_charts }}"
+  tags: osh-infra
+
 - name: Provision | deploy osh infra charts
-  community.kubernetes.helm:
+  kubernetes.core.helm:
     name: "{{ item }}"
     chart_ref: "{{ osh_infra_path }}/{{ item }}"
     release_namespace: openstack
@@ -61,7 +77,7 @@
   tags: osh
 
 - name: Provision | deploy osh charts
-  community.kubernetes.helm:
+  kubernetes.core.helm:
     release_name: "{{ item }}"
     chart_ref: "{{ osh_path }}/{{ item }}"
     release_namespace: openstack

@@ -21,8 +21,8 @@ endpoints:
         default: 8443
 client_body_volume:
   access_modes: "ReadWriteOnce"
-  size: 10Gi
-  class_name: rbd
+  size: {{ ingress.volume_size }}
+  class_name: {{ storageclass_name }}
 manifests:
   pvc_client_body: true
 ...
