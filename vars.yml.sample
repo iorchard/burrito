@@ -20,10 +20,8 @@ lvm_volumes:
 
 ## kubespray                        #
 # default pod replicas == # of controllers
-#pod:
-#  replicas: "{{ groups['controllers']|length }}"
 pod:
-  replicas: 1
+  replicas: "{{ groups['controller-node']|length }}"
 
 ### registry
 registry_storage_class: "rbd"
