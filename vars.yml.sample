@@ -1,7 +1,13 @@
 ---
-#####################################
+## common
+common_password: '<password>'
+# define network interface names
+svc_iface_name: eth0
+mgmt_iface_name: eth1
+provider_iface_name: eth2
+overlay_iface_name: eth3
+
 ## ceph-ansible                     #
-#####################################
 # ceph network cidr - recommend the same cidr for public/cluster networks.
 public_network: 192.168.24.0/24
 cluster_network: "{{ public_network }}"
@@ -12,11 +18,7 @@ lvm_volumes:
   - data: /dev/sdc
   - data: /dev/sdd
 
-#####################################
 ## kubespray                        #
-#####################################
-### common
-common_password: '<password>'
 # default pod replicas == # of controllers
 #pod:
 #  replicas: "{{ groups['controllers']|length }}"
@@ -28,36 +30,14 @@ registry_storage_class: "rbd"
 registry_disk_size: "30Gi"
 
 ### keepalived role variables
-keepalived_interface: "eth1"
+keepalived_interface: "{{ mgmt_iface_name }}"
 keepalived_vip: "192.168.21.90"
-keepalived_interface_svc: "eth0"
+keepalived_interface_svc: "{{ svc_iface_name }}"
 keepalived_vip_svc: "192.168.20.90"
 
-# neutron
-neutron:
-  tunnel: eth3
-  tunnel_compute: eth3
-  password: "{{ common_password }}"
-neutron_ml2_plugin: "ovs"
-ovs_dvr: true
-ovs_provider:
-  - name: external
-    bridge: br-ex
-    iface: eth2
-    vlan_ranges: ""
-bgp_dragent: true
-
-# nova
-nova:
-  vncserver_proxyclient_interface: "eth1"
-  hypervisor_host_interface: "eth1"
-  libvirt_live_migration_interface: "eth1"
-  password: "{{ common_password }}"
-  
 # ceph_provisioners
 ceph_public_network: "192.168.24.0/24"
 ceph_cluster_network: "{{ ceph_public_network }}"
-
 
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
@@ -131,6 +111,32 @@ copy_admin_key: true
 
 
 ### kubespray 
+## calico
+calico_network_backend: bird
+calico_ipip_mode: 'Never'
+calico_vxlan_mode: 'Never'
+
+# neutron
+neutron:
+  tunnel: "{{ overlay_iface_name }}"
+  tunnel_compute: "{{ overlay_iface_name }}"
+  password: "{{ common_password }}"
+neutron_ml2_plugin: "ovs"
+ovs_dvr: true
+ovs_provider:
+  - name: external
+    bridge: br-ex
+    iface: "{{ provider_iface_name }}"
+    vlan_ranges: ""
+bgp_dragent: true
+
+# nova
+nova:
+  vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
+  hypervisor_host_interface: "{{ mgmt_iface_name }}"
+  libvirt_live_migration_interface: "mgmt_iface_name }}"
+  password: "{{ common_password }}"
+  
 ## openstack role variables
 storageclass_name: "rbd"
 # ingress
@@ -188,6 +194,9 @@ registry_service_type: "NodePort"
 registry_service_nodeport: "32680"
 containerd_insecure_registries:
   "{{ keepalived_vip }}:32680": "http://{{ keepalived_vip }}:32680"
+
+### ceph-csi role variables
+#ceph_monitors: ["{% for h in groups['mons'] %}{{ hostvars[h].monitor_address }}{% if not loop.last %},{% endif %}{% endfor %}"]
 
 ### btx
 btx:
