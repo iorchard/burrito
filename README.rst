@@ -196,6 +196,16 @@ Install burrito.::
    $ sudo helm plugin install https://github.com/databus23/helm-diff
    $ ansible-playbook --extra-vars=@vars.yml burrito.yml
 
+Check openstack status.::
+
+   $ . ~/.btx.env
+   $ bts
+   btx@btx-0:/$ openstack volume service list
+   btx@btx-0:/$ openstack network agent list
+   btx@btx-0:/$ openstack compute service list
+
+All services should be up and running.
+
 Test
 ------
 
