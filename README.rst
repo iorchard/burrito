@@ -30,11 +30,11 @@ Install packages
 
 For deploy node::
 
-   $ sudo dnf -y install git python3 python39 python3-cryptography
+   $ sudo dnf -y install git python3 python39 python3-cryptography epel-release
 
 For other nodes::
 
-   $ sudo dnf -y install python3 
+   $ sudo dnf -y install python3 epel-release
 
 Create ssh key pair and distribute the public key to all other nodes.::
 
@@ -187,11 +187,15 @@ Check ceph health.::
 
    $ sudo ceph -s
 
-Install k8s. (20m)::
+Install k8s.::
 
    $ ansible-playbook --extra-vars=@vars.yml -b k8s.yml
 
-Install burrito. (26m)::
+Check kubernetes node status.::
+
+   $ sudo kubectl get nodes
+
+Install burrito.::
 
    $ sudo helm plugin install https://github.com/databus23/helm-diff
    $ ansible-playbook --extra-vars=@vars.yml burrito.yml
