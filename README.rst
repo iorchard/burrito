@@ -63,18 +63,9 @@ Go to burrito.::
 
    $ cd burrito
 
-Install requirements.::
+Run prepare.sh script.::
 
-   $ python -m pip install -U pip
-   $ python -m pip install wheel
-   $ python -m pip install -r requirements.txt
-   $ ansible-galaxy install -r ceph-ansible/requirements.yml
-
-Copy sample files.::
-
-   $ cp ansible.cfg.sample ansible.cfg
-   $ cp hosts.sample hosts
-   $ cp vars.yml.sample vars.yml
+   $ ./prepare.sh
 
 Edit hosts.::
 
