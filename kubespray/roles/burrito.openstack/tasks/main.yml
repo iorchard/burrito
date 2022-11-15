@@ -67,6 +67,7 @@
     name: "{{ item }}"
     chart_ref: "{{ osh_infra_path }}/{{ item }}"
     release_namespace: openstack
+    timeout: "10m0s"
     values_files:
       - "{{ os_artifacts_dir }}/{{ item }}.yml"
   become: true
@@ -102,6 +103,7 @@
     release_name: "{{ item }}"
     chart_ref: "{{ osh_path }}/{{ item }}"
     release_namespace: openstack
+    timeout: "10m0s"
     values_files:
       - "{{ os_artifacts_dir }}/{{ item }}.yml"
       - "{{ osh_path }}/{{ item }}/values_overrides/yoga-ubuntu_focal.yaml"
