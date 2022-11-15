@@ -23,10 +23,6 @@ lvm_volumes:
 pod:
   replicas: "{{ groups['controller-node']|length }}"
 
-### registry
-registry_storage_class: "rbd"
-registry_disk_size: "30Gi"
-
 ### keepalived role variables
 keepalived_interface: "{{ mgmt_iface_name }}"
 keepalived_vip: "192.168.21.90"
@@ -188,6 +184,8 @@ ceph_rgw_port: 7480
 ### Registry deployment
 registry_enabled: true
 registry_namespace: kube-system
+registry_storage_class: "rbd"
+registry_disk_size: "30Gi"
 registry_service_type: "NodePort"
 registry_service_nodeport: "32680"
 containerd_insecure_registries:
