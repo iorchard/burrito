@@ -1,0 +1,7 @@
+[defaults]
+inventory = ./hosts
+nocolor = true
+host_key_checking = false
+deprecation_warnings = false
+callback_whitelist = profile_tasks
+force_valid_group_names = ignore

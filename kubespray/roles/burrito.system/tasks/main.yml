@@ -126,6 +126,13 @@
     kubectl config use-context default
   when: inventory_hostname in groups['kube-master']
 
+- name: Kubeconfig | delete clusterrolebinding 
+  ansible.builtin.command: >-
+    kubectl delete clusterrolebinding k8sview --ignore-not-found=true
+  become: true
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  run_once: true
+
 - name: Kubeconfig | bind user to view clusterrole
   ansible.builtin.command: >-
     kubectl create clusterrolebinding k8sview \

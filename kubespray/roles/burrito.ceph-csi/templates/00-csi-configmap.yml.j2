@@ -10,8 +10,8 @@ data:
       {
         "clusterID": "{{ ceph_cluster_id }}",
         "monitors": [
-{% for mon in ceph_monitors %}
-          "{{ mon }}"{% if not loop.last %},{% endif %}
+{% for h in groups['mons'] %}
+          "{{ hostvars[h].monitor_address }}"{% if not loop.last %},{% endif %}
 {% endfor %}
 
         ]

@@ -1,7 +1,6 @@
 ---
 artifacts_dir: "{{ ansible_env.HOME }}/ceph-csi-artifacts"
 ceph_cluster_id: ~
-ceph_monitors: ~
 ceph_user_id: "kube"
 ceph_user_key: ~
 ceph_pool: "kube"

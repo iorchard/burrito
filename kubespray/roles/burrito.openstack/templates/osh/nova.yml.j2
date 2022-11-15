@@ -60,7 +60,7 @@ conf:
     notifications:
       bdms_in_notifications: true
     vnc:
-      novncproxy_base_url: http://{{ keepalived[0].vip }}:30608/vnc_auto.html
+      novncproxy_base_url: http://{{ keepalived_vip }}:30608/vnc_auto.html
       server_listen_interface: {{ nova.vncserver_proxyclient_interface }}
     libvirt:
       connection_uri: "qemu+tcp://127.0.0.1/system"

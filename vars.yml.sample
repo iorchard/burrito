@@ -1,0 +1,196 @@
+---
+#####################################
+## ceph-ansible                     #
+#####################################
+# ceph network cidr - recommend the same cidr for public/cluster networks.
+public_network: 192.168.24.0/24
+cluster_network: "{{ public_network }}"
+
+# ceph osd volume device list
+lvm_volumes:
+  - data: /dev/sdb
+  - data: /dev/sdc
+  - data: /dev/sdd
+
+#####################################
+## kubespray                        #
+#####################################
+### common
+common_password: '<password>'
+# default pod replicas == # of controllers
+#pod:
+#  replicas: "{{ groups['controllers']|length }}"
+pod:
+  replicas: 1
+
+### registry
+registry_storage_class: "rbd"
+registry_disk_size: "30Gi"
+
+### keepalived role variables
+keepalived_interface: "eth1"
+keepalived_vip: "192.168.21.90"
+keepalived_interface_svc: "eth0"
+keepalived_vip_svc: "192.168.20.90"
+
+# neutron
+neutron:
+  tunnel: eth3
+  tunnel_compute: eth3
+  password: "{{ common_password }}"
+neutron_ml2_plugin: "ovs"
+ovs_dvr: true
+ovs_provider:
+  - name: external
+    bridge: br-ex
+    iface: eth2
+    vlan_ranges: ""
+bgp_dragent: true
+
+# nova
+nova:
+  vncserver_proxyclient_interface: "eth1"
+  hypervisor_host_interface: "eth1"
+  libvirt_live_migration_interface: "eth1"
+  password: "{{ common_password }}"
+  
+# ceph_provisioners
+ceph_public_network: "192.168.24.0/24"
+ceph_cluster_network: "{{ ceph_public_network }}"
+
+
+###################################################
+## Do not edit below if you are not an expert!!!  #
+###################################################
+### ceph
+dashboard_enabled: false
+configure_firewall: false
+ceph_origin: repository
+ceph_repository: community
+ceph_repository_type: cdn
+ceph_stable_release: quincy
+
+osd_objectstore: bluestore
+
+# set the size, min_size, and single_osd_node
+ceph_pool_default_size: "{% if (groups['osds']|length) > 3 %}3{% else %}2{% endif %}"
+ceph_pool_default_min_size: "{% if (groups['osds']|length) > 3 %}2{% else %}1{% endif %}"
+single_osd_node: "{% if (groups['osds']|length) == 1 %}{{ true|bool }}{% else %}{{ false|bool }}{% endif %}"
+
+ceph_conf_overrides:
+  global:
+    auth_allow_insecure_global_id_reclaim: false
+    mon_allow_pool_delete: true
+    osd_pool_default_size: "{{ ceph_pool_default_size }}"
+    osd_pool_default_min_size: "{{ ceph_pool_default_min_size }}"
+    osd_crush_chooseleaf_type: "{{ single_osd_node | ternary(0, 1) }}"
+
+# rgw
+radosgw_frontend_type: beast
+radosgw_frontend_port: 7480
+
+# openstack/k8s pools
+openstack_config: true
+kube_pool:
+  name: "kube"
+  application: "rbd"
+  target_size_ratio: 0.2
+openstack_glance_pool:
+  name: "images"
+  application: "rbd"
+  target_size_ratio: 0.3
+openstack_cinder_pool:
+  name: "volumes"
+  application: "rbd"
+  target_size_ratio: 0.3
+openstack_cinder_backup_pool:
+  name: "backups"
+  application: "rbd"
+  target_size_ratio: 0.1
+openstack_nova_vms_pool:
+  name: "vms"
+  application: "rbd"
+  target_size_ratio: 0.1
+
+openstack_pools:
+  - "{{ kube_pool }}"
+  - "{{ openstack_glance_pool }}"
+  - "{{ openstack_cinder_pool }}"
+  - "{{ openstack_cinder_backup_pool }}"
+  - "{{ openstack_nova_vms_pool }}"
+
+openstack_keys:
+  - { name: client.kube, caps: { mon: "profile rbd", osd: "profile rbd pool={{ kube_pool.name }}", mgr: "profile rbd pool={{ kube_pool.name }}" }, mode: "0600" }
+  - { name: client.glance, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_cinder_pool.name }}, profile rbd pool={{ openstack_glance_pool.name }}"}, mode: "0600" }
+  - { name: client.cinder, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_cinder_pool.name }}, profile rbd pool={{ openstack_nova_pool.name }}, profile rbd pool={{ openstack_glance_pool.name }}"}, mode: "0600" }
+  - { name: client.cinder-backup, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_cinder_backup_pool.name }}"}, mode: "0600" }
+  - { name: client.openstack, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_glance_pool.name }}, profile rbd pool={{ openstack_nova_pool.name }}, profile rbd pool={{ openstack_cinder_pool.name }}, profile rbd pool={{ openstack_cinder_backup_pool.name }}"}, mode: "0600" }
+
+# clients
+copy_admin_key: true
+
+
+### kubespray 
+## openstack role variables
+storageclass_name: "rbd"
+# ingress
+ingress:
+  volume_size: "100Gi"
+
+# mariadb
+mariadb:
+  volume_size: "30Gi"
+  admin_password: "{{ common_password }}"
+
+# rabbitmq
+rabbitmq:
+  volume_size: "768Mi"
+  password: "{{ common_password }}"
+
+# keystone
+os_admin_password: "{{ common_password }}"
+keystone:
+  password: "{{ common_password }}"
+
+# glance
+glance:
+  password: "{{ common_password }}"
+
+# placement
+placement:
+  password: "{{ common_password }}"
+
+# libvirt
+ceph_secret_uuid: 55b1a639-3ce3-470c-9205-99ea9b5045f9
+
+# cinder
+cinder:
+  password: "{{ common_password }}"
+
+# horizon
+horizon:
+  password: "{{ common_password }}"
+  timezone: "Asia/Seoul"
+
+### kubespray variables
+bin_dir: /usr/bin
+helm_enabled: true
+preinstall_selinux_state: disabled
+kube_pods_subnet: 10.233.64.0/18
+
+### haproxy role variables
+ceph_rgw_port: 7480
+
+### Registry deployment
+registry_enabled: true
+registry_namespace: kube-system
+registry_service_type: "NodePort"
+registry_service_nodeport: "32680"
+containerd_insecure_registries:
+  "{{ keepalived_vip }}:32680": "http://{{ keepalived_vip }}:32680"
+
+### btx
+btx:
+  pvc:
+    size: "20Gi"
+...

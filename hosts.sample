@@ -1,0 +1,74 @@
+bcontroll1 ansible_host=192.168.21.31 ansible_port=22 ansible_user=clex ansible_connection=local ansible_python_interpreter=/usr/bin/python3
+bcontroll2 ansible_host=192.168.21.32 ansible_port=22 ansible_user=clex 
+bcontroll3 ansible_host=192.168.21.33 ansible_port=22 ansible_user=clex
+bnetwork1 ansible_host=192.168.21.34 ansible_port=22 ansible_user=clex
+bnetwork2 ansible_host=192.168.21.35 ansible_port=22 ansible_user=clex
+bcompute1 ansible_host=192.168.21.36 ansible_port=22 ansible_user=clex
+bcompute2 ansible_host=192.168.21.37 ansible_port=22 ansible_user=clex
+bstorage1 ansible_host=192.168.21.38 monitor_address=192.168.24.38 radosgw_address=192.168.24.38 ansible_port=22 ansible_user=clex
+bstorage2 ansible_host=192.168.21.39 monitor_address=192.168.24.39 radosgw_address=192.168.24.39 ansible_port=22 ansible_user=clex
+bstorage3 ansible_host=192.168.21.40 monitor_address=192.168.24.40 radosgw_address=192.168.24.40 ansible_port=22 ansible_user=clex
+
+# ceph nodes
+[mons]
+bstorage[1:3]
+
+[mgrs]
+bstorage[1:3]
+
+[osds]
+bstorage[1:3]
+
+[rgws]
+bstorage[1:3]
+
+[clients]
+bcontroller[1:3]
+bcompute[1:2]
+
+# kubernetes nodes
+[kube-master]
+bcontroller[1:3]
+
+[kube-node]
+bcontroller[1:3]
+bnetwork[1:2]
+bcompute[1:2]
+
+# openstack nodes
+[controller-node]
+bcontroller[1:3]
+
+[network-node]
+bnetwork[1:2]
+
+[compute-node]
+bcompute[1:2]
+
+
+###################################################
+## Do not touch below if you are not an expert!!! #
+###################################################
+[ceph:children]
+mons
+mgrs
+osds
+rgws
+clients
+
+[etcd:children]
+kube-master
+
+[k8s-cluster:children]
+kube-master
+kube-node
+
+[controller-node:vars]
+node_labels={"openstack-control-plane":"enabled"}
+
+[network-node:vars]
+node_labels={"openstack-network-plane":"enabled", "openstack-network-dvr":"enabled", "linuxbridge":"enabled", "openvswitch":"enabled"}
+
+[compute-node:vars]
+node_labels={"openstack-compute-node":"enabled", "openstack-network-dvr":"enabled", "linuxbridge":"enabled", "openvswitch":"enabled"}
+

@@ -18,7 +18,8 @@ network:
 conf:
   ceph:
     global:
-      mon_host: {{ ceph_monitors | join(',') }}
+      mon_host: {% for h in groups['mons'] %}{{ hostvars[h].monitor_address }}{% if not loop.last %},{% endif %}{% endfor %}
+
 manifests:
   configmap_bin: false
   configmap_bin_common: false

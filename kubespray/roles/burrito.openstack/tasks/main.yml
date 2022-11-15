@@ -7,6 +7,12 @@
     state: present
   become: true
 
+- name: Provision | make sure to set up control plane label
+  ansible.builtin.command: >-
+    kubectl label nodes {{ item }} openstack-control-plane=enabled
+  become: true
+  loop: "{{ groups['controller-node'] }}"
+
 - name: Provision | create openstack artifacts directory
   ansible.builtin.file:
     path: "{{ os_artifacts_dir }}"

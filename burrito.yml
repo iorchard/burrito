@@ -1,0 +1,9 @@
+---
+- name: Deploy ceph burrito playbook
+  any_errors_fatal: true
+  ansible.builtin.import_playbook: ceph-ansible/burrito.yml
+
+- name: Deploy k8s burrito playbook
+  any_errors_fatal: true
+  ansible.builtin.import_playbook: kubespray/burrito.yml
+...
