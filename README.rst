@@ -179,7 +179,7 @@ Check the connection to other nodes.::
 Install
 ----------
 
-Install ceph. (15m)::
+Install ceph.::
 
    $ ansible-playbook --extra-vars=@vars.yml ceph.yml
 
