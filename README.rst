@@ -164,10 +164,6 @@ Edit vars.yml.::
    keepalived_interface_svc: "{{ svc_iface_name }}"
    keepalived_vip_svc: "192.168.20.90"
    
-   # ceph_provisioners
-   ceph_public_network: "192.168.24.0/24"
-   ceph_cluster_network: "{{ ceph_public_network }}"
-   
    ###################################################
    ## Do not edit below if you are not an expert!!!  #
    ###################################################
