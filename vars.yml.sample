@@ -217,5 +217,5 @@ horizon:
 ### btx
 btx:
   pvc:
-    size: "20Gi"
+    size: "100Gi"
 ...
