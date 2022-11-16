@@ -9,7 +9,7 @@
 
 - name: Provision | make sure to set up control plane label
   ansible.builtin.command: >-
-    kubectl label nodes {{ item }} openstack-control-plane=enabled
+    kubectl label nodes --overwrite {{ item }} openstack-control-plane=enabled
   become: true
   loop: "{{ groups['controller-node'] }}"
 
