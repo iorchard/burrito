@@ -29,6 +29,10 @@ keepalived_vip: "192.168.21.90"
 keepalived_interface_svc: "{{ svc_iface_name }}"
 keepalived_vip_svc: "192.168.20.90"
 
+### MTU setting
+calico_mtu: 1500
+openstack_mtu: 1500
+
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
 ###################################################
@@ -101,6 +105,7 @@ copy_admin_key: true
 
 
 ### kubespray 
+download_run_once: true
 bin_dir: /usr/bin
 kube_version: v1.24.7
 kube_proxy_strict_arp: true

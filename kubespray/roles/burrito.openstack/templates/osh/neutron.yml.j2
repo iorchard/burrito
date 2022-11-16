@@ -84,7 +84,7 @@ conf:
       debug: True
       router_distributed: True
       core_plugin: ml2
-      global_physnet_mtu: 1500
+      global_physnet_mtu: {{ openstack_mtu }}
       service_plugins: neutron_dynamic_routing.services.bgp.bgp_plugin.BgpPlugin,neutron.services.l3_router.l3_router_plugin.L3RouterPlugin
       #service_plugins: router
       l3_ha_network_type: vxlan
