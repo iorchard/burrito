@@ -1,6 +1,6 @@
 [default]
 access_key = {{ ceph_rgw_access_key }}
 secret_key = {{ ceph_rgw_secret_key }}
-host_base = {{ keepalived_vip }}:{{ radosgw_frontend_port }}
-host_bucket = {{ keepalived_vip }}:{{ radosgw_frontend_port }}/%(bucket)
+host_base = {{ keepalived_vip_svc }}:{{ radosgw_frontend_port }}
+host_bucket = {{ keepalived_vip_svc }}:{{ radosgw_frontend_port }}/%(bucket)
 use_https = false
