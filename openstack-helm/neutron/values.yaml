@@ -611,36 +611,72 @@ pod:
       init_container: null
       neutron_server:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     neutron_dhcp_agent:
       init_container: null
       neutron_dhcp_agent:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     neutron_l3_agent:
       init_container: null
       neutron_l3_agent:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     neutron_lb_agent:
       init_container: null
       neutron_lb_agent:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     neutron_bgp_dragent:
       init_container: null
       neutron_bgp_dragent:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
+        volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     neutron_metadata_agent:
       init_container: null
       neutron_metadata_agent:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     neutron_ovs_agent:
       init_container: null
       neutron_ovs_agent:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     neutron_sriov_agent:
       init_container: null
       neutron_sriov_agent:

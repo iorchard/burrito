@@ -901,7 +901,12 @@ pod:
       init_container: null
       glance_api:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     glance_tests:
       init_container: null
       glance_tests:

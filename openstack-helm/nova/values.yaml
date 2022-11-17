@@ -2171,7 +2171,12 @@ pod:
       init_container: null
       nova_compute:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     nova_compute_ironic:
       init_container: null
       nova_compute_ironic:
@@ -2181,22 +2186,42 @@ pod:
       init_container: null
       nova_api_metadata:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     nova_api_osapi:
       init_container: null
       nova_api_osapi:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     nova_conductor:
       init_container: null
       nova_conductor:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     nova_scheduler:
       init_container: null
       nova_scheduler:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     nova_bootstrap:
       init_container: null
       nova_bootstrap:
@@ -2211,7 +2236,12 @@ pod:
       init_novncproxy: null
       nova_novncproxy:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     nova_spiceproxy:
       init_spiceproxy: null
       nova_spiceproxy:

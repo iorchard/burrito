@@ -245,7 +245,12 @@ pod:
       init_container: null
       keystone_api:
         volumeMounts:
+          - mountPath: /etc/localtime
+            name: timezone
         volumes:
+          - hostPath:
+              path: /etc/localtime
+            name: timezone
     keystone_tests:
       init_container: null
       keystone_tests:
