@@ -33,17 +33,32 @@
   ansible.builtin.set_fact:
     ceph_rgw_secret_key: "{% if create_user.changed %}{{ create_user.stdout | from_json | community.general.json_query('keys[0].secret_key') }}{% else %}{{ user_info.stdout | from_json | community.general.json_query('keys[0].secret_key') }}{% endif %}"
 
-- name: RGW | template s3 config file
+- name: RGW | template s3 config file for storage node
   ansible.builtin.template:
     src: "s3cfg.j2"
     dest: "{{ ansible_env.HOME }}/.s3cfg"
     mode: "0600"
   when: inventory_hostname in groups['rgws']
 
+- name: RGW | template s3 config file for controller node
+  ansible.builtin.template:
+    src: "s3cfg_controller.j2"
+    dest: "{{ ansible_env.HOME }}/.s3cfg"
+    mode: "0600"
+  when: inventory_hostname in groups['kube-master']
+
 - name: RGW | add a bucket for cloudpc
   command: >-
     s3cmd mb s3://{{ item }}
   loop: "{{ ceph_rgw_buckets }}"
   delegate_to: "{{ groups['rgws'][0] }}"
+  run_once: true
+
+- name: RGW | create s3cfg secret
+  ansible.builtin.command: >-
+    kubectl -n openstack create secret generic s3cfg \
+      --from-file=s3cfg={{ ansible_env.HOME }}/.s3cfg
+  become: true
+  delegate_to: "{{ groups['kube-master'][0] }}"
   run_once: true
 ...

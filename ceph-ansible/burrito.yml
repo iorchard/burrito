@@ -1,6 +1,6 @@
 ---
 - name: setup rados gateway user
-  hosts: rgws
+  hosts: rgws:kube-master
   gather_facts: true
   any_errors_fatal: true
 
