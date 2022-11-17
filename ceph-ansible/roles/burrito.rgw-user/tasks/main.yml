@@ -54,11 +54,24 @@
   delegate_to: "{{ groups['rgws'][0] }}"
   run_once: true
 
+- name: RGW | read s3cfg content
+  ansible.builtin.slurp:
+    src: "{{ ansible_env.HOME }}/.s3cfg"
+  register: dots3cfg
+  delegate_to: localhost
+  run_once: true
+
+- name: RGW | set fact for s3cfg_secret
+  ansible.builtin.set_fact:
+    s3cfg_secret: "{{ dots3cfg.content }}"
+  delegate_to: localhost
+  run_once: true
+
 - name: RGW | create s3cfg secret
-  ansible.builtin.command: >-
-    kubectl -n openstack create secret generic s3cfg \
-      --from-file=s3cfg={{ ansible_env.HOME }}/.s3cfg
+  kubernetes.core.k8s:
+    state: present
+    template: "s3cfg_secret.yml.j2"
   become: true
-  delegate_to: "{{ groups['kube-master'][0] }}"
+  delegate_to: localhost
   run_once: true
 ...
