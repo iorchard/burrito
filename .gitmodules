@@ -3,4 +3,4 @@
 	url = https://github.com/iorchard/btx
 [submodule "nova_compute_sshkey_copy"]
 	path = nova_compute_sshkey_copy
-	url = https://github.com/iorchard/nova_compute_sshkey_copy
+	url = https://github.com/iorchard/nova_compute_sshkey_copy.git
