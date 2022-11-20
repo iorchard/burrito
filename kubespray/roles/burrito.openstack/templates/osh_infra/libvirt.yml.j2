@@ -11,4 +11,6 @@ conf:
       user: cinder
       keyring: {{ ceph_cinder_key }}
       secret_uuid: {{ ceph_secret_uuid }}
+  libvirt:
+    listen_addr: 0.0.0.0
 ...
