@@ -6,7 +6,7 @@ Burrito is the OpenStack on Kubernetes Platform.
 Supported OS
 ---------------
 
-* Rokcy Linux 8.x
+* Rocky Linux 8.x
 
 Assumptions
 -------------
