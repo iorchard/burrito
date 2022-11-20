@@ -1,3 +1,6 @@
-[submodule "rockylinux8/btx"]
+[submodule "btx"]
 	path = btx
 	url = https://github.com/iorchard/btx
+[submodule "nova_compute_sshkey_copy"]
+	path = nova_compute_sshkey_copy
+	url = https://github.com/iorchard/nova_compute_sshkey_copy

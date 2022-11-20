@@ -205,6 +205,9 @@ nova:
   libvirt_live_migration_interface: "{{ mgmt_iface_name }}"
   password: "{{ common_password }}"
 
+nova_uid: 42424
+nova_gid: 42424
+
 # cinder
 cinder:
   password: "{{ common_password }}"
