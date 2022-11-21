@@ -140,7 +140,7 @@ registry_disk_size: "30Gi"
 registry_service_type: "NodePort"
 registry_service_nodeport: "32680"
 containerd_insecure_registries:
-  "{{ keepalived_vip }}:32680": "http://{{ keepalived_vip }}:32680"
+  "local_registry": "{{ keepalived_vip }}:32680"
 
 ### burrito variables
 ## haproxy role variables
