@@ -4,6 +4,11 @@
   ansible.builtin.import_playbook: ceph-ansible/burrito.yml
   tags: ceph-burrito
 
+- name: Deploy nova vnc TLS certificates
+  any_errors_fatal: true
+  ansible.builtin.import_playbook: nova_vnc_cert/site.yml
+  tags: novavnc-burrito
+
 - name: Deploy k8s burrito playbook
   any_errors_fatal: true
   ansible.builtin.import_playbook: kubespray/burrito.yml

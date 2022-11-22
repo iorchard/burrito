@@ -60,8 +60,12 @@ conf:
     notifications:
       bdms_in_notifications: true
     vnc:
+      auth_schemes: vencrypt
+      vencrypt_client_key: /etc/pki/nova-novncproxy/client-key.pem
+      vencrypt_client_cert: /etc/pki/nova-novncproxy/client-cert.pem
+      vencrypt_ca_certs: /etc/pki/nova-novncproxy/ca-cert.pem
       novncproxy_base_url: http://{{ keepalived_vip_svc }}:30608/vnc_auto.html
-      server_listen_interface: {{ nova.vncserver_proxyclient_interface }}
+      #server_listen_interface: {{ nova.vncserver_proxyclient_interface }}
     libvirt:
       connection_uri: "qemu+tcp://127.0.0.1/system"
       images_type: qcow2
@@ -186,4 +190,22 @@ pod:
     conductor: {{ pod.replicas }}
     scheduler: {{ pod.replicas }}
     novncproxy: {{ pod.replicas }}
+  mounts:
+    nova_novncproxy:
+      nova_novncproxy:
+        volumeMounts:
+        - name: vnc-client-secret
+          mountPath: /etc/pki/nova-novncproxy
+          readOnly: true
+        volumes:
+        - name: vnc-client-secret
+          secret:
+            secretName: vnc-client-secret
+            items:
+            - key: ca_crt
+              path: ca-cert.pem
+            - key: client_crt
+              path: client-cert.pem
+            - key: client_key
+              path: client-key.pem
 ...

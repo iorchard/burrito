@@ -1,5 +1,9 @@
 ---
-release_group: null
+#images:
+#  tags:
+#    #libvirt: 192.168.21.90:32680/burrito/cloudpc-libvirt:train-gnutls
+#    libvirt: 192.168.151.110/burrito/rockylinux-source-nova-cloudpc-libvirt:yoga
+
 network:
   backend:
   - openvswitch
@@ -13,4 +17,33 @@ conf:
       secret_uuid: {{ ceph_secret_uuid }}
   libvirt:
     listen_addr: 0.0.0.0
+  qemu:
+    vnc_tls: 1
+    vnc_tls_x509_cert_dir: "/etc/pki/libvirt-vnc"
+    vnc_tls_x509_verify: 1
+#    group: "cinder"
+#    spice_tls: 1
+#    spice_tls_x509_cert_dir: "/etc/pki/libvirt-spice"
+#    seccomp_sandbox: 1
+#    spice_listen: 0.0.0.0
+pod:
+  mounts:
+    libvirt:
+      init_container: null
+      libvirt:
+        volumeMounts:
+        - name: vnc-server-secret
+          mountPath: /etc/pki/libvirt-vnc
+          readOnly: true
+        volumes:
+        - name: vnc-server-secret
+          secret:
+            secretName: vnc-server-secret
+            items:
+            - key: ca_crt
+              path: ca-cert.pem
+            - key: server_crt
+              path: server-cert.pem
+            - key: server_key
+              path: server-key.pem
 ...

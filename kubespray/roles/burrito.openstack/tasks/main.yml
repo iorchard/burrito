@@ -72,7 +72,7 @@
       - "{{ os_artifacts_dir }}/{{ item }}.yml"
   become: true
   loop: "{{ osh_infra_charts }}"
-  tags: osh-infra
+  tags: ["osh-infra", "deploy-chart"]
 
 - name: Provision | create dependency chart directory for osh
   ansible.builtin.file:
@@ -109,7 +109,7 @@
       - "{{ osh_path }}/{{ item }}/values_overrides/yoga-ubuntu_focal.yaml"
   become: true
   loop: "{{ osh_charts }}"
-  tags: osh
+  tags: ["osh", "deploy-chart"]
 
 - name: Provision | templating btx chart values
   ansible.builtin.template:

@@ -4,3 +4,6 @@
 [submodule "nova_compute_sshkey_copy"]
 	path = nova_compute_sshkey_copy
 	url = https://github.com/iorchard/nova_compute_sshkey_copy.git
+[submodule "nova_vnc_cert"]
+	path = nova_vnc_cert
+	url = https://github.com/iorchard/nova_vnc_cert.git
