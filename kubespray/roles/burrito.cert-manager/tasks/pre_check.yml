@@ -1,0 +1,15 @@
+---
+- name: Pre-check | get k8s cluster info
+  ansible.builtin.command: >-
+    {{ kubectl_cmd }} cluster-info
+  register: k8s_info
+  become: true
+  failed_when: k8s_info.rc != 0
+
+- name: Pre-check | get ca-key-pair secret
+  ansible.builtin.command: >-
+    {{ kubectl_cmd }} get ca-key-pair -n cert-manager
+  register: ca_key_pair_result
+  become: true
+  failed_when: ca_key_pair_result.rc not in [0, 1]
+...

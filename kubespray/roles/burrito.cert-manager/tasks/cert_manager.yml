@@ -1,0 +1,39 @@
+---
+- name: Cert Manager | read CA certificate
+  ansible.builtin.slurp:
+    path: "{{ cert_manager_ca.crt }}"
+  register: ca_certificate
+  when: ca_key_pair_result.rc != 0
+
+- name: Cert Manager | read CA private key
+  ansible.builtin.slurp:
+    path: "{{ cert_manager_ca.key }}"
+  register: ca_private_key
+  when: ca_key_pair_result.rc != 0
+
+- name: Cert Manager | set fact for CA certificate and key
+  set_fact:
+    ca_cert: "{{ ca_certificate.content }}"
+    ca_key: "{{ ca_private_key.content }}"
+  when: ca_key_pair_result.rc != 0
+
+- name: Cert Manager | apply ca-key-pair manifest
+  kubernetes.core.k8s:
+    state: present
+    template: 'ca-key-pair.yml.j2'
+  become: true
+  when: ca_key_pair_result.rc != 0
+
+- name: Cert Manager | apply ClusterIssuer manifest
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: ca-issuer
+      spec:
+        ca:
+          secretName: ca-key-pair
+  become: true
+...

@@ -1,0 +1,13 @@
+---
+# VeNCrypt variables
+cert_manager_dir: "/tmp/cert_manager"
+cert_manager_days: 3650
+cert_manager_ca: {
+  key: "{{ cert_manager_dir }}/ca-key.pem", 
+  csr: "{{ cert_manager_dir }}/ca-csr.pem", 
+  crt: "{{ cert_manager_dir }}/ca-cert.pem",
+  info: "{{ cert_manager_dir }}/ca.info", 
+  cn: "SKBroadband",
+}
+kubectl_cmd: "kubectl"
+...

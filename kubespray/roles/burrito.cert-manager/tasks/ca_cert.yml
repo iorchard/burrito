@@ -1,0 +1,17 @@
+---
+- name: CA Cert | create CA private key
+  shell: >-
+    certtool --generate-privkey > {{ cert_manager_ca.key }}
+
+- name: CA Cert | template ca.info 
+  template:
+    dest: "{{ cert_manager_ca.info }}"
+    src: "ca.info.j2"
+
+- name: CA Cert | create CA certificate
+  command: >-
+    certtool --generate-self-signed --bits=4096 \
+      --load-privkey {{ cert_manager_ca.key }} \
+      --template {{ cert_manager_ca.info }} \
+      --outfile {{ cert_manager_ca.crt }}
+...
