@@ -5,6 +5,12 @@
   roles:
     - {role: burrito.ceph-csi, tags: ['ceph-csi', 'burrito']}
 
+- name: setup cert-manager
+  hosts: localhost
+  any_errors_fatal: true
+  roles:
+    - { role: burrito.cert-manager, tags: ['cert-manager', 'burrito']}
+
 - name: setup haproxy
   hosts: kube-master
   any_errors_fatal: true
