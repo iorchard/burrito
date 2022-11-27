@@ -14,46 +14,6 @@ network:
     ingress:
       annotations:
         nginx.ingress.kubernetes.io/proxy-body-size: 102400M
-endpoints:
-  identity:
-    name: keystone
-    auth:
-      admin:
-        cacert: /etc/ssl/certs/openstack-helm.crt
-        username: admin
-        password: {{ os_admin_password }}
-    scheme:
-      default: https
-    port:
-      api:
-        default: 8443
-        public: 8443
-  dashboard:
-    host_fqdn_override:
-      default:
-        tls:
-          secretName: horizon-tls-web
-          issuerRef:
-            name: ca-issuer
-            kind: ClusterIssuer
-    scheme:
-      default: https
-      public: https
-    port:
-      web:
-        public: 443
-  oslo_db:
-    auth:
-      admin:
-        username: root
-        password: {{ mariadb.admin_password }}
-      horizon:
-        username: horizon
-        password: {{ horizon.password }}
-  ingress:
-    port:
-      ingress:
-        default: 8443
 conf:
   software:
     apache2:
@@ -130,6 +90,47 @@ conf:
         session_cookie_secure: "True"
         session_cookie_httponly: "True"
         timezone: "{{ horizon.timezone }}"
+endpoints:
+  identity:
+    name: keystone
+    auth:
+      admin:
+        cacert: /etc/ssl/certs/openstack-helm.crt
+        username: admin
+        password: {{ os_admin_password }}
+    scheme:
+      default: https
+    port:
+      api:
+        default: 8443
+        public: 8443
+  dashboard:
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: horizon-tls-web
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
+    scheme:
+      default: https
+      public: https
+    port:
+      web:
+        default: 443
+        public: 443
+  ingress:
+    port:
+      ingress:
+        default: 8443
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: {{ mariadb.admin_password }}
+      horizon:
+        username: horizon
+        password: {{ horizon.password }}
 manifests:
   certificates: true
 ...
