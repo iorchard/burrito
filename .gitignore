@@ -1,0 +1,7 @@
+*.bak
+ansible.cfg
+hosts
+vars.yml
+artifacts
+charts
+__pycache__
