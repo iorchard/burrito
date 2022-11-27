@@ -60,7 +60,7 @@ endpoints:
       default: https
     port:
       api:
-        default: 443
+        default: 8443
   placement:
     host_fqdn_override:
       default:
@@ -74,7 +74,7 @@ endpoints:
       service: https
     port:
       api:
-        public: 443
+        public: 8443
 manifests:
   certificates: true
 ...

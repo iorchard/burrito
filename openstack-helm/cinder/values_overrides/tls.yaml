@@ -82,19 +82,19 @@ endpoints:
       default: https
     port:
       api:
-        default: 443
+        default: 8443
   image:
     scheme:
       default: https
     port:
       api:
-        public: 443
+        public: 8443
   image_registry:
     scheme:
       default: https
     port:
       api:
-        public: 443
+        public: 8443
   volumev3:
     host_fqdn_override:
       default:
@@ -108,11 +108,11 @@ endpoints:
       internal: https
     port:
       api:
-        public: 443
+        public: 8443
   ingress:
     port:
       ingress:
-        default: 443
+        default: 8443
   oslo_messaging:
     port:
       https:

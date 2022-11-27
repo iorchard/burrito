@@ -19,6 +19,15 @@ pod:
   replicas:
     server: {{ pod.replicas }}
     ingress: {{ pod.replicas }}
+  security_context:
+    server:
+      container:
+        perms:
+          readOnlyRootFilesystem: false
+        mariadb:
+          runAsUser: 0
+          allowPrivilegeEscalation: true
+          readOnlyRootFilesystem: false
 volume:
   enabled: true
   class_name: {{ storageclass_name }}
@@ -28,6 +37,13 @@ volume:
     size: 5Gi
 endpoints:
   oslo_db:
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: mariadb-tls-direct
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
     auth:
       admin:
         username: root
@@ -41,4 +57,6 @@ conf:
   db_acl:
     enabled: true
     cidr: {{ kube_pods_subnet }}
+manifests:
+  certificates: true
 ...

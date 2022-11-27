@@ -85,7 +85,7 @@ conf:
   metadata_agent:
     DEFAULT:
       auth_ca_cert: /etc/ssl/certs/openstack-helm.crt
-      nova_metadata_port: 443
+      nova_metadata_port: 8443
       nova_metadata_protocol: https
 endpoints:
   compute:
@@ -93,13 +93,13 @@ endpoints:
       default: https
     port:
       api:
-        public: 443
+        public: 8443
   compute_metadata:
     scheme:
       default: https
     port:
       metadata:
-        public: 443
+        public: 8443
   identity:
     auth:
       admin:
@@ -114,7 +114,7 @@ endpoints:
       default: https
     port:
       api:
-        default: 443
+        default: 8443
   network:
     host_fqdn_override:
       default:
@@ -127,11 +127,11 @@ endpoints:
       default: https
     port:
       api:
-        public: 443
+        public: 8443
   ingress:
     port:
       ingress:
-        default: 443
+        default: 8443
   oslo_messaging:
     port:
       https:

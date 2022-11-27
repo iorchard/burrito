@@ -1,4 +1,18 @@
 ---
+images:
+  tags:
+    nginx: docker.io/nginx:1.18.0
+network:
+  server:
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/backend-protocol: "https"
+  backend:
+  - openvswitch
+  share_namespaces: true
+  interface:
+    tunnel: {{ neutron.tunnel }}
+    tunnel_compute: {{ neutron.tunnel_compute }}
 labels:
   agent:
     dhcp:
@@ -22,14 +36,15 @@ labels:
   test:
     node_selector_key: openstack-network-plane
     node_selector_value: enabled
-network:
-  backend:
-  - openvswitch
-  share_namespaces: true
-  interface:
-    tunnel: {{ neutron.tunnel }}
-    tunnel_compute: {{ neutron.tunnel_compute }}
 pod:
+  resources:
+    nginx:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "1024Mi"
+        cpu: "2000m"
   probes:
     bgp_dragent:
       bgp_dragent:
@@ -48,6 +63,12 @@ pod:
   replicas:
     server: {{ pod.replicas }}
   security_context:
+    neutron_server:
+      pod:
+        runAsUser: 0
+      container:
+        neutron_server:
+          readOnlyRootFilesystem: false
     neutron_bgp_dragent:
       pod:
         runAsUser: 42435
@@ -79,8 +100,57 @@ pod:
 conf:
   db_acl:
     enabled: true
+{% raw %}
+  nginx: |
+    worker_processes 1;
+    daemon off;
+    user nginx;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+
+      sendfile on;
+      keepalive_timeout 65s;
+      tcp_nodelay on;
+
+      log_format main '[nginx] method=$request_method path=$request_uri '
+                      'status=$status upstream_status=$upstream_status duration=$request_time size=$body_bytes_sent '
+                      '"$remote_user" "$http_referer" "$http_user_agent"';
+
+      access_log /dev/stdout  main;
+
+      upstream websocket {
+        server 127.0.0.1:$PORT;
+      }
+
+      server {
+        server_name {{ printf "%s.%s.svc.%s" "${SHORTNAME}" .Release.Namespace .Values.endpoints.cluster_domain_suffix }};
+        listen $POD_IP:$PORT ssl;
+
+        client_max_body_size  0;
+
+        ssl_certificate      /etc/nginx/certs/tls.crt;
+        ssl_certificate_key  /etc/nginx/certs/tls.key;
+        ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
+
+        location / {
+          proxy_pass_request_headers on;
+
+          proxy_http_version  1.1;
+          proxy_pass          http://websocket;
+          proxy_read_timeout  90;
+        }
+      }
+    }
+{% endraw %}
   neutron:
     DEFAULT:
+      bind_host: 127.0.0.1
       debug: True
       router_distributed: True
       core_plugin: ml2
@@ -89,6 +159,15 @@ conf:
       #service_plugins: router
       l3_ha_network_type: vxlan
       dhcp_agents_per_network: 2
+    nova:
+      cafile: /etc/neutron/certs/ca.crt
+    keystone_authtoken:
+      cafile: /etc/neutron/certs/ca.crt
+    oslo_messaging_rabbit:
+      ssl: true
+      ssl_ca_file: /etc/rabbitmq/certs/ca.crt
+      ssl_cert_file: /etc/rabbitmq/certs/tls.crt
+      ssl_key_file: /etc/rabbitmq/certs/tls.key
     quotas:
       quota_network: -1
       quota_subnet: -1
@@ -147,7 +226,10 @@ conf:
       force_metadata: True
   metadata_agent:
     DEFAULT:
-      nova_metadata_port: 8080
+      nova_metadata_port: 8443
+      auth_ca_cert: /etc/ssl/certs/openstack-helm.crt
+      nova_metadata_protocol: https
+
 endpoints:
   oslo_db:
     auth:
@@ -158,6 +240,9 @@ endpoints:
         username: neutron
         password: {{ neutron.password }}
   oslo_messaging:
+    port:
+      https:
+        default: 15680
     auth:
       admin:
         username: rabbitmq
@@ -170,30 +255,54 @@ endpoints:
     name: keystone
     auth:
       admin:
+        cacert: /etc/ssl/certs/openstack-helm.crt
         username: admin
         password: {{ os_admin_password }}
       neutron:
+        cacert: /etc/ssl/certs/openstack-helm.crt
         username: neutron
         password: {{ neutron.password }}
       nova:
+        cacert: /etc/ssl/certs/openstack-helm.crt
         username: nova
         password: {{ nova.password }}
+      test:
+        cacert: /etc/ssl/certs/openstack-helm.crt
+    scheme:
+      default: https
     port:
       api:
-        default: 8080
-        public: 8080
+        default: 8443
+        public: 8443
   compute:
+    scheme:
+      default: https
     port:
       api:
-        public: 8080
+        public: 8443
   compute_metadata:
+    scheme:
+      default: https
     port:
       metadata:
-        public: 8080
+        public: 8443
   network:
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: neutron-tls-server
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
+    scheme:
+      default: https
     port:
       api:
-        public: 8080
+        public: 8443
+  ingress:
+    port:
+      ingress:
+        default: 8443
 
 manifests:
   daemonset_lb_agent: false
@@ -201,4 +310,5 @@ manifests:
   daemonset_sriov_agent: false
   daemonset_metadata_agent: true
   daemonset_bgp_dragent: true
+  certificates: true
 ...

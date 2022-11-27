@@ -8,6 +8,19 @@ images:
     dep_check: quay.io/airshipit/kubernetes-entrypoint:v1.0.0
     scripted_test: docker.io/library/rabbitmq:3.9.0-management
     image_repo_sync: docker.io/library/docker:17.07.0
+conf:
+  rabbitmq:
+    ssl_options:
+      cacertfile: "/etc/rabbitmq/certs/ca.crt"
+      certfile: "/etc/rabbitmq/certs/tls.crt"
+      keyfile: "/etc/rabbitmq/certs/tls.key"
+      verify: verify_peer
+      fail_if_no_peer_cert: false
+    management:
+      ssl:
+        cacertfile: "/etc/rabbitmq/certs/ca.crt"
+        certfile: "/etc/rabbitmq/certs/tls.crt"
+        keyfile: "/etc/rabbitmq/certs/tls.key"
 pod:
   replicas:
     server: {{ pod.replicas }}
@@ -21,10 +34,23 @@ monitoring:
       scrape: false
 endpoints:
   oslo_messaging:
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: rabbitmq-tls-direct
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
+    port:
+      https:
+        default: 15680
+        public: 443
     auth:
       user:
         username: rabbitmq
         password: {{ rabbitmq.password }}
 forceBoot:
   enabled: true
+manifests:
+  certificates: true
 ...

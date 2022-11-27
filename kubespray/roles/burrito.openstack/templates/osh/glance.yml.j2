@@ -1,20 +1,8 @@
 ---
-pod:
-  security_context:
-    glance:
-      container:
-        glance_api:
-          readOnlyRootFilesystem: false
-          allowPrivilegeEscalation: true
-          privileged: true
-  replicas:
-    api: {{ pod.replicas }}
-network:
-  api:
-    ingress:
-      annotations:
-        nginx.ingress.kubernetes.io/proxy-body-size: 102400M
-storage: rbd
+images:
+  tags:
+    nginx: docker.io/nginx:1.18.0
+
 conf:
   software:
     rbd:
@@ -23,11 +11,17 @@ conf:
     enabled: true
   glance:
     DEFAULT:
+      bind_host: 127.0.0.1
       debug: true
       show_image_direct_url: true
       show_multiple_locations: true
       enabled_backends: ceph_rbd:rbd
+    keystone_authtoken:
+      service_token_roles_required: true
+      cafile: /etc/glance/certs/ca.crt
     glance_store:
+      https_ca_certificates_file: /etc/glance/certs/ca.crt
+      swift_store_cacert: /etc/glance/certs/ca.crt
       default_backend: ceph_rbd
       rbd_store_replication: 2
       rbd_store_user: glance
@@ -38,29 +32,114 @@ conf:
       rbd_store_user: glance
       rbd_store_pool: images
       rbd_store_ceph_conf: /etc/ceph/ceph.conf
-    keystone_authtoken:
-      service_token_roles_required: true
+    oslo_messaging_rabbit:
+      ssl: true
+      ssl_ca_file: /etc/rabbitmq/certs/ca.crt
+      ssl_cert_file: /etc/rabbitmq/certs/tls.crt
+      ssl_key_file: /etc/rabbitmq/certs/tls.key
   ceph:
     admin_keyring: {{ ceph_admin_key }}
+{% raw %}
+  nginx: |
+    worker_processes 1;
+    daemon off;
+    user nginx;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+
+      sendfile on;
+      keepalive_timeout 65s;
+      tcp_nodelay on;
+
+      log_format main '[nginx] method=$request_method path=$request_uri '
+                      'status=$status upstream_status=$upstream_status duration=$request_time size=$body_bytes_sent '
+                      '"$remote_user" "$http_referer" "$http_user_agent"';
+
+      access_log /dev/stdout  main;
+
+      upstream websocket {
+        server 127.0.0.1:$PORT;
+      }
+
+      server {
+        server_name {{ printf "%s.%s.svc.%s" "${SHORTNAME}" .Release.Namespace .Values.endpoints.cluster_domain_suffix }};
+        listen $POD_IP:$PORT ssl;
+
+        client_max_body_size  0;
+
+        ssl_certificate      /etc/nginx/certs/tls.crt;
+        ssl_certificate_key  /etc/nginx/certs/tls.key;
+        ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
+
+        location / {
+          proxy_pass_request_headers on;
+
+          proxy_http_version  1.1;
+          proxy_pass          http://websocket;
+          proxy_read_timeout  90;
+        }
+      }
+    }
+{% endraw %}
+network:
+  api:
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/proxy-body-size: 102400M
+        nginx.ingress.kubernetes.io/backend-protocol: "https"
+
+storage: rbd
 bootstrap:
   enabled: false
 endpoints:
   identity:
+    name: keystone
     auth:
       admin:
+        cacert: /etc/ssl/certs/openstack-helm.crt
         username: admin
         password: {{ os_admin_password }}
       glance:
+        cacert: /etc/ssl/certs/openstack-helm.crt
         username: glance
         password: {{ glance.password }}
+      test:
+        cacert: /etc/ssl/certs/openstack-helm.crt
+    scheme:
+      default: https
     port:
       api:
-        default: 8080
-        public: 8080
+        default: 8443
+        public: 8443
   image:
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: glance-tls-api
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
+    scheme:
+      default: https
+      public: https
     port:
       api:
-        public: 8080
+        public: 8443
+        admin: 9292
+  dashboard:
+    scheme:
+      default: https
+      public: https
+    port:
+      web:
+        default: 80
+        public: 443
   oslo_db:
     auth:
       admin:
@@ -70,6 +149,9 @@ endpoints:
         username: glance
         password: {{ glance.password }}
   oslo_messaging:
+    port:
+      https:
+        default: 15680
     auth:
       admin:
         username: rabbitmq
@@ -78,6 +160,27 @@ endpoints:
         username: glance
         password: {{ glance.password }}
     statefulset: null
+pod:
+  security_context:
+    glance:
+      pod:
+        runAsUser: 0
+      container:
+        glance_api:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: true
+          privileged: true
+  resources:
+    nginx:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "1024Mi"
+        cpu: "2000m"
+  replicas:
+    api: {{ pod.replicas }}
 manifests:
   pod_rally_test: false
+  certificates: true
 ...

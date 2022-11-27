@@ -1,13 +1,72 @@
 ---
 pod:
+  security_context:
+    cinder_api:
+      container:
+        cinder_api:
+          runAsUser: 0
+          readOnlyRootFilesystem: false
   replicas:
     api: {{ pod.replicas }}
     backup: {{ pod.replicas }}
     scheduler: {{ pod.replicas }}
     volume: {{ pod.replicas }}
+network:
+  api:
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/backend-protocol: "https"
 conf:
   db_acl:
     enabled: true
+  software:
+    apache2:
+      binary: apache2
+      start_parameters: -DFOREGROUND
+      site_dir: /etc/apache2/sites-enabled
+      conf_dir: /etc/apache2/conf-enabled
+      mods_dir: /etc/apache2/mods-available
+      a2enmod:
+        - ssl
+      a2dismod: null
+{% raw %}
+  mpm_event: |
+    <IfModule mpm_event_module>
+      ServerLimit         1024
+      StartServers        32
+      MinSpareThreads     32
+      MaxSpareThreads     256
+      ThreadsPerChild     25
+      MaxRequestsPerChild 128
+      ThreadLimit         720
+    </IfModule>
+  wsgi_cinder: |
+    {{- $portInt := tuple "volumev3" "internal" "api" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+    Listen {{ $portInt }}
+    <VirtualHost *:{{ $portInt }}>
+      ServerName {{ printf "%s.%s.svc.%s" "cinder-api" .Release.Namespace .Values.endpoints.cluster_domain_suffix }}
+      WSGIDaemonProcess cinder-api processes=1 threads=1 user=cinder display-name=%{GROUP}
+      WSGIProcessGroup cinder-api
+      WSGIScriptAlias /  /var/www/cgi-bin/cinder/cinder-wsgi
+      WSGIApplicationGroup %{GLOBAL}
+      WSGIPassAuthorization On
+      AllowEncodedSlashes On
+      <IfVersion >= 2.4>
+        ErrorLogFormat "%{cu}t %M"
+      </IfVersion>
+      SetEnvIf X-Forwarded-For "^.*\..*\..*\..*" forwarded
+      ErrorLog /dev/stdout
+      CustomLog /dev/stdout combined env=!forwarded
+      CustomLog /dev/stdout proxy env=forwarded
+
+      SSLEngine on
+      SSLCertificateFile      /etc/cinder/certs/tls.crt
+      SSLCertificateKeyFile   /etc/cinder/certs/tls.key
+      SSLProtocol             all -SSLv3 -TLSv1 -TLSv1.1
+      SSLCipherSuite          ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+      SSLHonorCipherOrder     on
+    </VirtualHost>
+{% endraw %}
   ceph:
     admin_keyring: {{ ceph_admin_key }}
     pools:
@@ -22,7 +81,9 @@ conf:
         chunk_size: 8
         app_name: rbd
   cinder:
+  cinder:
     DEFAULT:
+      glance_ca_certificates_file: /etc/cinder/certs/ca.crt
       debug: true
       enable_force_upload: true
       enabled_backends: "rbd1"
@@ -39,6 +100,13 @@ conf:
       quota_groups: -1
       quota_snapshots: -1
       quota_volumes: -1
+    keystone_authtoken:
+      cafile: /etc/cinder/certs/ca.crt
+    oslo_messaging_rabbit:
+      ssl: true
+      ssl_ca_file: /etc/rabbitmq/certs/ca.crt
+      ssl_cert_file: /etc/rabbitmq/certs/tls.crt
+      ssl_key_file: /etc/rabbitmq/certs/tls.key
   backends:
     rbd1:
       volume_driver: cinder.volume.drivers.rbd.RBDDriver
@@ -62,6 +130,9 @@ endpoints:
         username: cinder
         password: {{ cinder.password }}
   oslo_messaging:
+    port:
+      https:
+        default: 15680
     auth:
       admin:
         username: rabbitmq
@@ -73,29 +144,59 @@ endpoints:
   identity:
     auth:
       admin:
+        cacert: /etc/ssl/certs/openstack-helm.crt
         username: admin
         password: {{ os_admin_password }}
       cinder:
+        cacert: /etc/ssl/certs/openstack-helm.crt
         username: cinder
         password: {{ cinder.password }}
+      test:
+        cacert: /etc/ssl/certs/openstack-helm.crt
+    scheme:
+      default: https
     port:
       api:
-        default: 8080
-        public: 8080
+        default: 8443
+        public: 8443
   image:
+    scheme:
+      default: https
     port:
       api:
-        public: 8080
+        public: 8443
+  image_registry:
+    scheme:
+      default: https
+    port:
+      api:
+        public: 8443
   volume:
     name: cinder
     path:
       default: /v3/%(tenant_id)s
     port:
       api:
-        public: 8080
+        public: 8443
   volumev3:
     name: cinder
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: cinder-tls-api
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
+    scheme:
+      default: https
+      internal: https
     port:
       api:
-        public: 8080
+        public: 8443
+  ingress:
+    port:
+      ingress:
+        default: 8443
+manifests:
+  certificates: true
 ...
