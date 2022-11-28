@@ -487,7 +487,7 @@ conf:
       ssl_key=/etc/mysql/certs/tls.key
       ssl_cert=/etc/mysql/certs/tls.crt
       # tls_version = TLSv1.2,TLSv1.3
-      ssl-verify-server-cert
+      # ssl-verify-server-cert
       {{ end }}
 
     config_override: null
