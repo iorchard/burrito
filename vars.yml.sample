@@ -107,7 +107,7 @@ copy_admin_key: true
 ### kubespray 
 download_run_once: true
 bin_dir: /usr/bin
-kube_version: v1.24.7
+kube_version: v1.24.8
 kube_proxy_strict_arp: true
 podsecuritypolicy_enabled: true
 kubeconfig_localhost: true
@@ -126,8 +126,25 @@ cert_manager_affinity:
          values:
          - ""
 preinstall_selinux_state: disabled
-
 kube_pods_subnet: 10.233.64.0/18
+kube_apiserver_enable_admission_plugins:
+  - AlwaysPullImages
+  - EventRateLimit
+  - NodeRestriction
+  - PodSecurityPolicy
+  - ServiceAccount
+kube_apiserver_admission_control_config_file: true
+kube_apiserver_admission_event_rate_limits:
+  limit1:
+    type: Namespace
+    qps: 50
+    burst: 100
+    cache_size: 2000
+  limit2:
+    type: User
+    qps: 50
+    burst: 100
+
 ## calico
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
