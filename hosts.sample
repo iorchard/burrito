@@ -1,13 +1,13 @@
-control1 ansible_host=192.168.21.31 ansible_port=22 ansible_user=clex ansible_connection=local ansible_python_interpreter=/usr/bin/python3
-control2 ansible_host=192.168.21.32 ansible_port=22 ansible_user=clex 
-control3 ansible_host=192.168.21.33 ansible_port=22 ansible_user=clex
-network1 ansible_host=192.168.21.34 ansible_port=22 ansible_user=clex
-network2 ansible_host=192.168.21.35 ansible_port=22 ansible_user=clex
-compute1 ansible_host=192.168.21.36 ansible_port=22 ansible_user=clex
-compute2 ansible_host=192.168.21.37 ansible_port=22 ansible_user=clex
-storage1 ansible_host=192.168.21.38 monitor_address=192.168.24.38 radosgw_address=192.168.24.38 ansible_port=22 ansible_user=clex
-storage2 ansible_host=192.168.21.39 monitor_address=192.168.24.39 radosgw_address=192.168.24.39 ansible_port=22 ansible_user=clex
-storage3 ansible_host=192.168.21.40 monitor_address=192.168.24.40 radosgw_address=192.168.24.40 ansible_port=22 ansible_user=clex
+control1 ip=192.168.21.31 ansible_port=22 ansible_user=clex ansible_connection=local ansible_python_interpreter=/usr/bin/python3
+control2 ip=192.168.21.32 ansible_port=22 ansible_user=clex
+control3 ip=192.168.21.33 ansible_port=22 ansible_user=clex
+network1 ip=192.168.21.34 ansible_port=22 ansible_user=clex
+network2 ip=192.168.21.35 ansible_port=22 ansible_user=clex
+compute1 ip=192.168.21.36 ansible_port=22 ansible_user=clex
+compute2 ip=192.168.21.37 ansible_port=22 ansible_user=clex
+storage1 ip=192.168.21.38 monitor_address=192.168.24.38 radosgw_address=192.168.24.38 ansible_port=22 ansible_user=clex
+storage2 ip=192.168.21.39 monitor_address=192.168.24.39 radosgw_address=192.168.24.39 ansible_port=22 ansible_user=clex
+storage3 ip=192.168.21.40 monitor_address=192.168.24.40 radosgw_address=192.168.24.40 ansible_port=22 ansible_user=clex
 
 # ceph nodes
 [mons]
