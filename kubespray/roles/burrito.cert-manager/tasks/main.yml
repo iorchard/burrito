@@ -21,8 +21,8 @@
 - name: Main | include cert-manager tasks
   ansible.builtin.include_tasks: "cert_manager.yml"
 
-#- name: Main | remove temporary certificate directory
-#  file:
-#    path: "{{ cert_manager_dir }}"
-#    state: absent
+- name: Main | remove temporary certificate directory
+  file:
+    path: "{{ cert_manager_dir }}"
+    state: absent
 ...
