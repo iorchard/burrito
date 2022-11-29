@@ -38,6 +38,9 @@ console:
   novnc:
     compute:
       vncserver_proxyclient_interface: {{ nova.vncserver_proxyclient_interface }}
+    vncproxy:
+      vncserver_proxyclient_interface: {{ nova.vncserver_proxyclient_interface }}
+
 conf:
   db_acl:
     enabled: true
@@ -169,7 +172,6 @@ conf:
       vencrypt_client_cert: /etc/pki/nova-novncproxy/client-cert.pem
       vencrypt_ca_certs: /etc/pki/nova-novncproxy/ca-cert.pem
       novncproxy_base_url: https://{{ keepalived_vip_svc }}:30608/vnc_auto.html
-      #server_listen_interface: {{ nova.vncserver_proxyclient_interface }}
     libvirt:
       connection_uri: "qemu+tcp://127.0.0.1/system"
       images_type: qcow2
