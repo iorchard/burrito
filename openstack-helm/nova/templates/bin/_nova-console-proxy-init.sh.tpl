@@ -49,8 +49,8 @@ fi
 if [ "${console_kind}" == "novnc" ] ; then
 cat <<EOF>/tmp/pod-shared/nova-vnc.ini
 [vnc]
-vncserver_proxyclient_address = $client_address
-vncserver_listen = $listen_ip
+server_proxyclient_address = $client_address
+server_listen = $listen_ip
 novncproxy_host = $listen_ip
 EOF
 elif [ "${console_kind}" == "spice" ] ; then
