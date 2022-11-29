@@ -144,6 +144,7 @@ kube_apiserver_admission_event_rate_limits:
     type: User
     qps: 50
     burst: 100
+kube_encrypt_secret_data: true
 
 ## calico
 calico_network_backend: bird
