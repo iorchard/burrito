@@ -13,10 +13,11 @@ spec:
   containers:
   - command:
     - kube-apiserver
+    - --admission-control-config-file=/etc/kubernetes/admission-controls.yaml
     - --advertise-address={{ ip }}
     - --allow-privileged=true
     - --anonymous-auth=false
-    - --apiserver-count=3
+    - --apiserver-count={{ groups['kube-master'] | length }}
     - --authorization-mode=Node,RBAC
     - --bind-address=0.0.0.0
     - --client-ca-file=/etc/kubernetes/ssl/ca.crt
@@ -25,11 +26,13 @@ spec:
     - --enable-admission-plugins=AlwaysPullImages,EventRateLimit,NodeRestriction,PodSecurityPolicy,ServiceAccount
     - --enable-aggregator-routing=False
     - --enable-bootstrap-token-auth=true
+    - --encryption-provider-config=/etc/kubernetes/ssl/secrets_encryption.yaml
     - --endpoint-reconciler-type=lease
     - --etcd-cafile=/etc/ssl/etcd/ssl/ca.pem
-    - --etcd-certfile=/etc/ssl/etcd/ssl/node-burrito-ctrl1.pem
-    - --etcd-keyfile=/etc/ssl/etcd/ssl/node-burrito-ctrl1-key.pem
-    - --etcd-servers=https://192.168.20.71:2379,https://192.168.20.72:2379,https://192.168.20.73:2379
+    - --etcd-certfile=/etc/ssl/etcd/ssl/node-{{ inventory_hostname }}.pem
+    - --etcd-keyfile=/etc/ssl/etcd/ssl/node-{{ inventory_hostname }}-key.pem
+    - --etcd-servers={% for h in groups['kube-master'] %}https://{{ hostvars[h].ip }}:2379{% if not loop.last %},{% endif %}{% endfor %}
+
     - --event-ttl=1h0m0s
     - --kubelet-client-certificate=/etc/kubernetes/ssl/apiserver-kubelet-client.crt
     - --kubelet-client-key=/etc/kubernetes/ssl/apiserver-kubelet-client.key
@@ -74,12 +77,14 @@ spec:
         cpu: 250m
     startupProbe:
       failureThreshold: 30
-      tcoSocket:
+      tcpSocket:
         port: 6443
       initialDelaySeconds: 10
       periodSeconds: 10
       timeoutSeconds: 15
     volumeMounts:
+    - mountPath: /etc/kubernetes
+      name: admission-control-configs
     - mountPath: /etc/ssl/certs
       name: ca-certs
       readOnly: true
@@ -104,6 +109,10 @@ spec:
     seccompProfile:
       type: RuntimeDefault
   volumes:
+  - hostPath:
+      path: /etc/kubernetes/admission-controls
+      type: DirectoryOrCreate
+    name: admission-control-configs
   - hostPath:
       path: /etc/ssl/certs
       type: DirectoryOrCreate

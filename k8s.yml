@@ -4,30 +4,4 @@
   ansible.builtin.import_playbook: kubespray/cluster.yml
   tags: kubespray
 
-- name: patch control plane
-  hosts: kube-master
-  gather_facts: true
-  any_errors_fatal: true
-
-  tasks:
-    - name: Patch | patch kube-apiserver
-      ansible.builtin.template:
-        dest: "/etc/kubernetes/manifests/kube-apiserver.yaml"
-        src: "kube-apiserver.yaml.j2"
-        owner: "root"
-        group: "root"
-        mode: "0600"
-        backup: true
-      become: true
-      tags: patch
-
-    - name: Patch | check api service is available
-      ansible.builtin.wait_for:
-        host: "{{ ip }}"
-        port: 6443
-        delay: 5
-        sleep: 2
-        timeout: 60
-        state: started
-      tags: patch
 ...

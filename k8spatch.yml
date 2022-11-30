@@ -1,0 +1,49 @@
+---
+- name: patch control plane
+  hosts: kube-master
+  gather_facts: true
+  any_errors_fatal: true
+
+  vars:
+    kube_dir: "/etc/kubernetes"
+    apiserver_yaml: "{{ kube_dir }}/manifests/kube-apiserver.yaml"
+    backup: "{{ kube_dir }}/kube-apiserver.yaml.{{ ansible_date_time.iso8601 }}"
+
+  tasks:
+    - name: Patch | read kube-apiserver yaml
+      ansible.builtin.slurp:
+        path: "{{ apiserver_yaml }}"
+      register: apiserver_yaml_str
+      become: true
+    - name: Patch | backup kube-apiserver yaml
+      ansible.builtin.copy:
+        content: "{{ apiserver_yaml_str.content | b64decode }}"
+        dest: "{{ backup }}"
+      become: true
+    - name: Patch | patch kube-apiserver
+      ansible.builtin.template:
+        dest: "{{ apiserver_yaml }}"
+        src: "kube-apiserver.yaml.j2"
+        owner: "root"
+        group: "root"
+        mode: "0600"
+      become: true
+      tags: patch
+    - name: Patch | restart kubelet service
+      ansible.builtin.service:
+        name: "kubelet.service"
+        state: "restarted"
+      become: true
+    - name: Patch | sleep for a while
+      ansible.builtin.pause:
+        seconds: 10
+    - name: Patch | check api service is available
+      ansible.builtin.wait_for:
+        host: "{{ ip }}"
+        port: 6443
+        delay: 5
+        sleep: 2
+        timeout: 60
+        state: started
+      tags: patch
+...
