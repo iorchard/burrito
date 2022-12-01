@@ -128,8 +128,11 @@ cert_manager_affinity:
 preinstall_selinux_state: disabled
 kube_pods_subnet: 10.233.64.0/18
 kube_apiserver_enable_admission_plugins:
+  - AlwaysPullImages
   - EventRateLimit
+  - NodeRestriction
   - PodSecurityPolicy
+  - ServiceAccount
 kube_apiserver_admission_control_config_file: true
 kube_apiserver_admission_event_rate_limits:
   limit1:
