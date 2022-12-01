@@ -2,6 +2,6 @@
 - name: Deploy kubespray playbook
   any_errors_fatal: true
   ansible.builtin.import_playbook: kubespray/cluster.yml
+  become: true
   tags: kubespray
-
 ...

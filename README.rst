@@ -178,9 +178,33 @@ Install k8s.::
 
    $ ansible-playbook --extra-vars=@vars.yml -b k8s.yml
 
+Patch k8s.::
+
+   $ ansible-playbook --extra-vars=@vars.yml patch.yml
+
 Check kubernetes node status.::
 
    $ sudo kubectl get nodes
+
+Get burrito_os_images.tar from file server.::
+
+   $ curl -LO http://192.168.151.110:8000/burrito/burrito_os_images.tar
+
+Copy it to the registry container.::
+
+   $ sudo kubectl -n kube-system cp burrito_os_images.tar \
+      <registry_pod>:/var/lib/registry/
+
+Untar it onto /var/lib/registry in registry container.::
+
+   $ sudo kubectl -n kube-system exec -it <registry_pod> -- \
+      tar xf /var/lib/registry/burrito_os_images.tar -C /var/lib/registry
+
+Check the images in registry.::
+
+   $ curl <keepalived_vip>:32680/v2/_catalog
+
+Repositories should not be empty.
 
 Install burrito.::
 

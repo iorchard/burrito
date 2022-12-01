@@ -1,0 +1,28 @@
+---
+- name: patch containerd
+  hosts: kube-node
+  gather_facts: true
+  any_errors_fatal: true
+
+  vars:
+    containerd:
+      rlimit:
+        hard: 65535
+        soft: 65535
+    containerd_dir: "/etc/containerd"
+    cri_base: "{{ containerd_dir }}/cri-base.json"
+    backup: "{{ containerd_dir }}/cri-base.json.{{ ansible_date_time.iso8601 }}"
+
+  tasks:
+    - name: Kubernetes Patch | template cri-base.json
+      ansible.builtin.template:
+        src: "cri-base.json.j2"
+        dest: "{{ cri_base }}"
+      become: true
+
+    - name: Patch | restart containerd service
+      ansible.builtin.service:
+        name: "containerd.service"
+        state: "restarted"
+      become: true
+...
