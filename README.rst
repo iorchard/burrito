@@ -182,9 +182,9 @@ Patch k8s.::
 
    $ ansible-playbook --extra-vars=@vars.yml patch.yml
 
-Check kubernetes node status.::
+Check kubernetes pod status.::
 
-   $ sudo kubectl get nodes
+   $ sudo kubectl get pods -n kube-system
 
 Get burrito_os_images.tar from file server.::
 
