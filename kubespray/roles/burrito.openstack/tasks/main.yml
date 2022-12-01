@@ -106,7 +106,6 @@
     timeout: "10m0s"
     values_files:
       - "{{ os_artifacts_dir }}/{{ item }}.yml"
-      - "{{ osh_path }}/{{ item }}/values_overrides/yoga-ubuntu_focal.yaml"
   become: true
   loop: "{{ osh_charts }}"
   tags: ["osh", "deploy-chart"]

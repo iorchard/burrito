@@ -1,7 +1,27 @@
 ---
 images:
   tags:
-    nginx: docker.io/nginx:1.18.0
+    nginx: "{{ containerd_insecure_registries.local_registry }}/library/nginx:1.18.0"
+    bootstrap: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/heat:yoga-ubuntu_focal"
+    db_init: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/heat:yoga-ubuntu_focal"
+    db_drop: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/heat:yoga-ubuntu_focal"
+    ks_user: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/heat:yoga-ubuntu_focal"
+    ks_service: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/heat:yoga-ubuntu_focal"
+    ks_endpoints: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/heat:yoga-ubuntu_focal"
+    neutron_dhcp: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/neutron:yoga-ubuntu_focal"
+    neutron_l3: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/neutron:yoga-ubuntu_focal"
+    neutron_l2gw: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/neutron:yoga-ubuntu_focal"
+    neutron_linuxbridge_agent: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/neutron:yoga-ubuntu_focal"
+    neutron_metadata: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/neutron:yoga-ubuntu_focal"
+    neutron_openvswitch_agent: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/neutron:yoga-ubuntu_focal"
+    neutron_rpc_server: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/neutron:yoga-ubuntu_focal"
+    neutron_bagpipe_bgp: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/neutron:yoga-ubuntu_focal"
+    neutron_netns_cleanup_cron: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/neutron:yoga-ubuntu_focal"
+    neutron_server: "{{ containerd_insecure_registries.local_registry }}/kolla/ubuntu-source-neutron-server:yoga"
+    neutron_bgp_dragent: "{{ containerd_insecure_registries.local_registry }}/kolla/ubuntu-source-neutron-bgp-dragent:yoga"
+    neutron_db_sync: "{{ containerd_insecure_registries.local_registry }}/kolla/ubuntu-source-neutron-bgp-dragent:yoga"
+    dep_check: "{{ containerd_insecure_registries.local_registry }}/airshipit/kubernetes-entrypoint:v1.0.0"
+
 network:
   server:
     ingress:
