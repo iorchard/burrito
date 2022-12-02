@@ -23,7 +23,8 @@ spec:
     - --client-ca-file=/etc/kubernetes/ssl/ca.crt
     - --default-not-ready-toleration-seconds=300
     - --default-unreachable-toleration-seconds=300
-    - --enable-admission-plugins=AlwaysPullImages,EventRateLimit,NodeRestriction,PodSecurityPolicy,ServiceAccount
+    - --enable-admission-plugins=AlwaysPullImages,EventRateLimit,NodeRestriction,PodSecurityPolicy
+    - --disable-admission-plugins=ServiceAccount
     - --enable-aggregator-routing=False
     - --enable-bootstrap-token-auth=true
     - --encryption-provider-config=/etc/kubernetes/ssl/secrets_encryption.yaml
