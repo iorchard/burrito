@@ -14,7 +14,7 @@ limitations under the License.
 
 [client]
 user = {{ .Values.endpoints.oslo_db.auth.admin.username }}
-password = {{ .Values.endpoints.oslo_db.auth.admin.password }}
+password = "{{ .Values.endpoints.oslo_db.auth.admin.password }}"
 host = {{ tuple "oslo_db" "internal" . | include "helm-toolkit.endpoints.hostname_fqdn_endpoint_lookup" }}
 port = {{ tuple "oslo_db" "internal" "mysql" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
 {{- if .Values.manifests.certificates }}
