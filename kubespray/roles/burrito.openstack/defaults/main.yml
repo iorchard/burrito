@@ -11,6 +11,11 @@ kube_pod_subnet: ~
 ceph_admin_key: ~
 ceph_secret_uuid: ~
 
+# TLS
+tls:
+  duration: 87600h
+  renewBefore: 360h
+
 ## ingress
 ingress:
   volume_size: "10Gi"

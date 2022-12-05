@@ -309,6 +309,8 @@ endpoints:
       default:
         tls:
           secretName: nova-tls-api
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
           issuerRef:
             name: ca-issuer
             kind: ClusterIssuer
@@ -323,6 +325,8 @@ endpoints:
       default:
         tls:
           secretName: metadata-tls-metadata
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
           issuerRef:
             name: ca-issuer
             kind: ClusterIssuer
@@ -336,6 +340,8 @@ endpoints:
       default:
         tls:
           secretName: nova-novncproxy-tls-proxy
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
           issuerRef:
             name: ca-issuer
             kind: ClusterIssuer
@@ -349,19 +355,14 @@ endpoints:
       default:
         tls:
           secretName: nova-tls-spiceproxy
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
           issuerRef:
             name: ca-issuer
             kind: ClusterIssuer
     scheme:
       default: https
   placement:
-    host_fqdn_override:
-      default:
-        tls:
-          secretName: placement-tls-api
-          issuerRef:
-            name: ca-issuer
-            kind: ClusterIssuer
     scheme:
       default: https
     port:

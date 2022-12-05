@@ -117,6 +117,8 @@ endpoints:
       default:
         tls:
           secretName: horizon-tls-web
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
           issuerRef:
             name: ca-issuer
             kind: ClusterIssuer

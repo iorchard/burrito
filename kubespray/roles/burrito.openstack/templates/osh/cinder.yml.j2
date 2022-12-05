@@ -202,6 +202,8 @@ endpoints:
       default:
         tls:
           secretName: cinder-tls-api
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
           issuerRef:
             name: ca-issuer
             kind: ClusterIssuer

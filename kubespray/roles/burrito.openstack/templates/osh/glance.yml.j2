@@ -133,6 +133,8 @@ endpoints:
       default:
         tls:
           secretName: glance-tls-api
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
           issuerRef:
             name: ca-issuer
             kind: ClusterIssuer

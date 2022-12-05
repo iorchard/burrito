@@ -35,6 +35,8 @@ endpoints:
       default:
         tls:
           secretName: rabbitmq-tls-direct
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
           issuerRef:
             name: ca-issuer
             kind: ClusterIssuer
