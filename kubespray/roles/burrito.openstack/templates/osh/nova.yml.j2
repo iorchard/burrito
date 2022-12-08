@@ -165,6 +165,8 @@ conf:
       cafile: /etc/nova/certs/ca.crt
     keystone:
       cafile: /etc/nova/certs/ca.crt
+    key_manager:
+      backend: barbican
     oslo_messaging_rabbit:
       ssl: true
       ssl_ca_file: /etc/rabbitmq/certs/ca.crt

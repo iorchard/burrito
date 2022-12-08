@@ -79,6 +79,10 @@ horizon:
   password: ~
   timezone: "UTC"
 
+## barbican
+barbican:
+  password: ~
+
 ## btx
 btx:
   pvc:
@@ -101,6 +105,7 @@ osh_charts:
   - nova
   - cinder
   - horizon
+  - barbican
 
 btx_charts:
   - btx

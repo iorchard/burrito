@@ -120,6 +120,8 @@ conf:
       quota_volumes: -1
     keystone_authtoken:
       cafile: /etc/cinder/certs/ca.crt
+    key_manager:
+      backend: barbican
     oslo_messaging_rabbit:
       ssl: true
       ssl_ca_file: /etc/rabbitmq/certs/ca.crt

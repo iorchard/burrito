@@ -235,6 +235,10 @@ horizon:
   password: "{{ common_password }}"
   timezone: "Asia/Seoul"
 
+# barbican
+barbican:
+  password: "{{ common_password }}"
+
 ### btx
 btx:
   pvc:
