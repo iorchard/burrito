@@ -1,0 +1,107 @@
+---
+images:
+  tags:
+    bootstrap: "docker.io/openstackhelm/heat:yoga-ubuntu_focal"
+    scripted_test: "docker.io/openstackhelm/heat:yoga-ubuntu_focal"
+    db_init: "docker.io/openstackhelm/heat:yoga-ubuntu_focal"
+    barbican_db_sync: "docker.io/openstackhelm/barbican:yoga-ubuntu_focal"
+    db_drop: "docker.io/openstackhelm/heat:yoga-ubuntu_focal"
+    ks_user: "docker.io/openstackhelm/heat:yoga-ubuntu_focal"
+    ks_service: "docker.io/openstackhelm/heat:yoga-ubuntu_focal"
+    ks_endpoints: "docker.io/openstackhelm/heat:yoga-ubuntu_focal"
+    barbican_api: "docker.io/openstackhelm/barbican:yoga-ubuntu_focal"
+
+network:
+  api:
+    ingress:
+      annotations:
+        nginx.ingress.kubernetes.io/backend-protocol: "https"
+
+conf:
+  db_acl:
+    enabled: true
+  barbican:
+    keystone_authtoken:
+      cafile: /etc/barbican/certs/ca.crt
+    oslo_messaging_rabbit:
+      ssl: true
+      ssl_ca_file: /etc/rabbitmq/certs/ca.crt
+      ssl_cert_file: /etc/rabbitmq/certs/tls.crt
+      ssl_key_file: /etc/rabbitmq/certs/tls.key
+
+endpoints:
+  identity:
+    auth:
+      admin:
+        cacert: /etc/ssl/certs/openstack-helm.crt
+        password: {{ os_admin_password }}
+      barbican:
+        cacert: /etc/ssl/certs/openstack-helm.crt
+        password: {{ barbican.password }}
+    scheme:
+      default: https
+    port:
+      api:
+        default: 8443
+        public: 8443
+  key_manager:
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: barbican-tls-api
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
+    scheme:
+      default: https
+      service: https
+    port:
+      api:
+        public: 8443
+        admin: 9311
+  oslo_db:
+    auth:
+      admin:
+        username: root
+        password: {{ mariadb.admin_password }}
+      barbican:
+        username: barbican
+        password: {{ barbican.password }}
+    hosts:
+      default: mariadb
+    host_fqdn_override:
+      default: null
+    path: /barbican
+    scheme: mysql+pymysql
+    port:
+      mysql:
+        default: 3306
+  oslo_messaging:
+    port:
+      https:
+        default: 15680
+    auth:
+      admin:
+        username: rabbitmq
+        password: {{ rabbitmq.password }}
+      barbican:
+        username: barbican
+        password: {{ barbican.password }}
+    statefulset: null
+  ingress:
+    port:
+      ingress:
+        default: 8443
+
+secrets:
+  tls:
+    key_manager:
+      api:
+        public: barbican-tls-public
+        internal: barbican-tls-api
+
+manifests:
+  certificates: true
+...
