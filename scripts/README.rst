@@ -32,7 +32,7 @@ This script is for cleaning everything in openstack namespace.
 
 Usage::
 
-   $ sudo ./clean_openstack_ns.sh
+   $ ./clean_openstack_ns.sh
    Enter machine Hostname : <Enter the hostname>
 
 
