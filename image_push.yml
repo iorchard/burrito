@@ -1,0 +1,17 @@
+---
+- name: Pull, tag, push images for burrito
+  hosts: localhost
+  gather_facts: true
+  any_errors_fatal: true
+
+  environment:
+    LOCAL_REGISTRY: "{{ keepalived_vip }}:32680"
+
+  tasks:
+    - name: Images | run image_push.sh script
+      ansible.builtin.command: ./image_push.sh
+      args:
+        chdir: "{{ playbook_dir }}/scripts"
+      become: true
+      tags: images
+...
