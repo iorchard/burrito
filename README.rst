@@ -182,27 +182,20 @@ Patch k8s.::
 
    $ ansible-playbook --extra-vars=@vars.yml patch.yml
 
-Check kubernetes pod status.::
+It will take some time to restart kube-apiserver after patch.
+
+Check all pods are running in kube-system namespace.::
 
    $ sudo kubectl get pods -n kube-system
 
-Get burrito_os_images.tar from file server.::
+Run image_push.yml playbook to pull, tag, and push openstack images to 
+the local registry.::
 
-   $ curl -LO http://192.168.151.110:8000/burrito/burrito_os_images.tar
+   $ ansible-playbook --extra-vars=@vars.yml image_push.yml
 
-Copy it to the registry container.::
+Check the images in the local registry.::
 
-   $ sudo kubectl -n kube-system cp burrito_os_images.tar \
-      <registry_pod>:/var/lib/registry/
-
-Untar it onto /var/lib/registry in registry container.::
-
-   $ sudo kubectl -n kube-system exec -it <registry_pod> -- \
-      tar xf /var/lib/registry/burrito_os_images.tar -C /var/lib/registry
-
-Check the images in registry.::
-
-   $ curl <keepalived_vip>:32680/v2/_catalog
+   $ curl -s <keepalived_vip>:32680/v2/_catalog
 
 Repositories should not be empty.
 
