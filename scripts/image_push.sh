@@ -11,6 +11,4 @@ for src in $(cat images.txt); do
   nerdctl tag $src $dst
   echo "Push ${dst}"
   nerdctl --insecure-registry push $dst &> /dev/null
-  echo "Delete ${src}"
-  nerdctl rmi ${src} &> /dev/null
 done
