@@ -45,6 +45,9 @@ keystone:
 ## glance
 glance:
   password: ~
+  nginx:
+    proxy_body_size: "102400M"
+    proxy_read_timeout: "1800"
 
 ## placement
 placement:
