@@ -5,8 +5,13 @@ ceph_user_id: "kube"
 ceph_user_key: ~
 ceph_pool: "kube"
 ceph_storageclass_name: "rbd"
+pod:
+  replicas: 1
+
 template_files:
   - {dest: "{{ artifacts_dir }}/00-csi-configmap.yml"}
   - {dest: "{{ artifacts_dir }}/03-csi-rbd-secret.yml"}
+  - {dest: "{{ artifacts_dir }}/06-csi-rbdplugin-provisioner.yaml"}
+  - {dest: "{{ artifacts_dir }}/07-csi-rbdplugin.yaml"}
   - {dest: "{{ artifacts_dir }}/08-csi-rbd-sc.yml"}
 ...

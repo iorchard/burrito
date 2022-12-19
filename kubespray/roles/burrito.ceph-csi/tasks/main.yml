@@ -1,6 +1,6 @@
 ---
 - name: Provision | create ceph-csi namespace
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     name: ceph-csi
     api_version: v1
     kind: Namespace
@@ -48,7 +48,7 @@
   loop: "{{ template_files }}"
 
 - name: Provision | apply ceph-csi manifests
-  community.kubernetes.k8s:
+  kubernetes.core.k8s:
     src: "{{ item }}"
     state: present
   with_fileglob:
