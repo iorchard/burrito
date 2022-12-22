@@ -121,7 +121,7 @@ rules:
     resources:
       - configmaps
     resourceNames:
-      - {{ printf "%s-%s" .Release.Name .Values.conf.controller.INGRESS_CLASS | quote }}
+      - {{ printf "%s" .Release.Name | quote }}
     verbs:
       - get
       - update
