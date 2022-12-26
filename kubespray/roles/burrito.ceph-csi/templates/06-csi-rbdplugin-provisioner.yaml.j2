@@ -195,7 +195,7 @@ spec:
             - name: ceph-config
               mountPath: /etc/ceph/
         - name: liveness-prometheus
-          image: registry.k8s.io/cephcsi/cephcsi:v3.7.2
+          image: quay.io/cephcsi/cephcsi:v3.7.2
           args:
             - "--type=liveness"
             - "--endpoint=$(CSI_ENDPOINT)"
