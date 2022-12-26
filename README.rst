@@ -174,6 +174,10 @@ Check ceph health.::
 
    $ sudo ceph -s
 
+Install HA stack.::
+
+   $ ansible-playbook --extra-vars=@vars.yml kubespray/ha.yml
+
 Install k8s.::
 
    $ ansible-playbook --extra-vars=@vars.yml -b k8s.yml

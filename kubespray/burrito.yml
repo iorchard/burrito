@@ -5,18 +5,6 @@
   roles:
     - { role: burrito.cert-manager, tags: ['cert-manager', 'burrito']}
 
-- name: setup haproxy
-  hosts: kube-master
-  any_errors_fatal: true
-  roles:
-    - { role: burrito.haproxy, tags: ['haproxy', 'burrito']}
-
-- name: setup keepalived
-  hosts: kube-master
-  any_errors_fatal: true
-  roles:
-    - { role: burrito.keepalived, tags: ['keepalived', 'burrito']}
-
 - name: setup system
   hosts: k8s-cluster
   any_errors_fatal: true

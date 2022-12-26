@@ -1,0 +1,13 @@
+---
+- name: setup haproxy
+  hosts: kube-master
+  any_errors_fatal: true
+  roles:
+    - { role: burrito.haproxy, tags: ['haproxy', 'burrito']}
+
+- name: setup keepalived
+  hosts: kube-master
+  any_errors_fatal: true
+  roles:
+    - { role: burrito.keepalived, tags: ['keepalived', 'burrito']}
+...
