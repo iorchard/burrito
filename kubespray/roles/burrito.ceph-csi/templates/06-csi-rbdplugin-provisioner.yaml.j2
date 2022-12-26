@@ -32,7 +32,7 @@ spec:
         app: csi-rbdplugin-provisioner
     spec:
       nodeSelector:
-        openstack-control-plane: enabled
+        node-role.kubernetes.io/control-plane: ""
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
