@@ -141,7 +141,7 @@ except:
 # Create DB User
 try:
     root_engine.execute(
-        "GRANT ALL ON `{0}`.* TO \'{1}\'@\'{4}\' IDENTIFIED BY \'{2}\' {3}".format(
+        "GRANT ALL ON `{0}`.* TO \'{1}\'@\'{4}\' IDENTIFIED VIA ed25519 USING PASSWORD(\'{2}\') {3}".format(
             database, user, password, mysql_x509, mysql_acl_cidr))
     logger.info("Created user {0} for {1}".format(user, database))
 except:

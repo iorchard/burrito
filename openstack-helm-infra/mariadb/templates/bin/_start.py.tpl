@@ -285,15 +285,15 @@ def mysqld_bootstrap():
                 # it is safe not to remove it because the account by default
                 # is locked and cannot login
                 "DELETE FROM mysql.user WHERE user != 'mariadb.sys' ;\n"  # nosec
-                "CREATE OR REPLACE USER '{0}'@'{5}' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'{5}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'{5}' {4} WITH GRANT OPTION; \n"
-                "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {4} WITH GRANT OPTION; \n"
-                "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'localhost' {4} WITH GRANT OPTION; \n"
 
                 "DROP DATABASE IF EXISTS test ;\n"
-                "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED BY '{3}';\n"
+                "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD('{3}');\n"
                 "GRANT PROCESS, RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO '{2}'@'127.0.0.1';\n"
                 "FLUSH PRIVILEGES ;\n"
                 "SHUTDOWN ;".format(mysql_dbadmin_username, mysql_dbadmin_password,
@@ -302,16 +302,16 @@ def mysqld_bootstrap():
         else:
             template = (
                 "DELETE FROM mysql.user WHERE user != 'mariadb.sys' ;\n"  # nosec
-                "CREATE OR REPLACE USER '{0}'@'{7}' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'{7}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'{7}' {6} WITH GRANT OPTION;\n"
-                "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {6} WITH GRANT OPTION;\n"
-                "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'localhost' {6} WITH GRANT OPTION;\n"
                 "DROP DATABASE IF EXISTS test ;\n"
-                "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED BY '{3}';\n"
+                "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD('{3}');\n"
                 "GRANT PROCESS, RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO '{2}'@'127.0.0.1' ;\n"
-                "CREATE OR REPLACE USER '{4}'@'{7}' IDENTIFIED BY '{5}';\n"
+                "CREATE OR REPLACE USER '{4}'@'{7}' IDENTIFIED VIA ed25519 USING PASSWORD('{5}');\n"
                 "GRANT SELECT ON *.* TO '{4}'@'{7}' {6};\n"
                 "FLUSH PRIVILEGES ;\n"
                 "SHUTDOWN ;".format(mysql_dbadmin_username, mysql_dbadmin_password,
@@ -835,13 +835,13 @@ def run_mysqld(cluster='existing'):
         logger.info("Setting the admin passwords to the current value")
         if not mysql_dbaudit_username:
             template = (
-                "CREATE OR REPLACE USER '{0}'@'{5}' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'{5}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'{5}' {4} WITH GRANT OPTION ;\n"
-                "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {4} WITH GRANT OPTION ;\n"
-                "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'localhost' {4} WITH GRANT OPTION ;\n"
-                "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED BY '{3}' ;\n"
+                "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD('{3}');\n"
                 "GRANT PROCESS, RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO '{2}'@'127.0.0.1' ;\n"
                 "FLUSH PRIVILEGES ;\n"
                 "SHUTDOWN ;".format(mysql_dbadmin_username, mysql_dbadmin_password,
@@ -849,15 +849,15 @@ def run_mysqld(cluster='existing'):
                                     mysql_x509, mysql_acl_cidr))
         else:
             template = (
-                "CREATE OR REPLACE USER '{0}'@'{7}' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'{7}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'{7}' {6} WITH GRANT OPTION ;\n"
-                "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {6} WITH GRANT OPTION ;\n"
-                "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED BY \'{1}\' ;\n"
+                "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'localhost' {6} WITH GRANT OPTION ;\n"
-                "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED BY '{3}' ;\n"
+                "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD('{3}');\n"
                 "GRANT PROCESS, RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO '{2}'@'127.0.0.1' ;\n"
-                "CREATE OR REPLACE USER '{4}'@'{7}' IDENTIFIED BY '{5}' ;\n"
+                "CREATE OR REPLACE USER '{4}'@'{7}' IDENTIFIED VIA ed25519 USING PASSWORD('{5}');\n"
                 "GRANT SELECT ON *.* TO '{4}'@'{7}' {6};\n"
                 "FLUSH PRIVILEGES ;\n"
                 "SHUTDOWN ;".format(mysql_dbadmin_username, mysql_dbadmin_password,
