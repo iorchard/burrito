@@ -4,4 +4,6 @@ btx:
     size: "{{ btx.pvc.size }}"
 openstack:
   password: "{{ os_admin_password }}"
+image:
+  repo: {{ containerd_insecure_registries.local_registry }}/jijisa/btx
 ...
