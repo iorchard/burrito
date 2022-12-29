@@ -63,6 +63,13 @@ k8s_api_instance = kubernetes.client.CoreV1Api()
 # Setup secrets generator
 secretsGen = secrets.SystemRandom()
 
+# Fix sst user cannot connect to mariadb server
+# plugin_dir is set to /usr/lib/mysql/plugin and 
+# client_ed25519.so is in /usr/lib/x86_64-linux-gnu/libmariadb3/plugin/.
+# so symlinked it.
+os.symlink("/usr/lib/x86_64-linux-gnu/libmariadb3/plugin/client_ed25519.so",
+           "/usr/lib/mysql/plugin/client_ed25519.so")
+
 def check_env_var(env_var):
     """Check if an env var exists.
 
