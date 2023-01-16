@@ -23,15 +23,31 @@ pod:
     error_page: 1
 endpoints:
   ingress:
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: ingress-tls-direct
+          commonName: ingress
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
     port:
       http:
         default: 8080
       https:
         default: 8443
+conf:
+  default_ssl_certificate:
+    enabled: true
+    name: "ingress-tls-direct"
+    namespace: "openstack"
 client_body_volume:
   access_modes: "ReadWriteOnce"
   size: {{ ingress.volume_size }}
   class_name: {{ storageclass_name }}
 manifests:
+  certificates: true
   pvc_client_body: true
 ...
