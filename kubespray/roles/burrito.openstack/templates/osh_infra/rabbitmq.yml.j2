@@ -3,6 +3,7 @@ images:
   tags:
     rabbitmq_init: {{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal
     rabbitmq: {{ containerd_insecure_registries.local_registry }}/library/rabbitmq:3.11
+    scripted_test: {{ containerd_insecure_registries.local_registry }}/library/rabbitmq:3.11-management
     dep_check: {{ containerd_insecure_registries.local_registry }}/airshipit/kubernetes-entrypoint:v1.0.0
 
 conf:

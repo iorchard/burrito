@@ -11,6 +11,7 @@ images:
     ks_service: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
     ks_endpoints: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
     barbican_api: "{{ containerd_insecure_registries.local_registry }}/jijisa/barbican:yoga-ubuntu_focal"
+    rabbit_init: "{{ containerd_insecure_registries.local_registry }}/library/rabbitmq:3.11-management"
 
 conf:
   db_acl:
