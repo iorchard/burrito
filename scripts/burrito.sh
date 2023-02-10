@@ -52,6 +52,7 @@ install() {
     KEY="btx_charts"
   else
     echo "Unknown name: $NAME"
+    display_help
     exit 1
   fi
   source ~/.envs/burrito/bin/activate
