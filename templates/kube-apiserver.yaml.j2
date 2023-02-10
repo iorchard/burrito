@@ -56,7 +56,7 @@ spec:
     - --storage-backend=etcd3
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.crt
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver.key
-    image: registry.k8s.io/kube-apiserver:{{ kube_version }}
+    image: {{ kube_image_repo }}/kube-apiserver:{{ kube_version }}
     imagePullPolicy: IfNotPresent
     livenessProbe:
       failureThreshold: 8
