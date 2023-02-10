@@ -14,7 +14,7 @@ chmod +x ${CURRENT_DIR}/git-archive-all.sh
 git clone --recursive -b ${GIT_TAG} https://github.com/iorchard/burrito.git \
   ${DIST_DIR}/burrito
 pushd ${DIST_DIR}/burrito
-  ${CURRENT_DIR}/git-archive-all.sh -- - | \
+  ${CURRENT_DIR}/git-archive-all.sh --prefix burrito-${GIT_TAG}/ -- - | \
     gzip -9 > ${DIST_DIR}/burrito-${GIT_TAG}.tar.gz
 popd
 rm -fr ${DIST_DIR}/burrito
