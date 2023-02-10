@@ -51,6 +51,8 @@
   kubernetes.core.k8s:
     src: "{{ item }}"
     state: present
+    wait: true
+    wait_timeout: 300
   with_fileglob:
     - "{{ artifacts_dir }}/[0-9]*"
   become: true
