@@ -19,5 +19,5 @@ for src in $(cat images.txt); do
   echo "== Push ${dst}"
   nerdctl --insecure-registry push ${dst} &> /dev/null
   echo "== Delete ${src} and ${dst}"
-  nerdctl rmi ${src} ${dst}
+  nerdctl rmi --force ${src} ${dst}
 done

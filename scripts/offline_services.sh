@@ -94,12 +94,19 @@ enabled=1
 gpgcheck=0
 module_hotfixes=1
 EOF
-  if ! diff /tmp/burrito.repo.tmp /etc/yum.repos.d/burrito.repo; then
-    # move the current yum repo
-    sudo mv /etc/yum.repos.d /etc/yum.repos.d.$(date +%Y%m%d-%H%M%S)
-    # set up a new yum repo
-    sudo mkdir /etc/yum.repos.d
-    sudo mv /tmp/burrito.repo.tmp /etc/yum.repos.d/burrito.repo
+
+  if [ -f /tmp/burrito.repo.tmp ]; then
+    if [ -f /etc/yum.repos.d/burrito.repo ]; then
+      if ! diff /tmp/burrito.repo.tmp /etc/yum.repos.d/burrito.repo; then
+        sudo mv /etc/yum.repos.d /etc/yum.repos.d.$(date +%Y%m%d-%H%M%S)
+        sudo mkdir /etc/yum.repos.d
+        sudo mv /tmp/burrito.repo.tmp /etc/yum.repos.d/burrito.repo
+      fi
+    else
+      sudo mv /etc/yum.repos.d /etc/yum.repos.d.$(date +%Y%m%d-%H%M%S)
+      sudo mkdir /etc/yum.repos.d
+      sudo mv /tmp/burrito.repo.tmp /etc/yum.repos.d/burrito.repo
+    fi   
   fi
 }
 function registry_up() {

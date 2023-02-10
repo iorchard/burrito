@@ -32,13 +32,13 @@ shift
 
 OFFLINE_VARS=""
 if [[ -f .offline_flag ]]; then
-  # check offline setup status
-  if ${CURRENT_DIR}/scripts/offline_setup.sh -s &>/dev/null; then
+  # check offline services status
+  if ${CURRENT_DIR}/scripts/offline_services.sh -s &>/dev/null; then
     OFFLINE_VARS="--extra-vars=@offline_vars.yml"
   else
-    echo "There is a problem with offline setup."
-    echo "Run offline setup script - ${CURRENT_DIR}/scripts/offline_setup.sh"
-    ${CURRENT_DIR}/scripts/offline_setup.sh -s
+    echo "There is a problem with offline services."
+    echo "Run offline services - ${CURRENT_DIR}/scripts/offline_services.sh"
+    ${CURRENT_DIR}/scripts/offline_services.sh -s
     exit 1
   fi
 fi

@@ -29,6 +29,14 @@ I assume there are 5 networks.
 * overlay network: OpenStack overlay network (e.g. 192.168.23.0/24)
 * storage network: Ceph public/cluster network (e.g. 192.168.24.0/24)
 
+Copy ssh keypair
+-----------------
+
+Create ssh key pair and distribute the public key to all other nodes.::
+
+   $ ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ''
+   $ ssh-copy-id <other_node>
+
 Set up the ISO repo
 ---------------------
 
@@ -51,11 +59,11 @@ Untar burrito tarball from the mounted iso.::
 
 Go to burrito directory.::
 
-   $ cd burrito
+   $ cd burrito-<version>
 
 Start offline repo and registry services.::
 
-   $ ./scripts/offline_setup.sh --up
+   $ ./scripts/offline_services.sh --up
 
 Install python 3.9.::
 
@@ -182,26 +190,11 @@ Check the connection to other nodes.::
 Install
 ----------
 
-Run offline services script.::
-
-   $ ./scripts/offline_services.sh --up
-
-Check offline services.::
-
-   $ ./scripts/offline_services.sh --status
-   Local yum repo is running.
-   python3 -m http.server --bind 192.168.21.101 8001
-   
-   Local container registry is running.
-   /tmp/registry serve /tmp/config.yml
-   
-   Offline flag is up.
-
 Install common.::
 
    $ ./run.sh common
 
-Check if yum repo is a local one.::
+Check if yum repo is a local repo on all nodes.::
 
    $ sudo dnf repolist
    repo id                               repo name
