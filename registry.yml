@@ -1,15 +1,17 @@
 ---
-- name: Pull, tag, push images for burrito
+- name: Pull, tag and push images to local registry
   hosts: localhost
   gather_facts: true
   any_errors_fatal: true
 
   environment:
-    LOCAL_REGISTRY: "{{ keepalived_vip }}:32680"
+    LOCAL_REGISTRY: "{{ containerd_insecure_registries['local_registry'] }}"
+    SEED_REGISTRY: "{{ containerd_insecure_registries['seed_registry'] }}"
+    OFFLINE: "{{ offline | ternary(1, 0) }}"
 
   tasks:
-    - name: Images | run image_push.sh script
-      ansible.builtin.command: ./image_push.sh
+    - name: Registry | run registry.sh script
+      ansible.builtin.shell: ./registry.sh &> /tmp/registry_play.log
       args:
         chdir: "{{ playbook_dir }}/scripts"
       become: true
