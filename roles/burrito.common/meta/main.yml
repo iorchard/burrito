@@ -1,0 +1,16 @@
+galaxy_info:
+  namespace: burrito
+  role_name: common
+  author: "Heechul Kim <jijisa@iorchard.net>"
+  description: Ansible Role to do common tasks for Burrito
+  company: iOrchard, Inc.
+  license: Apache-2.0
+  min_ansible_version: "2.11"
+  platforms:
+    - name: Rocky Linux
+      versions:
+        - 8.x
+  galaxy_tags:
+    - system
+
+dependencies: []

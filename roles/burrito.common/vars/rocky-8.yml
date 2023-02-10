@@ -1,0 +1,17 @@
+---
+pkg_state: "latest"
+prereq_pkgs:
+  - ca-certificates
+  - gnupg2
+  - curl
+  - rsync
+
+packages:
+  - rsyslog
+
+os_service_conf:
+  - {dest: "/etc/rsyslog.conf"}
+
+os_systemd_service_name:
+  - rsyslog.service
+...

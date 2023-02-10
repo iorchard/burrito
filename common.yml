@@ -1,0 +1,7 @@
+---
+- name: Deploy common service
+  hosts: all
+  any_errors_fatal: true
+  roles:
+    - {role: burrito.common, tags: ['common']}
+...

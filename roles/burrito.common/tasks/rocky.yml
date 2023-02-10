@@ -1,0 +1,86 @@
+---
+- name: Rocky Linux | check if yum repo directory exists
+  ansible.builtin.stat:
+    path: "/etc/yum.repos.d"
+  register: check_yum_repo
+
+- name: Rocky Linux | back up yum repo directory if offline
+  ansible.builtin.copy:
+    src: "/etc/yum.repos.d"
+    dest: "/etc/yum.repos.d.{{ ansible_date_time.iso8601 }}"
+    remote_src: true
+    mode: "0755"
+  become: true
+  when:
+    - offline
+    - check_yum_repo.stat.exists
+    - inventory_hostname != groups['kube-master'][0]
+
+- name: Rocky Linux | remove yum repo directory
+  ansible.builtin.file:
+    path: "/etc/yum.repos.d"
+    state: absent
+  become: true
+  when:
+    - offline
+    - check_yum_repo.stat.exists
+    - inventory_hostname != groups['kube-master'][0]
+
+- name: Rocky Linux | create yum repo directory
+  ansible.builtin.file:
+    path: "/etc/yum.repos.d"
+    state: directory
+    mode: "0755"
+  become: true
+  when:
+    - offline
+    - check_yum_repo.stat.exists
+    - inventory_hostname != groups['kube-master'][0]
+
+- name: Rocky Linux | configure yum repo
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ ansible_os_family | lower }}{{ item.dest + '.j2' }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  loop:
+    - {dest: "/etc/yum.repos.d/burrito.repo"}
+  become: true
+  when: offline
+
+- name: Rocky Linux | install prerequisite packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  loop: "{{ prereq_pkgs }}"
+  become: true
+
+- name: Rocky Linux | Install packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ packages }}"
+
+- name: Rocky Linux | Set rsyslog configuration
+  ansible.builtin.copy:
+    src: "{{ ansible_os_family | lower }}{{ item.dest }}"
+    dest: "{{ item.dest }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  changed_when: true
+  loop: "{{ os_service_conf }}"
+  notify:
+    - systemctl restart service
+...
