@@ -1,16 +1,19 @@
-Burrito
-=========
+Burrito Offline Installation
+================================
 
-Burrito is the OpenStack on Kubernetes Platform.
+This is a guide to install Burrito in offline environment.
+
+Use the Burrito CD or ISO to install in offline.
 
 Supported OS
----------------
+----------------
 
-* Rocky Linux 8.x
+* Rocky Linux 8.x: Only supported OS currently
 
 Assumptions
 -------------
 
+* OS is installed using Burrito CD/ISO.
 * The first node in controller group is the ansible deployer.
 * Ansible user in every node has a passwordless sudo privilege.
 * All nodes should be in /etc/hosts.
@@ -26,26 +29,39 @@ I assume there are 5 networks.
 * overlay network: OpenStack overlay network (e.g. 192.168.23.0/24)
 * storage network: Ceph public/cluster network (e.g. 192.168.24.0/24)
 
-Install packages
------------------
+Set up the ISO repo
+---------------------
 
-For deploy node::
+Mount the iso file.
 
-   $ sudo dnf -y install git python3 python39 python3-cryptography epel-release
+If you use the iso file,::
 
-For other nodes::
+   $ sudo mount -o loop,ro <path/to/burrito_iso_file> /mnt
 
-   $ sudo dnf -y install python3 epel-release
+If you inserted the CD,::
 
-Create ssh key pair and distribute the public key to all other nodes.::
+    $ sudo mount -o ro /dev/sr0 /mnt
 
-   $ ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ''
-   $ ssh-copy-id <other_node>
+Install ansible in virtual env
+----------------------------------
 
-Set up python virtual env
------------------------------
+Untar burrito tarball from the mounted iso.::
 
-Create python virtual env.::
+   $ tar xvzf /mnt/burrito-<version>.tar.gz
+
+Go to burrito directory.::
+
+   $ cd burrito
+
+Start offline repo and registry services.::
+
+   $ ./scripts/offline_setup.sh --up
+
+Install python 3.9.::
+
+   $ sudo dnf -y install python39
+
+Create virtual env.::
 
    $ python3.9 -m venv ~/.envs/burrito
 
@@ -53,20 +69,18 @@ Activate the virtual env.::
 
    $ source ~/.envs/burrito/bin/activate
 
-Get burrito source.
+Install python packages.::
 
-   $ git clone --recursive https://github.com/iorchard/burrito.git
+   $ pip install --no-index --find-links /mnt/pypi /mnt/pypi/{pip,wheel}-*
+   $ pip install --no-index --find-links /mnt/pypi \
+               --requirement requirements.txt
 
 Prepare
 --------
 
-Go to burrito.::
+Run offline_prepare.sh script.::
 
-   $ cd burrito
-
-Run prepare.sh script.::
-
-   $ ./prepare.sh
+   $ ./prepare_offline.sh
 
 Edit hosts.::
 
@@ -145,6 +159,7 @@ Edit vars.yml.::
      - data: /dev/sdc
      - data: /dev/sdd
    
+   
    ## kubespray                        #
    # default pod replicas == # of controllers
    pod:
@@ -167,9 +182,30 @@ Check the connection to other nodes.::
 Install
 ----------
 
+Run offline services script.::
+
+   $ ./scripts/offline_services.sh --up
+
+Check offline services.::
+
+   $ ./scripts/offline_services.sh --status
+   Local yum repo is running.
+   python3 -m http.server --bind 192.168.21.101 8001
+   
+   Local container registry is running.
+   /tmp/registry serve /tmp/config.yml
+   
+   Offline flag is up.
+
 Install common.::
 
    $ ./run.sh common
+
+Check if yum repo is a local one.::
+
+   $ sudo dnf repolist
+   repo id                               repo name
+   burrito                               Burrito Repo
 
 Install HA stack.::
 
@@ -195,11 +231,11 @@ Patch k8s.::
 
 It will take some time to restart kube-apiserver after patch.
 
-Check all pods are running in kube-system namespace.::
+Check all pods are running and ready in kube-system namespace.::
 
    $ sudo kubectl get pods -n kube-system
 
-Run registry.yml playbook to pull, tag, and push images
+Run registry.yml playbook to pull, tag, and push images 
 from seed registry to the local registry.::
 
    $ ./run.sh registry

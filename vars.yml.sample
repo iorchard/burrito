@@ -29,13 +29,14 @@ keepalived_vip: "192.168.21.90"
 keepalived_interface_svc: "{{ svc_iface_name }}"
 keepalived_vip_svc: "192.168.20.90"
 
-### MTU setting
-calico_mtu: 1500
-openstack_mtu: 1500
-
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
 ###################################################
+# offline installation flag - default false
+# do not change this variable to true
+# if you want offline installation, just add offline_vars.yml in extra-vars
+# it will override the value - refer to run.sh script.
+offline: false
 ### ceph
 dashboard_enabled: false
 configure_firewall: false
@@ -103,8 +104,18 @@ openstack_keys:
 # clients
 copy_admin_key: true
 
+### MTU setting
+calico_mtu: 1500
+openstack_mtu: 1500
 
 ### kubespray 
+upstream_dns_servers:
+  - 8.8.8.8
+kube_image_repo: "registry.k8s.io"
+gcr_image_repo: "gcr.io"
+github_image_repo: "ghcr.io"
+docker_image_repo: "docker.io"
+quay_image_repo: "quay.io"
 download_run_once: false
 bin_dir: /usr/bin
 kube_version: v1.24.8
@@ -158,7 +169,8 @@ registry_disk_size: "30Gi"
 registry_service_type: "NodePort"
 registry_service_nodeport: "32680"
 containerd_insecure_registries:
-  "local_registry": "{{ keepalived_vip }}:32680"
+  "local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"
+  "seed_registry": "{{ hostvars[groups['kube-master'][0]].ip }}:5000"
 
 ### burrito variables
 ## haproxy role variables
