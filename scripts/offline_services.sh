@@ -6,6 +6,7 @@ CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
 REPO_PORT=8001
 REGISTRY_PORT=5000
 EXIT_CODE=0
+U=
 
 function check() {
   read -p "Enter management network interface name: " MGMT_IFACE
@@ -38,7 +39,9 @@ function status() {
 }
 
 function repo_down() {
-  U=$(ps -q $(sudo lsof -i TCP:${REPO_PORT} -t) -o user=)
+  if sudo lsof -i TCP:${REPO_PORT} &>/dev/null; then
+    U=$(ps -q $(sudo lsof -i TCP:${REPO_PORT} -t) -o user=)
+  fi
   if [ "x${U}" = "xhaproxy" ]; then
     echo "I can do nothing: Local repo is already taken over by haproxy."
     EXIT_CODE=10
@@ -50,7 +53,9 @@ function repo_down() {
   fi
 }
 function registry_down() {
-  U=$(ps -q $(sudo lsof -i TCP:${REGISTRY_PORT} -t) -o user=)
+  if sudo lsof -i TCP:${REGISTRY_PORT} &>/dev/null; then
+    U=$(ps -q $(sudo lsof -i TCP:${REGISTRY_PORT} -t) -o user=)
+  fi
   if [ "x${U}" = "xhaproxy" ]; then
     echo "I can do nothing: Local registry is already taken over by haproxy."
     EXIT_CODE=10
