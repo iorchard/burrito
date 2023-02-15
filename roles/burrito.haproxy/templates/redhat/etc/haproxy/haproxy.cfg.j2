@@ -29,7 +29,7 @@ defaults
     maxconn                 3000
 
 listen ceph-rgw-public
-    bind {{ keepalived_vip_svc | ternary(keepalived_vip_svc, keepalived_vip) }}:{{ ceph_rgw_port }}
+    bind {{ keepalived_vip }}:{{ ceph_rgw_port }}
     option forwardfor except 127.0.0.0/8
     balance {{ balance }}
     option httpchk GET /
