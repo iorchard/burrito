@@ -9,13 +9,14 @@ function USAGE() {
   echo
   echo "playbook_name"
   echo "============="
-  echo "common     - play common tasks, i.e. yum repo settings."
+  echo "preflight  - play common tasks, i.e. yum repo settings."
   echo "ha         - play ha stack tasks, HAProxy/KeepAlived."
   echo "ceph       - play ceph installation tasks."
   echo "k8s        - play kubernetes installation tasks."
-  echo "patch      - play kubernetes patch tasks."
-  echo "registry   - play local registry image push tasks."
-  echo "openstack  - play openstack installation tasks."
+  echo "patch      - play kubernetes security patch tasks."
+  echo "registry   - play local registry setup tasks."
+  echo "burrito    - play openstack installation tasks."
+  echo "landing    - play local repo setup tasks.(offline only)"
   echo
   echo "ansible_parameters"
   echo "=================="
@@ -30,17 +31,15 @@ fi
 PLAYBOOK=$1
 shift
 
-OFFLINE_VARS=""
-if [[ -f .offline_flag ]]; then
-  # check offline services status
-  if ${CURRENT_DIR}/scripts/offline_services.sh -s &>/dev/null; then
-    OFFLINE_VARS="--extra-vars=@offline_vars.yml"
-  else
-    echo "There is a problem with offline services."
-    echo "Run offline services - ${CURRENT_DIR}/scripts/offline_services.sh"
-    ${CURRENT_DIR}/scripts/offline_services.sh -s
-    exit 1
-  fi
+OFFLINE_VARS=
+# check offline services status
+if ${CURRENT_DIR}/scripts/offline_services.sh -s &>/dev/null; then
+  OFFLINE_VARS="--extra-vars=@offline_vars.yml"
+else
+  echo "There is a problem with offline services."
+  echo "Run offline services - ${CURRENT_DIR}/scripts/offline_services.sh"
+  ${CURRENT_DIR}/scripts/offline_services.sh -s
+  exit 1
 fi
 [[ "${PLAYBOOK}" = "k8s" ]] && FLAGS="-b" || FLAGS=""
 FLAGS="${FLAGS} $@"
@@ -52,6 +51,13 @@ if [[ "${PLAYBOOK}" = "burrito" ]]; then
   mkdir -p ${HELM_PLUGINS}
   tar -C ${HELM_PLUGINS} -xzf ${HELM_DIFF_TARBALL}
   helm plugin list
+fi
+
+if [[ "${PLAYBOOK}" = "landing" && -z ${OFFLINE_VARS} ]]; then
+  echo "Abort: landing playbook is only for offline installation."
+  echo "But offline is not set up."
+  echo
+  exit 1
 fi
 
 source ~/.envs/burrito/bin/activate

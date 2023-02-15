@@ -1,0 +1,9 @@
+---
+- name: systemctl restart service
+  service:
+    name: "haproxy.service"
+    state: "restarted"
+    enabled: true
+  become: true
+  changed_when: false
+...

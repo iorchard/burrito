@@ -167,17 +167,17 @@ Check the connection to other nodes.::
 Install
 ----------
 
-Install common.::
+Run preflight playbook.::
 
-   $ ./run.sh common
+   $ ./run.sh preflight
 
-Install HA stack.::
+Run HA stack playbook.::
 
    $ ./run.sh ha
 
 Check if KeepAlived VIPs are created in the first controller node.
 
-Install ceph.::
+Run ceph playbook.::
 
    $ ./run.sh ceph
 
@@ -185,7 +185,7 @@ Check ceph health.::
 
    $ sudo ceph -s
 
-Install k8s.::
+Run k8s playbook.::
 
    $ ./run.sh k8s
 
@@ -199,7 +199,7 @@ Check all pods are running in kube-system namespace.::
 
    $ sudo kubectl get pods -n kube-system
 
-Run registry.yml playbook to pull, tag, and push images
+Run registry playbook to pull, tag, and push images
 from seed registry to the local registry.::
 
    $ ./run.sh registry
@@ -210,7 +210,7 @@ Check the images in the local registry.::
 
 Repositories should not be empty.
 
-Install burrito.::
+Run burrito playbook.::
 
    $ ./run.sh burrito
 

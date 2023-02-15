@@ -1,0 +1,61 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: localrepo
+  namespace: {{ localrepo.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: localrepo
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        k8s-app: localrepo
+    spec:
+      serviceAccount: localrepo
+      containers:
+      - name: localrepo
+        image: {{ docker_image_repo }}/library/nginx:1.23
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: localrepo
+          protocol: TCP
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 80
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: localrepo-pvc
+        - mountPath: /etc/nginx/conf.d
+          name: localrepo-conf
+          readOnly: true
+      volumes:
+      - name: localrepo-pvc
+        persistentVolumeClaim:
+          claimName: localrepo-pvc
+      - name: localrepo-conf
+        configMap:
+          name: localrepo
+...

@@ -1,0 +1,14 @@
+---
+kind: RoleBinding
+metadata:
+  name: localrepo
+  namespace: {{ localrepo.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: localrepo
+subjects:
+- kind: ServiceAccount
+  name: localrepo
+  namespace: {{ localrepo.namespace }}
+...

@@ -5,6 +5,7 @@ set -e
 CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
 REPO_PORT=8001
 REGISTRY_PORT=5000
+EXIT_CODE=0
 
 function check() {
   read -p "Enter management network interface name: " MGMT_IFACE
@@ -17,40 +18,47 @@ function check() {
   MGMT_IP=$(ip -br a s dev ${MGMT_IFACE} | awk '{print $3}' |cut -d'/' -f1)
 }
 function status() {
-  EXIT_CODE=0
-  if lsof -i :${REPO_PORT} &>/dev/null; then
-    echo "Local yum repo is running."
-    ps -q $(lsof -i :${REPO_PORT} -t) -o cmd=
+  if sudo lsof -i TCP:${REPO_PORT} &>/dev/null; then
+    echo "Local repo is running."
+    ps -q $(sudo lsof -i TCP:${REPO_PORT} -t) -o cmd=
   else
-    echo "Local yum repo is NOT running."
+    echo "Local repo is NOT running."
     EXIT_CODE=1
   fi
   echo
-  if lsof -i :${REGISTRY_PORT} &>/dev/null; then
-    echo "Local container registry is running."
-    ps -q $(lsof -i :${REGISTRY_PORT} -t) -o cmd=
+  if sudo lsof -i TCP:${REGISTRY_PORT} &>/dev/null; then
+    echo "Local registry is running."
+    ps -q $(sudo lsof -i TCP:${REGISTRY_PORT} -t) -o cmd=
   else
-    echo "Local container registry is NOT running."
+    echo "Local registry is NOT running."
     EXIT_CODE=1
   fi
   echo
-  if [ -f ${CURRENT_DIR}/../.offline_flag ]; then
-    echo "Offline flag is up."
-  else 
-    echo "Offline flag is down."
-    EXIT_CODE=1
-  fi
   exit ${EXIT_CODE}
 }
 
 function repo_down() {
-  if lsof -i :${REPO_PORT} &>/dev/null; then
-    kill $(lsof -i :${REPO_PORT} -t)
+  U=$(ps -q $(sudo lsof -i TCP:${REPO_PORT} -t) -o user=)
+  if [ "x${U}" = "xhaproxy" ]; then
+    echo "I can do nothing: Local repo is already taken over by haproxy."
+    EXIT_CODE=10
+    exit $EXIT_CODE
+  else
+    if sudo lsof -i TCP:${REPO_PORT} &>/dev/null; then
+      kill $(sudo lsof -i TCP:${REPO_PORT} -t)
+    fi
   fi
 }
 function registry_down() {
-  if lsof -i :${REGISTRY_PORT} &>/dev/null; then
-    kill $(lsof -i :${REGISTRY_PORT} -t)
+  U=$(ps -q $(sudo lsof -i TCP:${REGISTRY_PORT} -t) -o user=)
+  if [ "x${U}" = "xhaproxy" ]; then
+    echo "I can do nothing: Local registry is already taken over by haproxy."
+    EXIT_CODE=10
+    exit $EXIT_CODE
+  else
+    if sudo lsof -i TCP:${REGISTRY_PORT} &>/dev/null; then
+      kill $(sudo lsof -i TCP:${REGISTRY_PORT} -t)
+    fi
   fi
 }
 function up() {
@@ -65,7 +73,6 @@ function up() {
   fi
   echo "Started offline repo and/or registry services."
   echo "Put offline flag."
-  touch ${CURRENT_DIR}/../.offline_flag
 }
 function down() {
   if [[ $# -eq 0 ]]; then
@@ -78,7 +85,6 @@ function down() {
   fi
   echo "Stopped repo and/or registry services."
   echo "Remove offline flag."
-  rm -f ${CURRENT_DIR}/../.offline_flag
 }
 function repo_up() {
   repo_down

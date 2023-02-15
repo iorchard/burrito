@@ -1,0 +1,7 @@
+---
+- name: deploy localrepo
+  hosts: localhost
+  any_errors_fatal: true
+  roles:
+    - {role: burrito.localrepo, tags: ['localrepo', 'burrito']}
+...

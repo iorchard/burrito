@@ -1,0 +1,28 @@
+---
+artifacts_dir: "{{ ansible_env.HOME }}/burrito-artifacts"
+localrepo:
+  namespace: burrito
+  storage: "10Gi"
+  storageclassname: rbd
+  nodeport: 32690
+  port: 8001
+
+docker_image_repo: ~
+
+pkg_src: "/mnt/BaseOS"
+pkg_dst: "/usr/share/nginx/html/BaseOS"
+keepalived_vip: ~
+balance: roundrobin
+inter: 2s
+rise: 2
+fall: 3
+
+template_files:
+  - {dest: "{{ artifacts_dir }}/00-localrepo-sa.yml"}
+  - {dest: "{{ artifacts_dir }}/01-localrepo-role.yml"}
+  - {dest: "{{ artifacts_dir }}/02-localrepo-rolebinding.yml"}
+  - {dest: "{{ artifacts_dir }}/03-localrepo-pvc.yml"}
+  - {dest: "{{ artifacts_dir }}/04-localrepo-cm.yml"}
+  - {dest: "{{ artifacts_dir }}/05-localrepo-deploy.yml"}
+  - {dest: "{{ artifacts_dir }}/06-localrepo-svc.yml"}
+...

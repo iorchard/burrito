@@ -1,0 +1,15 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: localrepo-pvc
+  namespace: {{ localrepo.namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ localrepo.storage }}
+  storageClassName: {{ localrepo.storageclassname }}
+  volumeMode: Filesystem
+...

@@ -1,0 +1,17 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: localrepo
+  namespace: burrito
+spec:
+  selector:
+    k8s-app: localrepo
+  ports:
+  - name: localrepo
+    nodePort: {{ localrepo.nodeport }}
+    port: {{ localrepo.port }}
+    protocol: TCP
+    targetPort: 80
+  type: NodePort
+...
