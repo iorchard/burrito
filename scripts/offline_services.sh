@@ -88,7 +88,6 @@ function down() {
     registry_down
   fi
   echo "Stopped repo and/or registry services."
-  echo "Remove offline flag."
 }
 function repo_up() {
   repo_down
