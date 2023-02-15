@@ -77,7 +77,6 @@ function up() {
     registry_up
   fi
   echo "Started offline repo and/or registry services."
-  echo "Put offline flag."
 }
 function down() {
   if [[ $# -eq 0 ]]; then
