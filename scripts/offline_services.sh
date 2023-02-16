@@ -77,6 +77,8 @@ function up() {
     registry_up
   fi
   echo "Started offline repo and/or registry services."
+  echo "Put offline flag."
+  touch ${CURRENT_DIR}/../.offline_flag
 }
 function down() {
   if [[ $# -eq 0 ]]; then
@@ -88,6 +90,8 @@ function down() {
     registry_down
   fi
   echo "Stopped repo and/or registry services."
+  echo "Remove offline flag."
+  rm -f ${CURRENT_DIR}/../.offline_flag
 }
 function repo_up() {
   repo_down
