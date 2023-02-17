@@ -10,10 +10,50 @@
     OFFLINE: "{{ offline | ternary(1, 0) }}"
 
   tasks:
+    - name: Registry | create a tarball
+      community.general.archive:
+        path: /mnt/registry/docker
+        dest: /tmp/registry.tgz
+      when: offline
+    - name: Registry | get registry pod name
+      kubernetes.core.k8s_info:
+        kind: Pod
+        namespace: "{{ registry_namespace }}"
+        label_selectors:
+          - "k8s-app=registry"
+      register: registry_pod
+      when: offline
+      become: true
+    - name: Registry | copy the tarball into the registry pod
+      ansible.builtin.command: >-
+        kubectl -n {{ registry_namespace }} cp /tmp/registry.tgz \
+          {{ registry_pod.resources[0].metadata.name }}:/var/lib/registry/
+      become: true
+      when: offline
+    - name: Registry | untar the tarball in the registry pod
+      ansible.builtin.command: >-
+        kubectl -n {{ registry_namespace }} exec \
+          {{ registry_pod.resources[0].metadata.name }} -- \
+          tar -C /var/lib/registry -xzf /var/lib/registry/registry.tgz
+      become: true
+      when: offline
+    - name: Registry | remove the tarball in the registry pod
+      ansible.builtin.command: >-
+        kubectl -n {{ registry_namespace }} exec \
+          {{ registry_pod.resources[0].metadata.name }} -- \
+          rm -f /var/lib/registry/registry.tgz
+      become: true
+      when: offline
+    - name: Registry | remove the tarball in /tmp
+      ansible.builtin.file:
+        path: /tmp/registry.tgz
+        state: absent
+      when: offline
+
     - name: Registry | run registry.sh script
       ansible.builtin.shell: ./registry.sh &> /tmp/registry_play.log
       args:
         chdir: "{{ playbook_dir }}/scripts"
       become: true
-      tags: images
+      when: not offline
 ...
