@@ -6,7 +6,7 @@
     - { role: burrito.cert-manager, tags: ['cert-manager', 'burrito']}
 
 - name: setup system
-  hosts: k8s-cluster
+  hosts: k8s_cluster
   any_errors_fatal: true
   roles:
     - { role: burrito.system, tags: ['system', 'burrito']}
