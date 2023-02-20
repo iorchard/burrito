@@ -212,6 +212,7 @@ Repositories should not be empty.
 
 Run burrito playbook.::
 
+   $ sudo helm plugin install https://github.com/databus23/helm-diff
    $ ./run.sh burrito
 
 Check openstack status.::
