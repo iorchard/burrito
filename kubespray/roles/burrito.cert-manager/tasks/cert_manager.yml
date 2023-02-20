@@ -17,14 +17,14 @@
     ca_key: "{{ ca_private_key.content }}"
   when: ca_key_pair_result.rc != 0
 
-- name: Cert Manager | apply ca-key-pair manifest
+- name: Cert Manager | apply ca-key-pair Secret manifest
   kubernetes.core.k8s:
     state: present
     template: 'ca-key-pair.yml.j2'
   become: true
   when: ca_key_pair_result.rc != 0
 
-- name: Cert Manager | apply ClusterIssuer manifest
+- name: Cert Manager | apply ca-issuer ClusterIssuer manifest
   kubernetes.core.k8s:
     state: present
     definition:
