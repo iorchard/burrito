@@ -1,5 +1,5 @@
 docker.io/jijisa/barbican:yoga-ubuntu_focal
-docker.io/jijisa/btx:yoga
+docker.io/jijisa/btx:yoga-v1.24.8-quincy
 docker.io/jijisa/cinder:yoga-ubuntu_focal
 docker.io/jijisa/glance:yoga-ubuntu_focal
 docker.io/jijisa/heat:yoga-ubuntu_focal
