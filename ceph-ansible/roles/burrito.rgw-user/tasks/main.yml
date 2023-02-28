@@ -45,7 +45,7 @@
     src: "s3cfg_controller.j2"
     dest: "{{ ansible_env.HOME }}/.s3cfg"
     mode: "0600"
-  when: inventory_hostname in groups['kube-master']
+  when: inventory_hostname in groups['kube_control_plane']
 
 - name: RGW | add a bucket for cloudpc
   command: >-
