@@ -17,7 +17,7 @@ spec:
     - --advertise-address={{ ip }}
     - --allow-privileged=true
     - --anonymous-auth=false
-    - --apiserver-count={{ groups['kube-master'] | length }}
+    - --apiserver-count={{ groups['kube_control_plane'] | length }}
     - --authorization-mode=Node,RBAC
     - --bind-address=0.0.0.0
     - --client-ca-file=/etc/kubernetes/ssl/ca.crt
@@ -31,7 +31,7 @@ spec:
     - --etcd-cafile=/etc/ssl/etcd/ssl/ca.pem
     - --etcd-certfile=/etc/ssl/etcd/ssl/node-{{ inventory_hostname }}.pem
     - --etcd-keyfile=/etc/ssl/etcd/ssl/node-{{ inventory_hostname }}-key.pem
-    - --etcd-servers={% for h in groups['kube-master'] %}https://{{ hostvars[h].ip }}:2379{% if not loop.last %},{% endif %}{% endfor %}
+    - --etcd-servers={% for h in groups['kube_control_plane'] %}https://{{ hostvars[h].ip }}:2379{% if not loop.last %},{% endif %}{% endfor %}
 
     - --event-ttl=1h0m0s
     - --kubelet-client-certificate=/etc/kubernetes/ssl/apiserver-kubelet-client.crt
