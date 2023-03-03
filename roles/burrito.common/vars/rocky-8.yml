@@ -8,7 +8,6 @@ prereq_pkgs:
 
 packages:
   - rsyslog
-  - epel-release
 
 os_service_conf:
   - {dest: "/etc/rsyslog.conf"}
