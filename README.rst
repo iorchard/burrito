@@ -100,10 +100,10 @@ Edit hosts.::
    compute[1:2]
    
    # kubernetes nodes
-   [kube-master]
+   [kube_control_plane]
    controller[1:3]
    
-   [kube-node]
+   [kube_node]
    controller[1:3]
    network[1:2]
    compute[1:2]

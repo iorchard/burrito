@@ -31,14 +31,14 @@ vrrp_instance VI_BURRITO_MGMT {
   track_src_ip
   check_unicast_src
   unicast_peer { 
-    {% for h in groups['kube-master'] %}
+    {% for h in groups['kube_control_plane'] %}
       {% if inventory_hostname != h %}
     {{ hostvars[h]['ansible_' + keepalived_interface].ipv4.address }}
       {% endif %}
     {% endfor %}
   }
-  virtual_router_id {{ hostvars[groups['kube-master'][0]]['keepalived_vrid'] }}
-  priority {% for h in groups['kube-master'] %}{% if inventory_hostname == h %}{{ 110-(loop.index*10) }}{% endif %}{% endfor %}
+  virtual_router_id {{ hostvars[groups['kube_control_plane'][0]]['keepalived_vrid'] }}
+  priority {% for h in groups['kube_control_plane'] %}{% if inventory_hostname == h %}{{ 110-(loop.index*10) }}{% endif %}{% endfor %}
 
   advert_int 1
   nopreempt
@@ -54,14 +54,14 @@ vrrp_instance VI_BURRITO_SVC {
   track_src_ip
   check_unicast_src
   unicast_peer {
-    {% for h in groups['kube-master'] %}
+    {% for h in groups['kube_control_plane'] %}
       {% if inventory_hostname != h %}
     {{ hostvars[h]['ansible_' + keepalived_interface_svc].ipv4.address }}
       {% endif %}
     {% endfor %}
   }
   virtual_router_id {{ keepalived_vrid }}
-  priority {% for h in groups['kube-master'] %}{% if inventory_hostname == h %}{{ 110-(loop.index*10) }}{% endif %}{% endfor %}
+  priority {% for h in groups['kube_control_plane'] %}{% if inventory_hostname == h %}{{ 110-(loop.index*10) }}{% endif %}{% endfor %}
 
   advert_int 1
   nopreempt
