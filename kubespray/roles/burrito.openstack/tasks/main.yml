@@ -1,5 +1,5 @@
 ---
-- name: Provision | create openstack namespace
+- name: OpenStack | create openstack namespace
   kubernetes.core.k8s:
     name: openstack
     api_version: v1
@@ -7,38 +7,51 @@
     state: present
   become: true
 
-- name: Provision | make sure to set up control plane label
+- name: OpenStack | make sure to set up control plane label
   ansible.builtin.command: >-
     kubectl label nodes --overwrite {{ item }} openstack-control-plane=enabled
   become: true
   loop: "{{ groups['controller-node'] }}"
 
-- name: Provision | create openstack artifacts directory
+- name: OpenStack | delete openstack artifacts directory
+  ansible.builtin.file:
+    path: "{{ os_artifacts_dir }}"
+    state: absent
+    
+- name: OpenStack | create openstack artifacts directory
   ansible.builtin.file:
     path: "{{ os_artifacts_dir }}"
     state: directory
 
-- name: Provision | get admin keyring
+- name: OpenStack | get admin keyring
   ansible.builtin.command: >-
     ceph auth get-key client.admin
   register: result
   become: true
 
-- name: Provision | set fact for admin keyring
+- name: OpenStack | set fact for admin keyring
   ansible.builtin.set_fact:
     ceph_admin_key: "{{ result.stdout }}"
 
-- name: Provision | get cinder keyring
+- name: OpenStack | get cinder keyring
   ansible.builtin.command: >-
     ceph auth get-key client.cinder
   register: result
   become: true
 
-- name: Provision | set fact for cinder keyring
+- name: OpenStack | set fact for cinder keyring
   ansible.builtin.set_fact:
     ceph_cinder_key: "{{ result.stdout }}"
 
-- name: Provision | templating osh infra values
+- name: OpenStack | set osh_infra_charts depending on neutron_ml2_plugin
+  ansible.builtin.set_fact:
+    osh_infra_charts: "{{ is_ovs|ternary(osh_infra_charts|union(['openvswitch']), osh_infra_charts) }}"
+
+- name: OpenStack | debug
+  ansible.builtin.debug:
+    msg: "{{ osh_infra_charts }}"
+
+- name: OpenStack | templating osh infra values
   ansible.builtin.template:
     dest: "{{ os_artifacts_dir }}/{{ item }}.yml"
     src: "osh_infra/{{ item }}.yml.j2"
@@ -46,7 +59,7 @@
   loop: "{{ osh_infra_charts }}"
   tags: osh-infra
 
-- name: Provision | create dependency chart directory
+- name: OpenStack | create dependency chart directory
   ansible.builtin.file:
     path: "{{ osh_infra_path }}/{{ item }}/charts"
     state: directory
@@ -54,7 +67,7 @@
   loop: "{{ osh_infra_charts }}"
   tags: osh-infra
 
-- name: Provision | symlink helm-toolkit dependency chart
+- name: OpenStack | symlink helm-toolkit dependency chart
   ansible.builtin.file:
     dest: "{{ osh_infra_path }}/{{ item }}/charts/helm-toolkit"
     src: "{{ osh_infra_path }}/helm-toolkit"
@@ -62,7 +75,7 @@
   loop: "{{ osh_infra_charts }}"
   tags: osh-infra
 
-- name: Provision | deploy osh infra charts
+- name: OpenStack | deploy osh infra charts
   kubernetes.core.helm:
     name: "{{ item }}"
     chart_ref: "{{ osh_infra_path }}/{{ item }}"
@@ -74,7 +87,7 @@
   loop: "{{ osh_infra_charts }}"
   tags: ["osh-infra", "deploy-chart"]
 
-- name: Provision | create dependency chart directory for osh
+- name: OpenStack | create dependency chart directory for osh
   ansible.builtin.file:
     path: "{{ osh_path }}/{{ item }}/charts"
     state: directory
@@ -82,7 +95,7 @@
   loop: "{{ osh_charts }}"
   tags: osh
 
-- name: Provision | symlink helm-toolkit dependency chart for osh
+- name: OpenStack | symlink helm-toolkit dependency chart for osh
   ansible.builtin.file:
     dest: "{{ osh_path }}/{{ item }}/charts/helm-toolkit"
     src: "{{ osh_infra_path }}/helm-toolkit"
@@ -90,7 +103,7 @@
   loop: "{{ osh_charts }}"
   tags: osh
 
-- name: Provision | templating osh values
+- name: OpenStack | templating osh values
   ansible.builtin.template:
     dest: "{{ os_artifacts_dir }}/{{ item }}.yml"
     src: "osh/{{ item }}.yml.j2"
@@ -98,7 +111,7 @@
   loop: "{{ osh_charts }}"
   tags: osh
 
-- name: Provision | deploy osh charts
+- name: OpenStack | deploy osh charts
   kubernetes.core.helm:
     release_name: "{{ item }}"
     chart_ref: "{{ osh_path }}/{{ item }}"
@@ -110,7 +123,7 @@
   loop: "{{ osh_charts }}"
   tags: ["osh", "deploy-chart"]
 
-- name: Provision | templating btx chart values
+- name: OpenStack | templating btx chart values
   ansible.builtin.template:
     dest: "{{ os_artifacts_dir }}/{{ item }}.yml"
     src: "{{ item }}.yml.j2"
@@ -118,7 +131,7 @@
   loop: "{{ btx_charts }}"
   tags: btx
 
-- name: Provision | deploy btx charts
+- name: OpenStack | deploy btx charts
   kubernetes.core.helm:
     release_name: "{{ item }}"
     chart_ref: "{{ btx_path }}/{{ item }}"
@@ -129,7 +142,7 @@
   loop: "{{ btx_charts }}"
   tags: btx
 
-- name: Provision | create .btx.env
+- name: OpenStack | create .btx.env
   ansible.builtin.copy:
     dest: "{{ ansible_env.HOME }}/.btx.env"
     src: ".btx.env"
