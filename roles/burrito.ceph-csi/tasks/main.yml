@@ -1,5 +1,5 @@
 ---
-- name: Provision | create ceph-csi namespace
+- name: ceph-csi | create ceph-csi namespace
   kubernetes.core.k8s:
     name: ceph-csi
     api_version: v1
@@ -7,12 +7,17 @@
     state: present
   become: true
 
-- name: Provision | create ceph-csi artifacts directory
+- name: ceph-csi | delete ceph-csi artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: absent
+
+- name: ceph-csi | create ceph-csi artifacts directory
   ansible.builtin.file:
     path: "{{ artifacts_dir }}"
     state: directory
 
-- name: Provision | copy ceph-csi static files
+- name: ceph-csi | copy ceph-csi static files
   ansible.builtin.copy:
     dest: "{{ artifacts_dir }}/{{ item | basename }}"
     src: "{{ item }}"
@@ -20,34 +25,34 @@
   with_fileglob:
     - "files/*"
 
-- name: Provision | get ceph cluster id
+- name: ceph-csi | get ceph cluster id
   ansible.builtin.command: >-
     ceph config get mon fsid
   register: result
   become: true
 
-- name: Provision | set fact for ceph cluster id
+- name: ceph-csi | set fact for ceph cluster id
   ansible.builtin.set_fact:
     ceph_cluster_id: "{{ result.stdout }}"
 
-- name: Provision | get client.kube keyring
+- name: ceph-csi | get client.kube keyring
   ansible.builtin.command: >-
     ceph auth get-key client.kube
   register: result
   become: true
 
-- name: Provision | set fact for kube keyring
+- name: ceph-csi | set fact for kube keyring
   ansible.builtin.set_fact:
     ceph_user_key: "{{ result.stdout }}"
 
-- name: Provision | templating ceph-csi template files
+- name: ceph-csi | templating ceph-csi template files
   ansible.builtin.template:
     dest: "{{ item.dest }}"
     src: "{{ item.dest | basename }}.j2"
     mode: "0644"
   loop: "{{ template_files }}"
 
-- name: Provision | apply ceph-csi manifests
+- name: ceph-csi | apply ceph-csi manifests
   kubernetes.core.k8s:
     src: "{{ item }}"
     state: present
