@@ -16,6 +16,7 @@ limitations under the License.
 
 set -x
 
+{{- if ( has "openvswitch" .Values.network.backend ) }}
 if [[ "$(hostname)" =~ "comp" ]]; then
   tee > /tmp/pod-shared/l3-agent.ini << EOF
 [DEFAULT]
@@ -29,15 +30,19 @@ agent_mode = dvr_snat
 interface_driver = openvswitch
 EOF
 fi
+{{- end }}
 
 exec neutron-l3-agent \
       --config-file /etc/neutron/neutron.conf \
-      --config-file /tmp/pod-shared/l3-agent.ini \
       --config-file /etc/neutron/metadata_agent.ini \
 {{- if and ( empty .Values.conf.neutron.DEFAULT.host ) ( .Values.pod.use_fqdn.neutron_agent ) }}
   --config-file /tmp/pod-shared/neutron-agent.ini \
 {{- end }}
 {{- if ( has "openvswitch" .Values.network.backend ) }}
       --config-file /etc/neutron/plugins/ml2/openvswitch_agent.ini \
+      --config-file /tmp/pod-shared/l3-agent.ini \
+{{- end }}
+{{- if ( has "linuxbridge" .Values.network.backend ) }}
+      --config-file /etc/neutron/l3_agent.ini \
 {{- end }}
       --config-file /etc/neutron/plugins/ml2/ml2_conf.ini
