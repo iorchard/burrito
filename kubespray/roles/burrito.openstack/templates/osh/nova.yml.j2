@@ -40,7 +40,7 @@ bootstrap:
           vcpus: 4
 network:
   backend:
-  - openvswitch
+  - {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
   osapi:
     ingress:
       annotations:
