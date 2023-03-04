@@ -54,10 +54,11 @@ placement:
   password: ~
 
 ## neutron
+is_ovs: true
 neutron:
   tunnel: ~
   tunnel_compute: ~
-neutron_ml2_plugin: "ovs"
+neutron_ml2_plugin: "openvswitch"
 ovs_dvr: true
 ovs_provider:
   - name: external
