@@ -6,7 +6,7 @@ docker.io/jijisa/heat:yoga-ubuntu_focal
 docker.io/jijisa/horizon:yoga-ubuntu_focal
 docker.io/jijisa/keystone:yoga-ubuntu_focal
 docker.io/jijisa/mariadb-server:10.6.11
-docker.io/jijisa/neutron:yoga-ubuntu_focal
+docker.io/jijisa/neutron:skb-yoga-ubuntu_jammy
 docker.io/jijisa/nova:yoga-ubuntu_focal
 docker.io/jijisa/nova:skb-yoga-ovspatch-ubuntu_jammy
 docker.io/jijisa/placement:yoga-ubuntu_focal
