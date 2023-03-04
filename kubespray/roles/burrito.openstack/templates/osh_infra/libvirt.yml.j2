@@ -7,7 +7,7 @@ images:
 
 network:
   backend:
-  - openvswitch
+  - {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
 conf:
   ceph:
     enabled: true
