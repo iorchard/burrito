@@ -91,13 +91,14 @@ btx:
   pvc:
     size: "20Gi"
 
+# openvswitch chart is added dynamically if neutron_ml2_plugin is set to ovs.
+# See "OpenStack | templating osh infra values tasks" in tasks/main.yml
 osh_infra_charts:
   - ingress
   - ceph-provisioners
   - mariadb
   - rabbitmq
   - memcached
-  - openvswitch
   - libvirt
 
 osh_charts:
