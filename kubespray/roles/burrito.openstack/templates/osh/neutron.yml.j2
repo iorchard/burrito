@@ -8,15 +8,15 @@ images:
     ks_user: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
     ks_service: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
     ks_endpoints: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
-    neutron_dhcp: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:yoga-ubuntu_focal"
-    neutron_l3: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:yoga-ubuntu_focal"
-    neutron_l2gw: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:yoga-ubuntu_focal"
-    neutron_linuxbridge_agent: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:yoga-ubuntu_focal"
-    neutron_metadata: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:yoga-ubuntu_focal"
-    neutron_openvswitch_agent: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:yoga-ubuntu_focal"
-    neutron_rpc_server: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:yoga-ubuntu_focal"
-    neutron_bagpipe_bgp: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:yoga-ubuntu_focal"
-    neutron_netns_cleanup_cron: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:yoga-ubuntu_focal"
+    neutron_dhcp: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
+    neutron_l3: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
+    neutron_l2gw: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
+    neutron_linuxbridge_agent: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
+    neutron_metadata: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
+    neutron_openvswitch_agent: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
+    neutron_rpc_server: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
+    neutron_bagpipe_bgp: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
+    neutron_netns_cleanup_cron: "{{ containerd_insecure_registries.local_registry }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
     neutron_server: "{{ containerd_insecure_registries.local_registry }}/jijisa/ubuntu-source-neutron-server:yoga"
     neutron_bgp_dragent: "{{ containerd_insecure_registries.local_registry }}/jijisa/ubuntu-source-neutron-bgp-dragent:yoga"
     neutron_db_sync: "{{ containerd_insecure_registries.local_registry }}/jijisa/ubuntu-source-neutron-bgp-dragent:yoga"
@@ -29,7 +29,7 @@ network:
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: "https"
   backend:
-  - openvswitch
+  - {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
   share_namespaces: true
   interface:
     tunnel: {{ neutron.tunnel }}
@@ -176,8 +176,7 @@ conf:
       router_distributed: True
       core_plugin: ml2
       global_physnet_mtu: {{ openstack_mtu }}
-      service_plugins: neutron_dynamic_routing.services.bgp.bgp_plugin.BgpPlugin,neutron.services.l3_router.l3_router_plugin.L3RouterPlugin
-      #service_plugins: router
+      service_plugins: {{ bgp_dragent|ternary('neutron_dynamic_routing.services.bgp.bgp_plugin.BgpPlugin,neutron.services.l3_router.l3_router_plugin.L3RouterPlugin', 'router') }}
       l3_ha_network_type: vxlan
       dhcp_agents_per_network: 2
     nova:
@@ -197,7 +196,10 @@ conf:
       quota_floatingip: -1
       quota_security_group: -1
       quota_security_group_rule: -1
-{% if neutron_ml2_plugin == "ovs" %}
+{% if not is_ovs %}
+  auto_bridge_add: null
+{% endif %}
+{% if is_ovs %}
   auto_bridge_add:
 {% for b in ovs_provider %}
     {{ b.bridge }}:{{ b.iface }}
@@ -210,15 +212,35 @@ conf:
         extension_drivers: port_security
         type_drivers: flat{% if ovs_provider[0].vlan_ranges %},vlan{% endif %},vxlan
         tenant_network_types: vxlan
+        mechanism_drivers: {{ is_ovs|ternary("openvswitch", "linuxbridge") }},l2population
       ml2_type_flat:
         flat_networks: "*"
-{% if neutron_ml2_plugin == "ovs" %}
+{% if is_ovs %}
 {% if ovs_provider[0].vlan_ranges %}
       ml2_type_vlan:
         network_vlan_ranges: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.vlan_ranges }},{% endfor %}"
 {% endif %}
 {% endif %}
-{% if neutron_ml2_plugin == "ovs" %}
+      ml2_type_vxlan:
+        vni_ranges: "1:1000"
+      securitygroup:
+        enable_ipset: true
+{% if not is_ovs %}
+    linuxbridge_agent:
+      agent:
+        extensions: qos
+      linux_bridge:
+        physical_interface_mappings: "{{ lb_iface_mappings|join(',') }}"
+        bridge_mappings: ""
+      securitygroup:
+        enable_security_group: true
+        firewall_driver: neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
+      vxlan:
+        enable_vxlan: true
+        l2_population: true
+        arp_responder: false
+{% endif %}
+{% if is_ovs %}
     openvswitch_agent:
       ovs:
         bridge_mappings: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.bridge }},{% endfor %}"
@@ -227,13 +249,13 @@ conf:
       agent:
         enable_distributed_routing: {{ ovs_dvr | ternary('True', 'False') }}
         tunnel_types: vxlan
-        l2_population: True
-        arp_responder: True
+        l2_population: true
+        arp_responder: true
+{% endif %}
   l3_agent:
     DEFAULT:
-      interface_driver: openvswitch
+      interface_driver: {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
       agent_mode: {{ ovs_dvr | ternary('dvr', 'legacy') }}
-{% endif %}
 {% if bgp_dragent %}
   bgp_dragent:
     DEFAULT:
@@ -244,7 +266,10 @@ conf:
 {% endif %}
   dhcp_agent:
     DEFAULT:
-      force_metadata: True
+      interface_driver: {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
+      dhcp_driver: neutron.agent.linux.dhcp.Dnsmasq
+      enable_isolated_metadata: true
+      force_metadata: false
   metadata_agent:
     DEFAULT:
       nova_metadata_port: 8443
@@ -328,10 +353,10 @@ endpoints:
         default: 8443
 
 manifests:
-  daemonset_lb_agent: false
-  daemonset_ovs_agent: true
+  daemonset_lb_agent: {{ is_ovs|ternary(false, true) }}
+  daemonset_ovs_agent: {{ is_ovs|ternary(true, false) }}
   daemonset_sriov_agent: false
   daemonset_metadata_agent: true
-  daemonset_bgp_dragent: true
+  daemonset_bgp_dragent: {{ bgp_dragent }}
   certificates: true
 ...
