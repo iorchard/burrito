@@ -29,6 +29,15 @@ keepalived_vip: "192.168.21.90"
 keepalived_interface_svc: "{{ svc_iface_name }}"
 keepalived_vip_svc: "192.168.20.90"
 
+### MTU setting
+calico_mtu: 1500
+openstack_mtu: 1500
+
+### neutron
+# is_ovs: set true for openvswitch, set false for linuxbridge
+is_ovs: true
+bgp_dragent: false
+
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
 ###################################################
@@ -103,10 +112,6 @@ openstack_keys:
 
 # clients
 copy_admin_key: true
-
-### MTU setting
-calico_mtu: 1500
-openstack_mtu: 1500
 
 ### kubespray 
 upstream_dns_servers:
@@ -218,18 +223,19 @@ placement:
 ceph_secret_uuid: 55b1a639-3ce3-470c-9205-99ea9b5045f9
 
 # neutron
+neutron_ml2_plugin: "{{ is_ovs|ternary('openvswitch', 'linuxbridge') }}"
 neutron:
   tunnel: "{{ overlay_iface_name }}"
   tunnel_compute: "{{ overlay_iface_name }}"
   password: "{{ common_password }}"
-neutron_ml2_plugin: "ovs"
-ovs_dvr: true
+ovs_dvr: "{{ is_ovs|ternary(true, false) }}"
 ovs_provider:
   - name: external
     bridge: br-ex
     iface: "{{ provider_iface_name }}"
     vlan_ranges: ""
-bgp_dragent: true
+lb_iface_mappings:
+  - "external:{{ provider_iface_name }}"
 
 # nova
 nova:
