@@ -2,11 +2,13 @@
 
 set -e
 
-OSH_INFRA_PATH=$HOME/burrito/openstack-helm-infra
-OSH_PATH=$HOME/burrito/openstack-helm
-BTX_PATH=$HOME/burrito/btx/helm
+CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
+
+OSH_INFRA_PATH=${CURRENT_DIR}/../openstack-helm-infra
+OSH_PATH=${CURRENT_DIR}/../openstack-helm
+BTX_PATH=${CURRENT_DIR}/../btx/helm
+KUBESPRAY_PATH=${CURRENT_DIR}/../kubespray
 OVERRIDE_PATH=$HOME/openstack-artifacts
-KUBESPRAY_PATH=$HOME/burrito/kubespray
 
 declare -A path_arr=(
   [ingress]=$OSH_INFRA_PATH
