@@ -4,6 +4,18 @@ set -e
 
 GIT_TAG="${1:-1.0.0}"
 
+function USAGE() {
+  echo "USAGE: $0 <git_tag>" 1>&2
+  echo
+  echo "ex) $0 1.0.0"
+  echo
+}
+
+if [ $# -lt 1 ];then
+  USAGE
+  exit 1
+fi
+
 CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
 DIST_DIR=${CURRENT_DIR}/dist
 
