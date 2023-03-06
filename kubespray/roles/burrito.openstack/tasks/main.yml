@@ -13,11 +13,6 @@
   become: true
   loop: "{{ groups['controller-node'] }}"
 
-- name: OpenStack | delete openstack artifacts directory
-  ansible.builtin.file:
-    path: "{{ os_artifacts_dir }}"
-    state: absent
-    
 - name: OpenStack | create openstack artifacts directory
   ansible.builtin.file:
     path: "{{ os_artifacts_dir }}"
