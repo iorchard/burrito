@@ -43,10 +43,10 @@ labels:
       node_selector_key: openstack-network-plane
       node_selector_value: enabled
     l3:
-      node_selector_key: openstack-network-dvr
+      node_selector_key: {{ ovs_dvr|ternary('openstack-network-dvr', 'openstack-network-plane') }}
       node_selector_value: enabled
     metadata:
-      node_selector_key: openstack-network-dvr
+      node_selector_key: {{ ovs_dvr|ternary('openstack-network-dvr', 'openstack-network-plane') }}
       node_selector_value: enabled
   job:
     node_selector_key: openstack-network-plane
@@ -173,10 +173,11 @@ conf:
     DEFAULT:
       bind_host: 127.0.0.1
       debug: True
-      router_distributed: True
+      router_distributed: {{ ovs_dvr|ternary('True', 'False') }}
       core_plugin: ml2
       global_physnet_mtu: {{ openstack_mtu }}
       service_plugins: {{ bgp_dragent|ternary('neutron_dynamic_routing.services.bgp.bgp_plugin.BgpPlugin,neutron.services.l3_router.l3_router_plugin.L3RouterPlugin', 'router') }}
+      l3_ha: true
       l3_ha_network_type: vxlan
       dhcp_agents_per_network: 2
     nova:
@@ -224,17 +225,17 @@ conf:
       ml2_type_vxlan:
         vni_ranges: "1:1000"
       securitygroup:
-        enable_ipset: true
+        enable_ipset: false
 {% if not is_ovs %}
     linuxbridge_agent:
       agent:
         extensions: qos
       linux_bridge:
+        bridge_mappings: []
         physical_interface_mappings: "{{ lb_iface_mappings|join(',') }}"
-        bridge_mappings: ""
       securitygroup:
         enable_security_group: true
-        firewall_driver: neutron.agent.linux.iptables_firewall.IptablesFirewallDriver
+        firewall_driver: iptables
       vxlan:
         enable_vxlan: true
         l2_population: true
@@ -267,9 +268,7 @@ conf:
   dhcp_agent:
     DEFAULT:
       interface_driver: {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
-      dhcp_driver: neutron.agent.linux.dhcp.Dnsmasq
-      enable_isolated_metadata: true
-      force_metadata: false
+      force_metadata: true
   metadata_agent:
     DEFAULT:
       nova_metadata_port: 8443
