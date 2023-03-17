@@ -10,6 +10,23 @@
   tags:
     - facts
 
+- name: get admin.conf
+  ansible.builtin.slurp:
+    src: "{{ admin_conf }}"
+  register: admin_conf_str
+  delegate_to: "{{ groups['kube_control_plane'][0] }}"
+  run_once: true
+
+- name: copy admin.conf to the node.
+  ansible.builtin.copy:
+    dest: "{{ discovery_file }}"
+    content: "{{ admin_conf_str.content|b64decode|replace('127.0.0.1', hostvars[groups['kube_control_plane'][0]].ip) }}"
+  when: discovery_type == 'file'
+
+- name: pause for debugging
+  ansible.builtin.pause:
+    prompt: "Enter to continue"
+  
 - name: Check if kubelet.conf exists
   stat:
     path: "{{ kube_config_dir }}/kubelet.conf"
@@ -85,7 +102,7 @@
   when: not is_kube_master and (not kubelet_conf.stat.exists)
   block:
 
-    - name: Join to cluster
+    - name: Join to cluster using token-based discovery
       command: >-
         timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
         {{ bin_dir }}/kubeadm join
@@ -94,10 +111,21 @@
         --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
       register: kubeadm_join
       changed_when: kubeadm_join is success
+      when: discovery_type == 'token'
+    - name: Join to cluster using file-based discovery
+      command: >-
+        timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
+        {{ bin_dir }}/kubeadm join
+        --discovery-file {{ discovery_file }}
+        --ignore-preflight-errors=DirAvailable--etc-kubernetes-manifests
+        --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
+      register: kubeadm_join
+      changed_when: kubeadm_join is success
+      when: discovery_type == 'file'
 
   rescue:
 
-    - name: Join to cluster with ignores
+    - name: Join to cluster with ignores using token-based discovery
       command: >-
         timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
         {{ bin_dir }}/kubeadm join
@@ -106,6 +134,17 @@
         --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
       register: kubeadm_join
       changed_when: kubeadm_join is success
+      when: discovery_type == 'token'
+    - name: Join to cluster with ignores using file-based discovery
+      command: >-
+        timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
+        {{ bin_dir }}/kubeadm join
+        --discovery-file {{ discovery_file }}
+        --ignore-preflight-errors=all
+        --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
+      register: kubeadm_join
+      changed_when: kubeadm_join is success
+      when: discovery_type == 'file'
 
   always:
 

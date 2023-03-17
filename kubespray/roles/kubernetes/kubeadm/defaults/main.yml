@@ -10,3 +10,8 @@ kube_override_hostname: >-
   {%- else -%}
   {{ inventory_hostname }}
   {%- endif -%}
+
+# discovery_type: token(default) or file
+discovery_type: token
+discovery_file: "/tmp/discovery.yml"
+admin_conf: "/etc/kubernetes/admin.conf"

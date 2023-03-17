@@ -17,17 +17,6 @@ Copy the ssh key to bon-compute2.::
 
    $ ssh-copy-id bon-compute2
 
-Pull the latest sources.::
-
-   $ git pull origin main
-   $ git submodule update --remote
-
-Info) Burrito inventory group names are changed recently.
-
-* kube-master to kube_control_plane
-* kube-node to kube_node
-* k8s-cluster to k8s_cluster
-
 Edit inventory hosts to add the new compute node.::
 
    $ diff -u hosts.bak hosts
@@ -48,12 +37,10 @@ Edit inventory hosts to add the new compute node.::
    +bon-compute2
 
     # kubernetes nodes
-   -[kube-master]
-   +[kube_control_plane]
+    [kube_control_plane]
     bon-controller
 
-   -[kube-node]
-   +[kube_node]
+    [kube_node]
     bon-controller
     bon-compute
    +bon-compute2
@@ -67,35 +54,7 @@ Edit inventory hosts to add the new compute node.::
    +bon-compute2
 
 
-    ###################################################
-   @@ -49,11 +53,11 @@
-    clients
-
-    [etcd:children]
-   -kube-master
-   +kube_control_plane
-
-   -[k8s-cluster:children]
-   -kube-master
-   -kube-node
-   +[k8s_cluster:children]
-   +kube_control_plane
-   +kube_node
-
-
-Edit vars.yml and offline_vars.yml to the new inventory group names.::
-
-   $ vi vars.yml
-   ...
-     "seed_registry": "{{ hostvars[groups['kube_control_plane'][0]].ip }}:5000"
-   $ vi offline_vars.yml
-   ...
-   registry_host: "{{ hostvars[groups['kube_control_plane'][0]].ip }}:5000"
-   yum_repo: "http://{{ hostvars[groups['kube_control_plane'][0]].ip }}:8001"
-
-Change kube-master to kube_control_plane in both files.
-
-Check the connection to bon-compute2.::
+Check the connection to the new node bon-compute2.::
 
    $ ansible -m ping bon-compute2
    bon-compute2 | SUCCESS => {
@@ -110,24 +69,11 @@ Run preflight playbook for bon-compute2.::
 
    $ ./run.sh preflight --limit=bon-compute2
 
-Skip ha stack playbook since it is not the compute node.
+Skip ha stack playbook since it is not the controller node.
 
 Run ceph playbook.::
 
    $ ./run.sh ceph --limit=bon-compute2
-
-Before adding the node to the k8s cluster, 
-change anonymous-auth to true in kube-apiserver.
-It is needed when the new node joins the cluster.::
-
-   $ sudo vi /etc/kubernetes/manifests/kube-apiserver.yaml
-   ...
-    - --anonymous-auth=true
-
-It takes some time to restart kube-apiserver.
-Check with kubectl command.::
-
-   $ sudo kubectl get po -n kube-system
 
 Add the node to k8s cluster.::
 
@@ -142,13 +88,6 @@ Check if the new node is added as a k8s node.::
    bon-compute      Ready    <none>          3d15h   v1.24.8
    bon-compute2     Ready    <none>          3m39s   v1.24.8
    bon-controller   Ready    control-plane   3d15h   v1.24.8
-
-Set anonynous-auth back to false and wait until kube-apiserver restarted and
-running.::
-
-   $ sudo vi /etc/kubernetes/manifests/kube-apiserver.yaml
-   ...
-    - --anonymous-auth=false
 
 Skip patch, registry playbook since it is the compute node.
 

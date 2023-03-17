@@ -108,6 +108,10 @@
   gather_facts: False
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   environment: "{{ proxy_disable_env }}"
+  pre_tasks:
+    - name: set discovery_type to file
+      ansible.builtin.set_fact:
+        discovery_type: "file"
   roles:
     - { role: kubespray-defaults }
     - { role: kubernetes/kubeadm, tags: kubeadm }
