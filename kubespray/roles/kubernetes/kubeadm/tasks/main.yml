@@ -10,23 +10,19 @@
   tags:
     - facts
 
-- name: get admin.conf
+- name: Get admin.conf
   ansible.builtin.slurp:
     src: "{{ admin_conf }}"
   register: admin_conf_str
   delegate_to: "{{ groups['kube_control_plane'][0] }}"
   run_once: true
 
-- name: copy admin.conf to the node.
+- name: Create discovery file from admin.conf
   ansible.builtin.copy:
     dest: "{{ discovery_file }}"
     content: "{{ admin_conf_str.content|b64decode|replace('127.0.0.1', hostvars[groups['kube_control_plane'][0]].ip) }}"
   when: discovery_type == 'file'
 
-- name: pause for debugging
-  ansible.builtin.pause:
-    prompt: "Enter to continue"
-  
 - name: Check if kubelet.conf exists
   stat:
     path: "{{ kube_config_dir }}/kubelet.conf"
@@ -154,6 +150,10 @@
         msg: |
           Joined with warnings
           {{ kubeadm_join.stderr_lines }}
+    - name: Delete the temporary discovery file
+      ansible.builtin.file:
+        path: "{{ discovery_file }}"
+        state: absent
 
 - name: Update server field in kubelet kubeconfig
   lineinfile:
