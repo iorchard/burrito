@@ -166,6 +166,7 @@ kube_encrypt_secret_data: true
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
+
 ### Registry deployment
 registry_enabled: true
 registry_namespace: kube-system
@@ -173,9 +174,10 @@ registry_storage_class: "rbd"
 registry_disk_size: "30Gi"
 registry_service_type: "NodePort"
 registry_service_nodeport: "32680"
+seed_registry_port: "5000"
 containerd_insecure_registries:
   "local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"
-  "seed_registry": "{{ hostvars[groups['kube_control_plane'][0]].ip }}:5000"
+  "seed_registry": "{{ keepalived_vip }}:{{ seed_registry_port }}"
 
 ### burrito variables
 ## haproxy role variables

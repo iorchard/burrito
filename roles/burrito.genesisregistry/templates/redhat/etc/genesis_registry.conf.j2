@@ -1,0 +1,22 @@
+version: 0.1
+log:
+  fields:
+    service: registry
+storage:
+  cache:
+    blobdescriptor: inmemory
+  filesystem:
+    rootdirectory: {{ genesis_registry.root_dir }}
+http:
+  addr: {{ genesis_registry.addr }}
+  headers:
+    X-Content-Type-Options: [nosniff]
+  secret: {{ genesis_registry.secret }}
+health:
+  storagedriver:
+    enabled: true
+    interval: 10s
+    threshold: 3
+compatibility:
+  schema1:
+    enabled: true

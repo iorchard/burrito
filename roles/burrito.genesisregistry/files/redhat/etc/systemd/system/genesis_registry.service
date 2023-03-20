@@ -1,0 +1,11 @@
+[Unit]
+Description=Geneis Registry service
+After=network-online.target
+
+[Service]
+Type=exec
+Restart=on-failure
+ExecStart=/usr/bin/registry serve /etc/genesis_registry.conf
+
+[Install]
+WantedBy=multi-user.target
