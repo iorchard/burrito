@@ -5,6 +5,16 @@
     state: directory
   become: true
 
+- name: Genesis Registry | copy registry binary to other controllers
+  ansible.builtin.copy:
+    dest: "/usr/bin/registry"
+    src: "/usr/bin/registry"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  become: true
+  when: inventory_hostname != groups['kube_control_plane'][0]
+
 - name: Genesis Registry | copy systemd service file
   ansible.builtin.copy:
     dest: "{{ item.dest }}"

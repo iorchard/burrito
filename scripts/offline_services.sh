@@ -56,13 +56,25 @@ function status() {
 function repo_down() {
   _pids
   if [ -n "${REPO_PID}" ]; then
-    kill ${REPO_PID}
+    U=$(ps -q ${REPO_PID} -o user=)
+    if [ "x${U}" != "xhaproxy" ]; then
+      kill ${REPO_PID}
+      echo "Stopped local repo."
+    else
+      echo "I can do nothing: Local repo is already taken over by haproxy."
+    fi
   fi
 }
 function registry_down() {
   _pids
   if [ -n "${REGISTRY_PID}" ]; then
-    kill ${REGISTRY_PID}
+    U=$(ps -q ${REGISTRY_PID} -o user=)
+    if [ "x${U}" != "xhaproxy" ]; then
+      kill ${REGISTRY_PID}
+      echo "Stopped local registry."
+    else
+      echo "I can do nothing: Local registry is already taken over by haproxy."
+    fi
   fi
 }
 function up() {
@@ -88,7 +100,6 @@ function down() {
   elif [ "$1" == "registry" ]; then
     registry_down
   fi
-  echo "Stopped repo and/or registry services."
 }
 function repo_up() {
   repo_down
