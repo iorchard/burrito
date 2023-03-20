@@ -10,7 +10,7 @@ spec:
   ports:
   - name: localrepo
     nodePort: {{ localrepo.nodeport }}
-    port: {{ localrepo.port }}
+    port: {{ local_repo_port }}
     protocol: TCP
     targetPort: 80
   type: NodePort

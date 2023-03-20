@@ -1,0 +1,14 @@
+---
+genesis_registry:
+  root_dir: "/var/lib/registry"
+  secret: "{{ lookup('community.general.random_string', length=12, base64=True) }}"
+  conf: "/etc/genesis_registry.conf"
+  image: "library/registry:2.8.1"
+  addr: "{{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}"
+
+keepalived_vip: ~
+balance: roundrobin
+inter: 2s
+rise: 2
+fall: 3
+...

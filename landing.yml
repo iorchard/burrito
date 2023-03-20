@@ -1,6 +1,12 @@
 ---
-- name: deploy localrepo
-  hosts: localhost
+- name: deploy genesis registry and local repository
+  hosts: kube_control_plane
+  any_errors_fatal: true
+  roles:
+    - {role: burrito.genesisregistry, tags: ['genesisregistry', 'burrito']}
+
+- name: deploy local yum repository
+  hosts: all
   any_errors_fatal: true
   roles:
     - {role: burrito.localrepo, tags: ['localrepo', 'burrito']}

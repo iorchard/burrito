@@ -1,11 +1,11 @@
 ---
 artifacts_dir: "{{ ansible_env.HOME }}/burrito-artifacts"
+local_repo_port: 8001
 localrepo:
   namespace: burrito
   storage: "10Gi"
   storageclassname: rbd
   nodeport: 32690
-  port: 8001
 
 docker_image_repo: ~
 

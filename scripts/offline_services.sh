@@ -7,6 +7,7 @@ REPO_PORT=8001
 REGISTRY_PORT=5000
 EXIT_CODE=0
 U=
+MGMT_IP=
 
 function check() {
   read -p "Enter management network interface name: " MGMT_IFACE
@@ -17,19 +18,33 @@ function check() {
   fi
   # get mgmt iface ip address
   MGMT_IP=$(ip -br a s dev ${MGMT_IFACE} | awk '{print $3}' |cut -d'/' -f1)
+  # save MGMT_IP to .mgmt_ip
+  echo ${MGMT_IP} > ${CURRENT_DIR}/.mgmt_ip
+}
+function _pids() {
+  set +e
+  if [ ! -f ${CURRENT_DIR}/.mgmt_ip ]; then
+    echo "Cannot get management ip address. Run $0 --up first."
+    exit 1
+  fi
+  MGMT_IP=$(head -1 ${CURRENT_DIR}/.mgmt_ip)
+  REPO_PID=$(sudo lsof -i TCP@${MGMT_IP}:${REPO_PORT} -t)
+  REGISTRY_PID=$(sudo lsof -i TCP:${REGISTRY_PORT} -t)
 }
 function status() {
-  if sudo lsof -i TCP:${REPO_PORT} &>/dev/null; then
+  _pids
+  if [ -n "${REPO_PID}" ]; then
     echo "Local repo is running."
-    ps -q $(sudo lsof -i TCP:${REPO_PORT} -t) -o cmd=
+    ps -q ${REPO_PID} -o cmd=
   else
     echo "Local repo is NOT running."
     EXIT_CODE=1
   fi
   echo
-  if sudo lsof -i TCP:${REGISTRY_PORT} &>/dev/null; then
+
+  if [ -n "${REGISTRY_PID}" ]; then
     echo "Local registry is running."
-    ps -q $(sudo lsof -i TCP:${REGISTRY_PORT} -t) -o cmd=
+    ps -q ${REGISTRY_PID} -o cmd=
   else
     echo "Local registry is NOT running."
     EXIT_CODE=1
@@ -39,41 +54,25 @@ function status() {
 }
 
 function repo_down() {
-  if sudo lsof -i TCP:${REPO_PORT} &>/dev/null; then
-    U=$(ps -q $(sudo lsof -i TCP:${REPO_PORT} -t) -o user=)
-  fi
-  if [ "x${U}" = "xhaproxy" ]; then
-    echo "I can do nothing: Local repo is already taken over by haproxy."
-    EXIT_CODE=10
-    exit $EXIT_CODE
-  else
-    if sudo lsof -i TCP:${REPO_PORT} &>/dev/null; then
-      kill $(sudo lsof -i TCP:${REPO_PORT} -t)
-    fi
+  _pids
+  if [ -n "${REPO_PID}" ]; then
+    kill ${REPO_PID}
   fi
 }
 function registry_down() {
-  if sudo lsof -i TCP:${REGISTRY_PORT} &>/dev/null; then
-    U=$(ps -q $(sudo lsof -i TCP:${REGISTRY_PORT} -t) -o user=)
-  fi
-  if [ "x${U}" = "xhaproxy" ]; then
-    echo "I can do nothing: Local registry is already taken over by haproxy."
-    EXIT_CODE=10
-    exit $EXIT_CODE
-  else
-    if sudo lsof -i TCP:${REGISTRY_PORT} &>/dev/null; then
-      kill $(sudo lsof -i TCP:${REGISTRY_PORT} -t)
-    fi
+  _pids
+  if [ -n "${REGISTRY_PID}" ]; then
+    kill ${REGISTRY_PID}
   fi
 }
 function up() {
   check
-  if [[ $# -eq 0 ]]; then
+  if [ $# -eq 0 ]; then
     repo_up
     registry_up
-  elif [[ "$1" == "repo" ]]; then
+  elif [ "$1" == "repo" ]; then
     repo_up
-  elif [[ "$1" == "registry" ]]; then
+  elif [ "$1" == "registry" ]; then
     registry_up
   fi
   echo "Started offline repo and/or registry services."
@@ -81,17 +80,17 @@ function up() {
   touch ${CURRENT_DIR}/../.offline_flag
 }
 function down() {
-  if [[ $# -eq 0 ]]; then
+  if [ $# -eq 0 ]; then
     repo_down
     registry_down
-  elif [[ "$1" == "repo" ]]; then
+    echo "Remove offline flag."
+    rm -f ${CURRENT_DIR}/../.offline_flag
+  elif [ "$1" == "repo" ]; then
     repo_down
-  elif [[ "$1" == "registry" ]]; then
+  elif [ "$1" == "registry" ]; then
     registry_down
   fi
   echo "Stopped repo and/or registry services."
-  echo "Remove offline flag."
-  rm -f ${CURRENT_DIR}/../.offline_flag
 }
 function repo_up() {
   repo_down
@@ -123,6 +122,9 @@ EOF
   fi
 }
 function registry_up() {
+  # Create a random registry secret
+  REGISTRY_SECRET=$(head /dev/urandom |tr -dc A-Za-z0-9 |head -c 16)
+  # down the registry if it is running.
   registry_down
   # Run registry server
   cat <<EOF > /tmp/config.yml
@@ -136,9 +138,10 @@ storage:
   filesystem:
     rootdirectory: /mnt/registry
 http:
-  addr: ${MGMT_IP}:${REGISTRY_PORT}
+  addr: 0.0.0.0:${REGISTRY_PORT}
   headers:
     X-Content-Type-Options: [nosniff]
+  secret: ${REGISTRY_SECRET}
 health:
   storagedriver:
     enabled: true
@@ -148,10 +151,10 @@ compatibility:
   schema1:
     enabled: true
 EOF
-  pushd /tmp
-    tar xzf /mnt/files/github.com/distribution/distribution/releases/download/v*/registry*.tar.gz registry
+  pushd /usr/bin
+    sudo tar xzf /mnt/files/github.com/distribution/distribution/releases/download/v*/registry*.tar.gz registry
   popd
-  nohup /tmp/registry serve /tmp/config.yml &>/tmp/registry.log &
+  nohup /usr/bin/registry serve /tmp/config.yml &>/tmp/registry.log &
 }
 function USAGE() {
   echo "USAGE: $0 [-h|-d|-u]" 1>&2
@@ -174,6 +177,10 @@ do
   case "$OPT" in
     -h | --help)
       USAGE
+      exit 0
+      ;;
+    -c | --check)
+      check
       exit 0
       ;;
     -s | --status)

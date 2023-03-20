@@ -1,0 +1,17 @@
+---
+- name: genesis registry restart service
+  service:
+    name: "genesis_registry.service"
+    state: "restarted"
+    enabled: true
+  become: true
+  changed_when: false
+
+- name: haproxy restart service
+  service:
+    name: "haproxy.service"
+    state: "restarted"
+    enabled: true
+  become: true
+  changed_when: false
+...
