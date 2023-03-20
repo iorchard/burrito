@@ -77,6 +77,24 @@
   delegate_to: localhost
   run_once: true
 
+- name: Local Repo | check files src directory exists
+  ansible.builtin.file:
+    path: "{{ files_src }}"
+    state: directory
+  check_mode: true
+  register: is_files_src
+  delegate_to: localhost
+  run_once: true
+  
+- name: Local Repo | copy files to localrepo pod
+  ansible.builtin.command: >-
+    kubectl -n {{ localrepo.namespace }} cp {{ files_src }} \
+      {{ localrepo_pod.resources[0].metadata.name }}:{{ files_dst }}
+  become: true
+  when: not is_files_src.changed
+  delegate_to: localhost
+  run_once: true
+
 - name: Local Repo | take down offline services
   ansible.builtin.shell: >-
     ./offline_services.sh --down repo
