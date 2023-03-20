@@ -3,6 +3,11 @@
 # offline install flags - true or false
 offline: true
 ceph_origin: "distro"
+genesis_registry_port: "6000"
+containerd_insecure_registries:
+  "local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"
+  "seed_registry": "{{ keepalived_vip }}:{{ seed_registry_port }}"
+  "genesis_registry": "{{ keepalived_vip }}:{{ genesis_registry_port }}"
 registry_host: "{{ containerd_insecure_registries.seed_registry }}"
 local_repo_port: 8001
 yum_repo: "http://{{ hostvars[groups['kube_control_plane'][0]].ip }}:{{ local_repo_port }}"
