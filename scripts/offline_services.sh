@@ -22,14 +22,14 @@ function check() {
   echo ${MGMT_IP} > ${CURRENT_DIR}/.mgmt_ip
 }
 function _pids() {
-  set +e
   if [ ! -f ${CURRENT_DIR}/.mgmt_ip ]; then
     echo "Cannot get management ip address. Run $0 --up first."
     exit 1
   fi
   MGMT_IP=$(head -1 ${CURRENT_DIR}/.mgmt_ip)
-  REPO_PID=$(sudo lsof -i TCP@${MGMT_IP}:${REPO_PORT} -t)
-  REGISTRY_PID=$(sudo lsof -i TCP:${REGISTRY_PORT} -t)
+  # check REPO_PORT is bound to haproxy.
+  REPO_PID=$(sudo lsof -i TCP:${REPO_PORT} -t|head -1)
+  REGISTRY_PID=$(sudo lsof -i TCP:${REGISTRY_PORT} -t|head -1)
 }
 function status() {
   _pids
@@ -83,8 +83,6 @@ function down() {
   if [ $# -eq 0 ]; then
     repo_down
     registry_down
-    echo "Remove offline flag."
-    rm -f ${CURRENT_DIR}/../.offline_flag
   elif [ "$1" == "repo" ]; then
     repo_down
   elif [ "$1" == "registry" ]; then
