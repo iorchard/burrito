@@ -86,7 +86,7 @@ openstack_glance_pool:
 openstack_cinder_pool:
   name: "volumes"
   application: "rbd"
-  target_size_ratio: 0.3
+  target_size_ratio: "{{ enable_cinder_backup | ternary(0.3, 0.4) }}"
 openstack_cinder_backup_pool:
   name: "backups"
   application: "rbd"
@@ -96,12 +96,13 @@ openstack_nova_vms_pool:
   application: "rbd"
   target_size_ratio: 0.1
 
-openstack_pools:
+openstack_basic_pools:
   - "{{ kube_pool }}"
   - "{{ openstack_glance_pool }}"
   - "{{ openstack_cinder_pool }}"
-  - "{{ openstack_cinder_backup_pool }}"
   - "{{ openstack_nova_vms_pool }}"
+
+openstack_pools: "{% if enable_cinder_backup %}{{ openstack_basic_pools + [openstack_cinder_backup_pool] }}{% else %}{{ openstack_basic_pools }}{% endif %}"
 
 openstack_keys:
   - { name: client.kube, caps: { mon: "profile rbd", osd: "profile rbd pool={{ kube_pool.name }}", mgr: "profile rbd pool={{ kube_pool.name }}" }, mode: "0600" }
@@ -250,6 +251,8 @@ nova_uid: 42424
 nova_gid: 42424
 
 # cinder
+# cinder backup deployment(default): false
+enable_cinder_backup: false
 cinder:
   password: "{{ common_password }}"
 
