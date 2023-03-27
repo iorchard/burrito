@@ -46,6 +46,15 @@ bgp_dragent: false
 # if you want offline installation, just add offline_vars.yml in extra-vars
 # it will override the value - refer to run.sh script.
 offline: false
+
+# ntp
+mgmt_netmask: "{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.netmask }}"
+ntp_allowed_cidr: "{{ mgmt_netmask | ansible.utils.ipaddr('net') }}"
+default_ntp_servers:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+  - 2.pool.ntp.org
+
 ### ceph
 dashboard_enabled: false
 configure_firewall: false

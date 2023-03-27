@@ -1,0 +1,26 @@
+---
+- name: systemctl restart service
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: "restarted"
+    enabled: true
+  register: _restart_service
+  until: _restart_service.state == "started"
+  retries: 3
+  delay: 3
+  become: true
+  changed_when: false
+  loop: "{{ systemd_service_name }}"
+
+- name: systemctl stop service
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: "stopped"
+  register: _stop_service
+  until: _stop_service.state == "stopped"
+  retries: 3
+  delay: 3
+  become: true
+  changed_when: false
+  loop: "{{ systemd_service_name }}"
+...

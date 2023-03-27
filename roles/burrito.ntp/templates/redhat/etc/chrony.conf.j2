@@ -1,0 +1,20 @@
+initstepslew 1 {% for h in groups['kube_control_plane'] %}{% if inventory_hostname != h %}{{ hostvars[h].ip }} {% endif %}{% endfor %}
+
+{% if offline %}
+{% for h in groups['kube_control_plane'] %}
+{% if inventory_hostname != h %}
+server {{ hostvars[h].ip }}
+{% endif %}
+{% endfor %}
+{% else %}
+{% for ntp_server in default_ntp_servers %}
+server {{ ntp_server }}
+{% endfor %}
+{% endif %}
+
+driftfile /var/lib/chrony/chrony.drift
+logdir /var/log/chrony
+local stratum 8 orphan
+manual
+rtcsync
+allow {{ ntp_allowed_cidr }}
