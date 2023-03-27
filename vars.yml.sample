@@ -55,6 +55,12 @@ default_ntp_servers:
   - 1.pool.ntp.org
   - 2.pool.ntp.org
 
+# make keepalived service vip optional.
+# keepalived service interface vip for future use (default: no setup).
+keepalived_interface_svc: "{{ svc_iface_name }}"
+# if you want to set up VIP on service network, assign VIP address here
+keepalived_vip_svc: ""
+
 ### ceph
 dashboard_enabled: false
 configure_firewall: false
