@@ -6,6 +6,7 @@ svc_iface_name: eth0
 mgmt_iface_name: eth1
 provider_iface_name: eth2
 overlay_iface_name: eth3
+storage_iface_name: eth4
 
 ## ntp
 # Specify time servers for control nodes.
@@ -13,15 +14,11 @@ overlay_iface_name: eth3
 # If servers are offline and there is no time server in your network,
 #   set ntp_servers to empty list.
 #   Then, the control nodes will be the ntp peers.
+# ntp_servers: []
 ntp_servers:
   - 0.pool.ntp.org
   - 1.pool.ntp.org
   - 2.pool.ntp.org
-
-## ceph-ansible                     #
-# ceph network cidr - recommend the same cidr for public/cluster networks.
-public_network: 192.168.24.0/24
-cluster_network: "{{ public_network }}"
 
 # ceph osd volume device list
 lvm_volumes:
@@ -29,13 +26,7 @@ lvm_volumes:
   - data: /dev/sdc
   - data: /dev/sdd
 
-## kubespray                        #
-# default pod replicas == # of controllers
-pod:
-  replicas: "{{ groups['controller-node']|length }}"
-
-### keepalived role variables
-keepalived_interface: "{{ mgmt_iface_name }}"
+### keepalived VIP address
 keepalived_vip: "192.168.21.90"
 
 ### MTU setting
@@ -46,6 +37,7 @@ openstack_mtu: 1500
 # is_ovs: set true for openvswitch, set false for linuxbridge
 is_ovs: true
 bgp_dragent: false
+
 
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
@@ -60,11 +52,24 @@ offline: false
 mgmt_netmask: "{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.netmask }}"
 ntp_allowed_cidr: "{{ mgmt_netmask | ansible.utils.ipaddr('net') }}"
 
+## kubespray
+# default pod replicas == # of controllers
+pod:
+  replicas: "{{ groups['controller-node']|length }}"
+
+## keepalived role variables
+keepalived_interface: "{{ mgmt_iface_name }}"
 # make keepalived service vip optional.
 # keepalived service interface vip for future use (default: no setup).
 keepalived_interface_svc: "{{ svc_iface_name }}"
 # if you want to set up VIP on service network, assign VIP address here
 keepalived_vip_svc: ""
+
+## ceph-ansible                     #
+# ceph network cidr - recommend the same cidr for public/cluster networks.
+storage_netmask: "{{ hostvars[inventory_hostname]['ansible_' + storage_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + storage_iface_name].ipv4.netmask }}"
+public_network: "{{ storage_netmask | ansible.utils.ipaddr('net') }}"
+cluster_network: "{{ public_network }}"
 
 ### ceph
 dashboard_enabled: false
