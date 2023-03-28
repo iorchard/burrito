@@ -7,6 +7,17 @@ mgmt_iface_name: eth1
 provider_iface_name: eth2
 overlay_iface_name: eth3
 
+## ntp
+# Specify time servers for control nodes.
+# You can use the default ntp.org servers or time servers in your network.
+# If servers are offline and there is no time server in your network,
+#   set ntp_servers to empty list.
+#   Then, the control nodes will be the ntp peers.
+ntp_servers:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
+  - 2.pool.ntp.org
+
 ## ceph-ansible                     #
 # ceph network cidr - recommend the same cidr for public/cluster networks.
 public_network: 192.168.24.0/24
@@ -26,8 +37,6 @@ pod:
 ### keepalived role variables
 keepalived_interface: "{{ mgmt_iface_name }}"
 keepalived_vip: "192.168.21.90"
-keepalived_interface_svc: "{{ svc_iface_name }}"
-keepalived_vip_svc: "192.168.20.90"
 
 ### MTU setting
 calico_mtu: 1500
@@ -50,10 +59,6 @@ offline: false
 # ntp
 mgmt_netmask: "{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.netmask }}"
 ntp_allowed_cidr: "{{ mgmt_netmask | ansible.utils.ipaddr('net') }}"
-default_ntp_servers:
-  - 0.pool.ntp.org
-  - 1.pool.ntp.org
-  - 2.pool.ntp.org
 
 # make keepalived service vip optional.
 # keepalived service interface vip for future use (default: no setup).
