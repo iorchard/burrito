@@ -143,7 +143,8 @@ Edit hosts.::
    ###################################################
    ## Do not touch below if you are not an expert!!! #
    ###################################################
-..note:: If there is no network node, put control nodes in network-node group.
+
+.. note:: If there is no network node, put control nodes in network-node group.
 
 Edit vars.yml.::
 
