@@ -144,40 +144,51 @@ Edit hosts.::
    ## Do not touch below if you are not an expert!!! #
    ###################################################
 
+.. note:: If there is no network node, put control nodes in network-node group.
+
 Edit vars.yml.::
 
    $ vi vars.yml
    ---
    ## common
-   common_password: '<password>'
+   common_password: "<password>"
    # define network interface names
    svc_iface_name: eth0
    mgmt_iface_name: eth1
    provider_iface_name: eth2
    overlay_iface_name: eth3
-   
-   ## ceph-ansible                     #
-   # ceph network cidr - recommend the same cidr for public/cluster networks.
-   public_network: 192.168.24.0/24
-   cluster_network: "{{ public_network }}"
-   
+   storage_iface_name: eth4
+
+   ## ntp
+   # Specify time servers for control nodes.
+   # You can use the default ntp.org servers or time servers in your network.
+   # If servers are offline and there is no time server in your network,
+   #   set ntp_servers to empty list.
+   #   Then, the control nodes will be the ntp peers.
+   # ntp_servers: []
+   ntp_servers:
+     - 0.pool.ntp.org
+     - 1.pool.ntp.org
+     - 2.pool.ntp.org
+
    # ceph osd volume device list
    lvm_volumes:
      - data: /dev/sdb
      - data: /dev/sdc
      - data: /dev/sdd
-   
-   
-   ## kubespray                        #
-   # default pod replicas == # of controllers
-   pod:
-     replicas: "{{ groups['controller-node']|length }}"
-   
-   ### keepalived role variables
-   keepalived_interface: "{{ mgmt_iface_name }}"
+
+   ### keepalived VIP address
    keepalived_vip: "192.168.21.90"
-   keepalived_interface_svc: "{{ svc_iface_name }}"
-   keepalived_vip_svc: "192.168.20.90"
+  
+   ### MTU setting
+   calico_mtu: 1500
+   openstack_mtu: 1500
+
+   ### neutron
+   # is_ovs: set true for openvswitch, set false for linuxbridge
+   is_ovs: true
+   bgp_dragent: false
+   
    
    ###################################################
    ## Do not edit below if you are not an expert!!!  #
