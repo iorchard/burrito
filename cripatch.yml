@@ -1,6 +1,6 @@
 ---
 - name: patch containerd
-  hosts: kube-node
+  hosts: kube_node
   gather_facts: true
   any_errors_fatal: true
 
