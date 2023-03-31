@@ -34,8 +34,8 @@ calico_mtu: 1500
 openstack_mtu: 1500
 
 ### neutron
-# is_ovs: set true for openvswitch, set false for linuxbridge
-is_ovs: true
+# is_ovs: set false for linuxbridge(default), set true for openvswitch 
+is_ovs: false
 bgp_dragent: false
 
 
