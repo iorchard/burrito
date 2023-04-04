@@ -96,21 +96,21 @@ Edit hosts.::
    storage[1:3]
    
    [clients]
-   controller[1:3]
+   control[1:3]
    compute[1:2]
    
    # kubernetes nodes
    [kube_control_plane]
-   controller[1:3]
+   control[1:3]
    
    [kube_node]
-   controller[1:3]
+   control[1:3]
    network[1:2]
    compute[1:2]
    
    # openstack nodes
    [controller-node]
-   controller[1:3]
+   control[1:3]
    
    [network-node]
    network[1:2]
@@ -231,9 +231,9 @@ Check openstack status.::
 
    $ . ~/.btx.env
    $ bts
-   btx@btx-0:/$ openstack volume service list
-   btx@btx-0:/$ openstack network agent list
-   btx@btx-0:/$ openstack compute service list
+   root@btx-0:/# openstack volume service list
+   root@btx-0:/# openstack network agent list
+   root@btx-0:/# openstack compute service list
 
 All services should be up and running.
 
