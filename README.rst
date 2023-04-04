@@ -246,16 +246,14 @@ Source btx environment and run btx in test mode.::
 
 The command "btx --test"
 
-* Creates a private/provider network and subnet
-  When it creates provider network, it will ask address pool range.
-* Creates a router
-* Creates a cirros image
-* Adds security group rules
-* Creates a flavor
-* Creates an instance
-* Adds a floating ip to an instance
-* Creates a volume
-* Attaches a volume to an instance
+* Creates a provider network and subnet.
+  When it creates a provider network, it will ask an address pool range.
+* Creates a cirros image.
+* Adds security group rules.
+* Creates a flavor.
+* Creates an instance.
+* Creates a volume.
+* Attaches a volume to an instance.
 
 If everything goes well, the output looks like this.::
 
@@ -271,7 +269,7 @@ If everything goes well, the output looks like this.::
    +------------------+------------------------------------------------+
    | Field            | Value                                          |
    +------------------+------------------------------------------------+
-   | addresses        | private-net=172.30.1.30, 192.168.22.195        |
+   | addresses        | private-net=192.168.22.207                     |
    | flavor           | m1.tiny (410f3140-3fb5-4efb-94e5-73d77d6242cf) |
    | image            | cirros (870cf94b-8d2b-43bd-b244-4bf7846ff39e)  |
    | name             | test                                           |
