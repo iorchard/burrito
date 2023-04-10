@@ -44,6 +44,7 @@ nerdctl_download_url: "{{ files_repo }}/github.com/containerd/nerdctl/releases/d
 ### By default we enable those repo automatically
 rhel_enable_repos: false
 
-# DNS configuration.
-#resolvconf_mode: none
+### netapp
+trident_version: "22.10.0"
+trident_download_url: "{{ files_repo }}/github.com/NetApp/trident/releases/download/v{{ trident_version }}/trident-installer-{{ trident_version }}.tar.gz"
 ...

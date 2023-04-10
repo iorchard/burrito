@@ -1,5 +1,5 @@
 ---
-## common
+### common
 common_password: "<password>"
 # define network interface names
 svc_iface_name: eth0
@@ -8,26 +8,41 @@ provider_iface_name: eth2
 overlay_iface_name: eth3
 storage_iface_name: eth4
 
-## ntp
+### ntp
 # Specify time servers for control nodes.
 # You can use the default ntp.org servers or time servers in your network.
 # If servers are offline and there is no time server in your network,
 #   set ntp_servers to empty list.
-#   Then, the control nodes will be the ntp peers.
-# ntp_servers: []
+#   Then, the control nodes will be the ntp servers for other nodes.
 ntp_servers:
   - 0.pool.ntp.org
   - 1.pool.ntp.org
   - 2.pool.ntp.org
 
-# ceph osd volume device list
+### keepalived
+keepalived_vip: "192.168.21.90"
+
+### storage
+# storage backends: ceph and(or) netapp
+# If there are multiple backends, the first one is the default backend.
+storage_backends:
+  - ceph
+  - netapp
+
+# ceph config
 lvm_volumes:
   - data: /dev/sdb
   - data: /dev/sdc
   - data: /dev/sdd
 
-### keepalived VIP address
-keepalived_vip: "192.168.21.90"
+# netapp trident config
+netapp:
+  managementLIF: "192.168.100.230"
+  dataLIF: "192.168.140.19"
+  svm: "svm01"
+  username: "admin"
+  password: "<password>"
+  nfsMountOptions: "nfsvers=4"
 
 ### MTU setting
 calico_mtu: 1500
@@ -48,16 +63,11 @@ bgp_dragent: false
 # it will override the value - refer to run.sh script.
 offline: false
 
-# ntp
+### ntp
 mgmt_netmask: "{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.netmask }}"
 ntp_allowed_cidr: "{{ mgmt_netmask | ansible.utils.ipaddr('net') }}"
 
-## kubespray
-# default pod replicas == # of controllers
-pod:
-  replicas: "{{ groups['controller-node']|length }}"
-
-## keepalived role variables
+### keepalived role variables
 keepalived_interface: "{{ mgmt_iface_name }}"
 # make keepalived service vip optional.
 # keepalived service interface vip for future use (default: no setup).
@@ -65,20 +75,17 @@ keepalived_interface_svc: "{{ svc_iface_name }}"
 # if you want to set up VIP on service network, assign VIP address here
 keepalived_vip_svc: ""
 
-## ceph-ansible                     #
+### ceph-ansible
 # ceph network cidr - recommend the same cidr for public/cluster networks.
 storage_netmask: "{{ hostvars[inventory_hostname]['ansible_' + storage_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + storage_iface_name].ipv4.netmask }}"
 public_network: "{{ storage_netmask | ansible.utils.ipaddr('net') }}"
 cluster_network: "{{ public_network }}"
-
-### ceph
 dashboard_enabled: false
 configure_firewall: false
 ceph_origin: repository
 ceph_repository: community
 ceph_repository_type: cdn
 ceph_stable_release: quincy
-
 osd_objectstore: bluestore
 
 # set the size, min_size, and single_osd_node
@@ -139,7 +146,10 @@ openstack_keys:
 # clients
 copy_admin_key: true
 
-### kubespray 
+### kubespray
+# default pod replicas == # of controllers
+pod:
+  replicas: "{{ groups['controller-node']|length }}"
 upstream_dns_servers:
   - 8.8.8.8
 kube_image_repo: "registry.k8s.io"
@@ -187,13 +197,12 @@ kube_apiserver_admission_event_rate_limits:
     qps: 500
     burst: 5000
 kube_encrypt_secret_data: true
-
-## calico
+  
+# calico
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
-
-### Registry deployment
+# Registry deployment
 registry_enabled: true
 registry_namespace: kube-system
 registry_storage_class: "rbd"
@@ -206,17 +215,13 @@ containerd_insecure_registries:
   "seed_registry": "{{ keepalived_vip }}:{{ seed_registry_port }}"
 
 ### burrito variables
-## haproxy role variables
+# haproxy role variables
 ceph_rgw_port: 7480
 
-## ceph-csi role variables
-#ceph_monitors: ["{% for h in groups['mons'] %}{{ hostvars[h].monitor_address }}{% if not loop.last %},{% endif %}{% endfor %}"]
-
-## ceph_provisioners
+# kubespray/roles/burrito.openstack/.../ceph_provisioners.yml.j2
 ceph_public_network: "{{ public_network }}"
 ceph_cluster_network: "{{ cluster_network }}"
 
-storageclass_name: "rbd"
 # ingress
 ingress:
   volume_size: "100Gi"

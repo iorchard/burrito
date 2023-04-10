@@ -1,0 +1,130 @@
+---
+- name: netapp | Install the NFS tools
+  ansible.builtin.package:
+    name: "nfs-utils"
+    state: "present"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+
+- name: netapp | create trident namespace
+  kubernetes.core.k8s:
+    name: trident
+    api_version: v1
+    kind: Namespace
+    state: present
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: netapp | create netapp artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}/setup"
+    state: directory
+  delegate_to: localhost
+  run_once: true
+
+- name: netapp | copy manifest files
+  ansible.builtin.copy:
+    dest: "{{ artifacts_dir }}/setup/{{ item | basename }}"
+    src: "{{ item }}"
+    mode: "0644"
+  with_fileglob:
+    - "files/setup/*"
+  delegate_to: localhost
+  run_once: true
+
+- name: netapp | templating config files
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.dest | basename }}.j2"
+    mode: "0644"
+  loop: "{{ template_files }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: netapp | download and unarchive the trident package
+  ansible.builtin.unarchive:
+    src: "{{ trident_download_url }}"
+    dest: /tmp
+    creates: "/tmp/{{ unarchive_dir }}"
+    remote_src: true
+  delegate_to: localhost
+  run_once: true
+
+- name: netapp | copy tridentctl binary to bin_dir
+  ansible.builtin.copy:
+    src: "/tmp/{{ unarchive_dir }}/tridentctl"
+    dest: "{{ bin_dir }}/tridentctl"
+    mode: "0755"
+    owner: "root"
+    group: "root"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: netapp | check if trident is already installed
+  ansible.builtin.command: >-
+    tridentctl -n trident version
+  become: true
+  register: result
+  delegate_to: localhost
+  run_once: true
+  failed_when: result.rc not in [0, 1]
+
+- name: netapp | install trident
+  ansible.builtin.command: >-
+    tridentctl -n trident install --use-custom-yaml
+  args:
+    chdir: "{{ artifacts_dir }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+  when: 
+    - result.rc != 0
+
+#- name: netapp | install trident (offline)
+#  ansible.builtin.command: >-
+#    tridentctl -n trident install \
+#      --image-registry {{ containerd_insecure_registries.local_registry }}/sig-storage \
+#      --autosupport-image {{ containerd_insecure_registries.local_registry }}/netapp/trident-autosupport:{{ trident_version[:4] }} \
+#      --trident-image {{ containerd_insecure_registries.local_registry }}/netapp/trident:{{ trident_version }}
+#  become: true
+#  delegate_to: localhost
+#  run_once: true
+#  when:
+#    - result.rc != 0
+#    - offline
+#
+- name: netapp | create a backend
+  ansible.builtin.command: >-
+    tridentctl -n trident create backend -f {{ artifacts_dir }}/backend.json
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+#- name: netapp | patch trident-csi deployment
+#  kubernetes.core.k8s_json_patch:
+#    kind: Deployment
+#    namespace: trident
+#    name: trident-csi
+#    patch:
+#      - op: add
+#        path: "/spec/template/spec/nodeSelector/node-role.kubernetes.io~1control-plane"
+#        value: ""
+#    wait: true
+#  become: true
+#  delegate_to: localhost
+#  run_once: true
+
+- name: netapp | create a storageclass
+  kubernetes.core.k8s:
+    src: "{{ artifacts_dir }}/storageclass.yaml"
+    state: present
+    wait: true
+  become: true
+  delegate_to: localhost
+  run_once: true
+...

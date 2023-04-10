@@ -104,11 +104,13 @@ conf:
       glance_ca_certificates_file: /etc/cinder/certs/ca.crt
       debug: true
       enable_force_upload: true
-      enabled_backends: "rbd1"
-      default_volume_type: "rbd1"
+      enabled_backends: "{{ storage_backends|join(',') }}"
+      default_volume_type: "{{ storage_backends[0] }}"
+{% if "ceph" in storage_backends and enable_cinder_backup %}
       backup_driver: cinder.backup.drivers.ceph.CephBackupDriver
       backup_ceph_user: cinder-backup
       backup_ceph_pool: backups
+{% endif %}
       use_default_quota_class: true
       quota_driver: cinder.quota.DbQuotaDriver
       quota_consistencygroups: -1
@@ -128,9 +130,10 @@ conf:
       ssl_cert_file: /etc/rabbitmq/certs/tls.crt
       ssl_key_file: /etc/rabbitmq/certs/tls.key
   backends:
-    rbd1:
+{% if "ceph" in storage_backends %}
+    ceph:
       volume_driver: cinder.volume.drivers.rbd.RBDDriver
-      volume_backend_name: rbd1
+      volume_backend_name: ceph
       rbd_ceph_conf: "/etc/ceph/ceph.conf"
       rbd_flatten_volume_from_snapshot: false
       rbd_max_clone_depth: 5
@@ -140,6 +143,7 @@ conf:
       rbd_pool: "volumes"
       rbd_secret_uuid: "{{ ceph_secret_uuid }}"
       rbd_exclusive_cinder_pool: true
+{% endif %}
 endpoints:
   oslo_db:
     auth:

@@ -4,7 +4,6 @@ ceph_cluster_id: ~
 ceph_user_id: "kube"
 ceph_user_key: ~
 ceph_pool: "kube"
-ceph_storageclass_name: "rbd"
 pod:
   replicas: 1
 

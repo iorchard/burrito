@@ -6,7 +6,7 @@ btx_path: "{{ playbook_dir }}/../btx/helm"
 os_artifacts_dir: "{{ ansible_env.HOME }}/openstack-artifacts"
 pod:
   replicas: 1
-storageclass_name: "rbd"
+storageclass_name: ~
 kube_pod_subnet: ~
 ceph_admin_key: ~
 ceph_secret_uuid: ~
