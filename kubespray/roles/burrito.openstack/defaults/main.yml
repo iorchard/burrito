@@ -44,10 +44,13 @@ keystone:
 
 ## glance
 glance:
+  stores: ~
+  default_store: ~
   password: ~
   nginx:
     proxy_body_size: "102400M"
     proxy_read_timeout: "1800"
+  pvc_size: "100Gi"
 
 ## placement
 placement:
@@ -73,9 +76,12 @@ nova:
   hypervisor_host_interface: ~
   libvirt_live_migration_interface: ~
   password: ~
+  pvc_size: "100Gi"
 
 ## cinder
 cinder:
+  enabled_backends: ~
+  default_volume_type: ~
   password: ~
 
 ## horizon

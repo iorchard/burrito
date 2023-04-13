@@ -16,6 +16,13 @@
 # name: value
 
 ---
+# PVC volume is mounted in /var/lib/nova/instances (only for NFS storageclass)
+# If you have NFS-based storageclass,
+# set pvc_instances to true in below manifests block.
+volume:
+  class_name: general
+  size: 10Gi
+
 release_group: null
 
 labels:
@@ -1350,6 +1357,7 @@ conf:
       disk_allocation_ratio: 1.0
       cpu_allocation_ratio: 3.0
       state_path: /var/lib/nova
+      instances_path: /var/lib/nova/instances
       osapi_compute_listen: 0.0.0.0
       # NOTE(portdirect): the bind port should not be defined, and is manipulated
       # via the endpoints section.
@@ -2510,4 +2518,5 @@ manifests:
   service_spiceproxy: true
   service_osapi: true
   statefulset_compute_ironic: false
+  pvc_instances: false
 ...

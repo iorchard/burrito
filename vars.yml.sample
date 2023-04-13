@@ -14,6 +14,7 @@ storage_iface_name: eth4
 # If servers are offline and there is no time server in your network,
 #   set ntp_servers to empty list.
 #   Then, the control nodes will be the ntp servers for other nodes.
+# ntp_servers: []
 ntp_servers:
   - 0.pool.ntp.org
   - 1.pool.ntp.org
@@ -35,14 +36,15 @@ lvm_volumes:
   - data: /dev/sdc
   - data: /dev/sdd
 
-# netapp trident config
+# netapp config
 netapp:
   managementLIF: "192.168.100.230"
   dataLIF: "192.168.140.19"
   svm: "svm01"
   username: "admin"
-  password: "<password>"
+  password: "<netapp_admin_password>"
   nfsMountOptions: "nfsvers=4"
+  nas_share_path: "/dev03"
 
 ### MTU setting
 calico_mtu: 1500
@@ -222,6 +224,10 @@ ceph_rgw_port: 7480
 ceph_public_network: "{{ public_network }}"
 ceph_cluster_network: "{{ cluster_network }}"
 
+# storageclass_name is used by ingress, mariadb, rabbitmq.yml.j2
+# it should be the first one of storage_backends
+storageclass_name: "{{ storage_backends[0] }}"
+
 # ingress
 ingress:
   volume_size: "100Gi"
@@ -243,10 +249,13 @@ keystone:
 
 # glance
 glance:
+  stores: "{{ storage_backends|map('extract', {'ceph': 'rbd', 'netapp': 'file'})|list|first }}"
+  default_store: "{{ storage_backends|map('extract', {'ceph': 'rbd', 'netapp': 'file'})|list|unique|first }}"
   password: "{{ common_password }}"
   nginx:
     proxy_body_size: "102400M"
     proxy_read_timeout: "1800"
+  volume_size: "500Gi"
 
 # placement
 placement:
@@ -276,6 +285,7 @@ nova:
   hypervisor_host_interface: "{{ mgmt_iface_name }}"
   libvirt_live_migration_interface: "{{ mgmt_iface_name }}"
   password: "{{ common_password }}"
+  volume_size: "500Gi"
 
 nova_uid: 42424
 nova_gid: 42424
@@ -284,6 +294,8 @@ nova_gid: 42424
 # cinder backup deployment(default): false
 enable_cinder_backup: false
 cinder:
+  enabled_backends: "{{ storage_backends|map('extract', {'ceph': 'rbd1', 'netapp': 'netapp'})|list|unique|join(',') }}"
+  default_volume_type: "{{ storage_backends|map('extract', {'ceph': 'rbd1', 'netapp': 'netapp'})|list|first }}"
   password: "{{ common_password }}"
 
 # horizon

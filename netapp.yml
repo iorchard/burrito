@@ -1,0 +1,7 @@
+---
+- name: deploy netapp trident
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - { role: burrito.netapp, tags: ['netapp']}
+...

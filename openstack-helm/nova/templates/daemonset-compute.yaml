@@ -373,6 +373,10 @@ spec:
             - name: machine-id
               mountPath: /etc/machine-id
               readOnly: true
+            {{- if .Values.manifests.pvc_instances }}
+            - name: nova-instances
+              mountPath: {{ .Values.conf.nova.DEFAULT.instances_path }}
+            {{ end }}
             {{- if .Values.conf.enable_iscsi }}
             - name: host-rootfs
               mountPath: /mnt/host-rootfs
@@ -464,6 +468,11 @@ spec:
 {{ if $mounts_nova_compute.volumeMounts }}{{ toYaml $mounts_nova_compute.volumeMounts | indent 12 }}{{ end }}
         {{ end }}
       volumes:
+        {{- if .Values.manifests.pvc_instances }}
+        - name: nova-instances
+          persistentVolumeClaim:
+            claimName: nova-instances
+        {{ end }}
         - name: pod-tmp
           emptyDir: {}
         - name: nova-bin

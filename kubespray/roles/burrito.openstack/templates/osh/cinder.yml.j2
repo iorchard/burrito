@@ -1,22 +1,22 @@
 ---
 images:
   tags:
-    db_init: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
-    cinder_db_sync: "{{ containerd_insecure_registries.local_registry }}/jijisa/cinder:yoga-ubuntu_focal"
-    db_drop: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
-    rabbit_init: "{{ containerd_insecure_registries.local_registry }}/library/rabbitmq:3.11-management"
-    ks_user: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
-    ks_service: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
-    ks_endpoints: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
-    cinder_api: "{{ containerd_insecure_registries.local_registry }}/jijisa/cinder:yoga-ubuntu_focal"
-    bootstrap: "{{ containerd_insecure_registries.local_registry }}/jijisa/heat:yoga-ubuntu_focal"
-    cinder_scheduler: "{{ containerd_insecure_registries.local_registry }}/jijisa/cinder:yoga-ubuntu_focal"
-    cinder_volume: "{{ containerd_insecure_registries.local_registry }}/jijisa/cinder:yoga-ubuntu_focal"
-    cinder_volume_usage_audit: "{{ containerd_insecure_registries.local_registry }}/jijisa/cinder:yoga-ubuntu_focal"
-    cinder_storage_init: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/ceph-config-helper:latest-ubuntu_focal"
-    cinder_backup: "{{ containerd_insecure_registries.local_registry }}/jijisa/cinder:yoga-ubuntu_focal"
-    cinder_backup_storage_init: "{{ containerd_insecure_registries.local_registry }}/openstackhelm/ceph-config-helper:latest-ubuntu_focal"
-    dep_check: "{{ containerd_insecure_registries.local_registry }}/airshipit/kubernetes-entrypoint:v1.0.0"
+    db_init: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    cinder_db_sync: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
+    db_drop: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.11-management"
+    ks_user: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    ks_service: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    ks_endpoints: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    cinder_api: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
+    bootstrap: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    cinder_scheduler: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
+    cinder_volume: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
+    cinder_volume_usage_audit: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
+    cinder_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:latest-ubuntu_focal"
+    cinder_backup: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
+    cinder_backup_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:latest-ubuntu_focal"
+    dep_check: "{{ quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0"
 
 pod:
   security_context:
@@ -25,11 +25,30 @@ pod:
         cinder_api:
           runAsUser: 0
           readOnlyRootFilesystem: false
+{% if "netapp" in storage_backends %}
+    cinder_volume:
+      container:
+        cinder_volume:
+          capabilities:
+            add:
+              - SYS_ADMIN
+          readOnlyRootFilesystem: false
+{% endif %}
   replicas:
     api: {{ pod.replicas }}
     backup: {{ pod.replicas }}
     scheduler: {{ pod.replicas }}
     volume: {{ pod.replicas }}
+
+bootstrap:
+  volume_types:
+    rbd1:
+      volume_backend_name: rbd1
+      access_type: "private"
+    netapp:
+      volume_backend_name: netapp
+      access_type: "private"
+
 network:
   api:
     ingress:
@@ -90,12 +109,12 @@ conf:
     admin_keyring: {{ ceph_admin_key }}
     pools:
       backups:
-        replication: 2
+        replication: {{ ceph_pool_default_size }}
         crush_rule: replicated_rule
         chunk_size: 8
         app_name: rbd
       volumes:
-        replication: 2
+        replication: {{ ceph_pool_default_size }}
         crush_rule: replicated_rule
         chunk_size: 8
         app_name: rbd
@@ -104,8 +123,11 @@ conf:
       glance_ca_certificates_file: /etc/cinder/certs/ca.crt
       debug: true
       enable_force_upload: true
-      enabled_backends: "{{ storage_backends|join(',') }}"
-      default_volume_type: "{{ storage_backends[0] }}"
+      allow_direct_url_schemes: cinder
+      cinder_internal_tenant_project_id: internal_cinder
+      cinder_internal_tenant_user_id: internal_cinder
+      enabled_backends: "{{ cinder.enabled_backends }}"
+      default_volume_type: "{{ cinder.default_volume_type }}"
 {% if "ceph" in storage_backends and enable_cinder_backup %}
       backup_driver: cinder.backup.drivers.ceph.CephBackupDriver
       backup_ceph_user: cinder-backup
@@ -131,9 +153,9 @@ conf:
       ssl_key_file: /etc/rabbitmq/certs/tls.key
   backends:
 {% if "ceph" in storage_backends %}
-    ceph:
+    rbd1:
       volume_driver: cinder.volume.drivers.rbd.RBDDriver
-      volume_backend_name: ceph
+      volume_backend_name: rbd1
       rbd_ceph_conf: "/etc/ceph/ceph.conf"
       rbd_flatten_volume_from_snapshot: false
       rbd_max_clone_depth: 5
@@ -143,6 +165,25 @@ conf:
       rbd_pool: "volumes"
       rbd_secret_uuid: "{{ ceph_secret_uuid }}"
       rbd_exclusive_cinder_pool: true
+{% endif %}
+{% if "netapp" in storage_backends %}
+    netapp:
+      image_upload_use_cinder_backend: true
+      image_upload_use_internal_tenant: true
+      image_volume_cache_enabled: true
+      volume_driver: cinder.volume.drivers.netapp.common.NetAppDriver
+      volume_backend_name: netapp
+      netapp_storage_family: ontap_cluster
+      netapp_storage_protocol: nfs
+      netapp_vserver: "{{ netapp.svm }}"
+      netapp_server_hostname: "{{ netapp.managementLIF }}"
+      netapp_login: "{{ netapp.username }}"
+      netapp_password: "{{ netapp.password }}"
+      nas_host: "{{ netapp.dataLIF }}"
+      nfs_mount_options: "{{ netapp.nfsMountOptions }}"
+      nas_share_path: "{{ netapp.nas_share_path }}"
+      #nas_secure_file_permissions: false
+      #nas_secure_file_operation: false
 {% endif %}
 endpoints:
   oslo_db:
