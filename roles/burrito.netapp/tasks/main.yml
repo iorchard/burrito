@@ -85,39 +85,12 @@
   when: 
     - result.rc != 0
 
-#- name: netapp | install trident (offline)
-#  ansible.builtin.command: >-
-#    tridentctl -n trident install \
-#      --image-registry {{ containerd_insecure_registries.local_registry }}/sig-storage \
-#      --autosupport-image {{ containerd_insecure_registries.local_registry }}/netapp/trident-autosupport:{{ trident_version[:4] }} \
-#      --trident-image {{ containerd_insecure_registries.local_registry }}/netapp/trident:{{ trident_version }}
-#  become: true
-#  delegate_to: localhost
-#  run_once: true
-#  when:
-#    - result.rc != 0
-#    - offline
-#
 - name: netapp | create a backend
   ansible.builtin.command: >-
     tridentctl -n trident create backend -f {{ artifacts_dir }}/backend.json
   become: true
   delegate_to: localhost
   run_once: true
-
-#- name: netapp | patch trident-csi deployment
-#  kubernetes.core.k8s_json_patch:
-#    kind: Deployment
-#    namespace: trident
-#    name: trident-csi
-#    patch:
-#      - op: add
-#        path: "/spec/template/spec/nodeSelector/node-role.kubernetes.io~1control-plane"
-#        value: ""
-#    wait: true
-#  become: true
-#  delegate_to: localhost
-#  run_once: true
 
 - name: netapp | create a storageclass
   kubernetes.core.k8s:
