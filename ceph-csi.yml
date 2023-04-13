@@ -3,5 +3,7 @@
   hosts: localhost
   any_errors_fatal: true
   roles:
-    - {role: burrito.ceph-csi, tags: ['ceph-csi', 'burrito']}
+    - role: burrito.ceph-csi
+      when: '"ceph" in storage_backends'
+      tags: ['ceph-csi', 'burrito']
 ...
