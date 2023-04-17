@@ -28,9 +28,6 @@ set -ex
     {{- end }}
   {{- end }}
 {{- end }}
-# chown cinder home
-sudo cinder-rootwrap /etc/cinder/rootwrap.conf chown -R cinder:cinder \
-  /var/lib/cinder
 
 exec cinder-volume \
      --config-file /etc/cinder/cinder.conf \
