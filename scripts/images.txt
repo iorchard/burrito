@@ -37,10 +37,10 @@ quay.io/jetstack/cert-manager-webhook:v1.9.1
 registry.k8s.io/coredns/coredns:v1.8.6
 registry.k8s.io/cpa/cluster-proportional-autoscaler-amd64:1.8.5
 registry.k8s.io/dns/k8s-dns-node-cache:1.21.1
-registry.k8s.io/kube-apiserver:v1.24.8
-registry.k8s.io/kube-controller-manager:v1.24.8
-registry.k8s.io/kube-proxy:v1.24.8
-registry.k8s.io/kube-scheduler:v1.24.8
+registry.k8s.io/kube-apiserver:v1.24.12
+registry.k8s.io/kube-controller-manager:v1.24.12
+registry.k8s.io/kube-proxy:v1.24.12
+registry.k8s.io/kube-scheduler:v1.24.12
 registry.k8s.io/pause:3.7
 registry.k8s.io/sig-storage/csi-attacher:v4.0.0
 registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.5.1
