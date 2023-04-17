@@ -105,6 +105,10 @@ spec:
               readOnly: true
             - name: varlibnova
               mountPath: /var/lib/nova
+            {{- if .Values.manifests.pvc_instances }}
+            - name: nova-instances
+              mountPath: {{ .Values.conf.nova.DEFAULT.instances_path }}
+            {{ end }}
             - name: pod-shared
               mountPath: /tmp/pod-shared
 {{ if $mounts_nova_compute.volumeMounts }}{{ toYaml $mounts_nova_compute.volumeMounts | indent 12 }}{{ end }}

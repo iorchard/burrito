@@ -15,6 +15,23 @@ limitations under the License.
 */}}
 
 set -ex
+# netapp storage init
+{{- if .Values.bootstrap.enabled | default "echo 'Not Enabled'" }}
+  {{- $volumeTypes := .Values.bootstrap.volume_types }}
+  {{- range $name, $properties := $volumeTypes }}
+    {{- if and $properties.dataLIF $properties.shares }}
+      {{- $dataLIF := $properties.dataLIF }}
+      {{- $shares := $properties.shares }}
+      {{- range $share := $shares }}
+        echo {{ $dataLIF }}:{{ $share }} >> /etc/cinder/share_{{ $name }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+# chown cinder home
+sudo cinder-rootwrap /etc/cinder/rootwrap.conf chown -R cinder:cinder \
+  /var/lib/cinder
+
 exec cinder-volume \
      --config-file /etc/cinder/cinder.conf \
      --config-file /etc/cinder/conf/backends.conf \

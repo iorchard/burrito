@@ -42,12 +42,23 @@ pod:
 
 bootstrap:
   volume_types:
+{% if "ceph" in storage_backends %}
     rbd1:
       volume_backend_name: rbd1
       access_type: "private"
-    netapp:
-      volume_backend_name: netapp
+{% endif %}
+{% if "netapp" in storage_backends %}
+{% for n in netapp %}
+    {{ n.name }}:
+      volume_backend_name: {{ n.name }}
       access_type: "private"
+      dataLIF: "{{ n.dataLIF }}"
+      shares:
+{% for share in n.shares %}
+        - "{{ share }}"
+{% endfor %}
+{% endfor %}
+{% endif %}
 
 network:
   api:
@@ -167,23 +178,20 @@ conf:
       rbd_exclusive_cinder_pool: true
 {% endif %}
 {% if "netapp" in storage_backends %}
-    netapp:
-      image_upload_use_cinder_backend: true
-      image_upload_use_internal_tenant: true
-      image_volume_cache_enabled: true
+{% for n in netapp %}
+    {{ n.name }}:
+      #image_volume_cache_enabled: true
       volume_driver: cinder.volume.drivers.netapp.common.NetAppDriver
-      volume_backend_name: netapp
+      volume_backend_name: {{ n.name }}
       netapp_storage_family: ontap_cluster
       netapp_storage_protocol: nfs
-      netapp_vserver: "{{ netapp.svm }}"
-      netapp_server_hostname: "{{ netapp.managementLIF }}"
-      netapp_login: "{{ netapp.username }}"
-      netapp_password: "{{ netapp.password }}"
-      nas_host: "{{ netapp.dataLIF }}"
-      nfs_mount_options: "{{ netapp.nfsMountOptions }}"
-      nas_share_path: "{{ netapp.nas_share_path }}"
-      #nas_secure_file_permissions: false
-      #nas_secure_file_operation: false
+      netapp_vserver: "{{ n.svm }}"
+      netapp_server_hostname: "{{ n.managementLIF }}"
+      netapp_login: "{{ n.username }}"
+      netapp_password: "{{ n.password }}"
+      nfs_mount_options: "{{ n.nfsMountOptions }}"
+      nfs_shares_config: "/etc/cinder/share_{{ n.name }}"
+{% endfor %}
 {% endif %}
 endpoints:
   oslo_db:

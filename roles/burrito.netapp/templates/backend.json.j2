@@ -2,10 +2,10 @@
   "version": 1,
   "storageDriverName": "ontap-nas",
   "backendName": "netapp",
-  "managementLIF": "{{ netapp.managementLIF }}",
-  "dataLIF": "{{ netapp.dataLIF }}",
-  "svm": "{{ netapp.svm }}",
-  "username": "{{ netapp.username }}",
-  "password": "{{ netapp.password }}",
-  "nfsMountOptions": "{{ netapp.nfsMountOptions }}"
+  "managementLIF": "{{ netapp[0].managementLIF }}",
+  "dataLIF": "{{ netapp[0].dataLIF }}",
+  "svm": "{{ netapp[0].svm }}",
+  "username": "{{ netapp[0].username }}",
+  "password": "{{ netapp[0].password }}",
+  "nfsMountOptions": "{{ netapp[0].nfsMountOptions }}"
 }

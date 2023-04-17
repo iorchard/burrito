@@ -38,9 +38,13 @@
   ansible.builtin.set_fact:
     ceph_cinder_key: "{{ result.stdout }}"
 
-- name: OpenStack | set osh_infra_charts depending on neutron_ml2_plugin
+- name: OpenStack | add openvswitch to osh_infra_charts if neutron_ml2_plugin is ovs
   ansible.builtin.set_fact:
     osh_infra_charts: "{{ is_ovs|ternary(osh_infra_charts|union(['openvswitch']), osh_infra_charts) }}"
+
+- name: OpenStack | add ceph-provisioners to osh_infra_charts if ceph in storage_backends
+  ansible.builtin.set_fact:
+    osh_infra_charts: "{{ is_ceph|ternary(osh_infra_charts|union(['ceph-provisioners']), osh_infra_charts) }}"
 
 - name: OpenStack | debug
   ansible.builtin.debug:

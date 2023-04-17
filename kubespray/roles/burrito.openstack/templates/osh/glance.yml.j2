@@ -114,7 +114,7 @@ network:
 
 storage: "{{ 'rbd' if storage_backends[0] == 'ceph' else 'pvc' }}"
 volume:
-  class_name: "{{ storage_backends[0] }}"
+  class_name: "{{ storageclass_name }}"
   size: "{{ glance.volume_size }}"
 
 bootstrap:

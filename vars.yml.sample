@@ -38,13 +38,16 @@ lvm_volumes:
 
 # netapp config
 netapp:
-  managementLIF: "192.168.100.230"
-  dataLIF: "192.168.140.19"
-  svm: "svm01"
-  username: "admin"
-  password: "<netapp_admin_password>"
-  nfsMountOptions: "nfsvers=4"
-  nas_share_path: "/dev03"
+  - name: netapp1
+    managementLIF: "192.168.100.230"
+    dataLIF: "192.168.140.19"
+    svm: "svm01"
+    username: "admin"
+    password: "<netapp_admin_password>"
+    nfsMountOptions: "nfsvers=4,lookupcache=pos"
+    shares:
+      - /dev12
+      - /dev03
 
 ### MTU setting
 calico_mtu: 1500
@@ -224,8 +227,8 @@ ceph_rgw_port: 7480
 ceph_public_network: "{{ public_network }}"
 ceph_cluster_network: "{{ cluster_network }}"
 
-# storageclass_name is used by ingress, mariadb, rabbitmq.yml.j2
-# it should be the first one of storage_backends
+# storageclass_name is used by ingress, mariadb, rabbitmq, glance, nova
+# Default: the first one of storage_backends
 storageclass_name: "{{ storage_backends[0] }}"
 
 # ingress
@@ -293,9 +296,10 @@ nova_gid: 42424
 # cinder
 # cinder backup deployment(default): false
 enable_cinder_backup: false
+cinder_backends: "{% for s in storage_backends %}{% if s == 'ceph' %}rbd1{% endif %}{% if s == 'netapp' %}{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
 cinder:
-  enabled_backends: "{{ storage_backends|map('extract', {'ceph': 'rbd1', 'netapp': 'netapp'})|list|unique|join(',') }}"
-  default_volume_type: "{{ storage_backends|map('extract', {'ceph': 'rbd1', 'netapp': 'netapp'})|list|first }}"
+  enabled_backends: "{{ cinder_backends }}"
+  default_volume_type: "{{ cinder_backends|split(',')|first }}"
   password: "{{ common_password }}"
 
 # horizon
