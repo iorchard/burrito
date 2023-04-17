@@ -10,6 +10,6 @@ spec:
   resources:
     requests:
       storage: {{ localrepo.storage }}
-  storageClassName: {{ localrepo.storageclassname }}
+  storageClassName: {{ storageclass_name }}
   volumeMode: Filesystem
 ...
