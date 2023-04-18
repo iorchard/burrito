@@ -312,5 +312,6 @@ dependencies:
 manifests:
   certificates: true
   deployment_backup: {{ enable_cinder_backup }}
+  job_backup_storage_init: {{ enable_cinder_backup }}
   job_storage_init: {{ ("ceph" in storage_backends)|ternary('true', 'false') }}
 ...
