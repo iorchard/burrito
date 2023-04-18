@@ -6,6 +6,6 @@ enable_ceph: {{ ('ceph' in storage_backends)|ternary('true', 'false') }}
 openstack:
   password: "{{ os_admin_password }}"
 image:
-  repo: {{ containerd_insecure_registries.local_registry }}/jijisa/btx
+  repo: {{ docker_image_repo }}/jijisa/btx
   tag: {{ btx.version }}
 ...
