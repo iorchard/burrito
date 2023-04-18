@@ -24,7 +24,7 @@ function check_if_open () {
 
 function check_rabbit_node_health () {
   CLUSTER_SEED_NAME=$1
-  rabbitmq-diagnostics node_health_check -n "${CLUSTER_SEED_NAME}" -t 10 &>/dev/null
+  rabbitmq-diagnostics -q status -n "${CLUSTER_SEED_NAME}" -t 10 &>/dev/null
 }
 
 get_node_name () {
