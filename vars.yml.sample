@@ -313,7 +313,7 @@ barbican:
 
 ### btx
 btx:
-  version: "1.0.0"
+  version: "latest"
   pvc:
     size: "100Gi"
 ...
