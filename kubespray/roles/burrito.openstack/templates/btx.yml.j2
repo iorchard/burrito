@@ -2,6 +2,7 @@
 btx:
   pvc:
     size: "{{ btx.pvc.size }}"
+enable_ceph: {{ ('ceph' in storage_backends)|ternary('true', 'false') }}
 openstack:
   password: "{{ os_admin_password }}"
 image:

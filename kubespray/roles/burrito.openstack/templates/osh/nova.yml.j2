@@ -152,6 +152,9 @@ conf:
     cinder:
       user: cinder
       keyring: {{ ceph_cinder_key }}
+{% else %}
+  ceph:
+    enabled: false
 {% endif %}
   nova:
     console:
