@@ -10,23 +10,20 @@ network:
   - {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
 conf:
   ceph:
-    enabled: true
+    enabled: {{ ('ceph' in storage_backends)|ternary('true', 'false') }}
+{% if 'ceph' in storage_backends %}
     admin_keyring: {{ ceph_admin_key }}
     cinder:
       user: cinder
       keyring: {{ ceph_cinder_key }}
       secret_uuid: {{ ceph_secret_uuid }}
+{% endif %}
   libvirt:
     listen_addr: 0.0.0.0
   qemu:
     vnc_tls: 1
     vnc_tls_x509_cert_dir: "/etc/pki/libvirt-vnc"
     vnc_tls_x509_verify: 1
-#    group: "cinder"
-#    spice_tls: 1
-#    spice_tls_x509_cert_dir: "/etc/pki/libvirt-spice"
-#    seccomp_sandbox: 1
-#    spice_listen: 0.0.0.0
 pod:
   mounts:
     libvirt:

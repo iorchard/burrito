@@ -11,7 +11,10 @@
       become: true
       delegate_to: "{{ groups['rgws'][0] }}"
       run_once: true
+      when: '"ceph" in storage_backends'
 
   roles:
-    - { role: burrito.rgw-user, tags: ['rgw-user', 'burrito']}
+    - role: burrito.rgw-user
+      when: '"ceph" in storage_backends'
+      tags: ['rgw-user', 'burrito']
 ...

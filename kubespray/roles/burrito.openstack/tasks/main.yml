@@ -23,24 +23,32 @@
     ceph auth get-key client.admin
   register: result
   become: true
+  when: '"ceph" in storage_backends'
 
 - name: OpenStack | set fact for admin keyring
   ansible.builtin.set_fact:
     ceph_admin_key: "{{ result.stdout }}"
+  when: '"ceph" in storage_backends'
 
 - name: OpenStack | get cinder keyring
   ansible.builtin.command: >-
     ceph auth get-key client.cinder
   register: result
   become: true
+  when: '"ceph" in storage_backends'
 
 - name: OpenStack | set fact for cinder keyring
   ansible.builtin.set_fact:
     ceph_cinder_key: "{{ result.stdout }}"
+  when: '"ceph" in storage_backends'
 
-- name: OpenStack | set osh_infra_charts depending on neutron_ml2_plugin
+- name: OpenStack | add openvswitch to osh_infra_charts if neutron_ml2_plugin is ovs
   ansible.builtin.set_fact:
     osh_infra_charts: "{{ is_ovs|ternary(osh_infra_charts|union(['openvswitch']), osh_infra_charts) }}"
+
+- name: OpenStack | add ceph-provisioners to osh_infra_charts if ceph in storage_backends
+  ansible.builtin.set_fact:
+    osh_infra_charts: "{{ is_ceph|ternary(osh_infra_charts|union(['ceph-provisioners']), osh_infra_charts) }}"
 
 - name: OpenStack | debug
   ansible.builtin.debug:

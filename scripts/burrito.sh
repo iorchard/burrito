@@ -64,7 +64,10 @@ install() {
       ${KUBESPRAY_PATH}/burrito.yml
 }
 uninstall() {
+  set +e
   sudo helm uninstall ${NAME} --namespace=openstack
+  sudo kubectl --namespace=openstack delete jobs,pods -l application=${NAME}
+  set -e
 }
 
 if [ $# -lt 2 ]

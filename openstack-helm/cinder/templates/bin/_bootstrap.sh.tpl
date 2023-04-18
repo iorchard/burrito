@@ -65,7 +65,9 @@ export HOME=/tmp
 
         {{- range $key, $value := $properties }}
         {{- if and (ne $key "access_type") (ne $key "grant_access") $value }}
+        {{- if and (ne $key "dataLIF") (ne $key "shares") }}
         openstack volume type set --property {{ $key }}={{ $value }} {{ $name }}
+        {{- end }}
         {{- end }}
         {{- end }}
       fi

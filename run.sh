@@ -12,6 +12,7 @@ function USAGE() {
   echo "preflight - play common tasks, i.e. yum repo settings."
   echo "ha        - play ha stack tasks, HAProxy/KeepAlived."
   echo "ceph      - play ceph installation tasks."
+  echo "netapp    - play netapp installation tasks."
   echo "k8s       - play kubernetes installation tasks."
   echo "patch     - play kubernetes security patch tasks."
   echo "registry  - play local registry setup tasks."

@@ -6,7 +6,7 @@ btx_path: "{{ playbook_dir }}/../btx/helm"
 os_artifacts_dir: "{{ ansible_env.HOME }}/openstack-artifacts"
 pod:
   replicas: 1
-storageclass_name: "rbd"
+storageclass_name: ~
 kube_pod_subnet: ~
 ceph_admin_key: ~
 ceph_secret_uuid: ~
@@ -44,10 +44,13 @@ keystone:
 
 ## glance
 glance:
+  stores: ~
+  default_store: ~
   password: ~
   nginx:
     proxy_body_size: "102400M"
     proxy_read_timeout: "1800"
+  pvc_size: "100Gi"
 
 ## placement
 placement:
@@ -73,9 +76,12 @@ nova:
   hypervisor_host_interface: ~
   libvirt_live_migration_interface: ~
   password: ~
+  pvc_size: "100Gi"
 
 ## cinder
 cinder:
+  enabled_backends: ~
+  default_volume_type: ~
   password: ~
 
 ## horizon
@@ -92,11 +98,13 @@ btx:
   pvc:
     size: "20Gi"
 
-# openvswitch chart is added dynamically if neutron_ml2_plugin is set to ovs.
-# See "OpenStack | templating osh infra values tasks" in tasks/main.yml
+# openvswitch chart will be added dynamically if neutron_ml2_plugin == ovs.
+# See "OpenStack | add openvswitch to osh_infra_charts" task
+# ceph-provisioners chart will be added if "ceph" in storage_backends.
+# See "OpenStack | add ceph-provisioners to osh_infra_charts" task
+is_ceph: "{{ 'ceph' in storage_backends }}"
 osh_infra_charts:
   - ingress
-  - ceph-provisioners
   - mariadb
   - rabbitmq
   - memcached

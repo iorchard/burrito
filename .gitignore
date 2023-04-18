@@ -1,4 +1,5 @@
 *.bak
+*.swp
 ansible.cfg
 hosts
 vars.yml
