@@ -176,6 +176,8 @@ conf:
       rbd_pool: "volumes"
       rbd_secret_uuid: "{{ ceph_secret_uuid }}"
       rbd_exclusive_cinder_pool: true
+{% else %}
+    rbd1: null
 {% endif %}
 {% if "netapp" in storage_backends %}
 {% for n in netapp %}
@@ -272,7 +274,43 @@ endpoints:
     port:
       ingress:
         default: 8443
+{% if "ceph" not in storage_backends %}
+# remove cinder-storage-init dependency
+dependencies:
+  static:
+    api:
+      jobs:
+        - cinder-db-sync
+        - cinder-ks-user
+        - cinder-ks-endpoints
+        - cinder-rabbit-init
+    backup:
+      jobs:
+        - cinder-db-sync
+        - cinder-ks-user
+        - cinder-ks-endpoints
+        - cinder-rabbit-init
+    scheduler:
+      jobs:
+        - cinder-db-sync
+        - cinder-ks-user
+        - cinder-ks-endpoints
+        - cinder-rabbit-init
+    volume:
+      jobs:
+        - cinder-db-sync
+        - cinder-ks-user
+        - cinder-ks-endpoints
+        - cinder-rabbit-init
+    volume_usage_audit:
+      jobs:
+        - cinder-db-sync
+        - cinder-ks-user
+        - cinder-ks-endpoints
+        - cinder-rabbit-init
+{% endif %}
 manifests:
   certificates: true
   deployment_backup: {{ enable_cinder_backup }}
+  job_storage_init: {{ ("ceph" in storage_backends)|ternary('true', 'false') }}
 ...
