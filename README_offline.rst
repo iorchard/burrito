@@ -217,7 +217,7 @@ Run HA stack playbook.::
 
 Check if KeepAlived VIPs are created in the first controller node.
 
-Run ceph playbook.::
+Run ceph playbook if ceph is in storage_backends.::
 
    $ ./run.sh ceph
 
@@ -234,10 +234,17 @@ Patch k8s.::
    $ ./run.sh patch
 
 It will take some time to restart kube-apiserver after patch.
-
 Check all pods are running and ready in kube-system namespace.::
 
    $ sudo kubectl get pods -n kube-system
+
+Run netapp playbook if netapp is in storage_backends.::
+
+   $ ./run.sh netapp
+
+Check all pods are running and ready in trident namespace.::
+
+   $ sudo kubectl get pods -n trident
 
 Run registry playbook to pull, tag, and push images 
 from the seed registry to the local registry.::
