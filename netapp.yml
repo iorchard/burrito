@@ -3,5 +3,7 @@
   hosts: kube_node
   any_errors_fatal: true
   roles:
-    - { role: burrito.netapp, tags: ['netapp']}
+    - role: burrito.netapp
+      when: '"netapp" in storage_backends'
+      tags: ['netapp']
 ...
