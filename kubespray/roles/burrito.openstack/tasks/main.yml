@@ -6,17 +6,23 @@
     kind: Namespace
     state: present
   become: true
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | make sure to set up control plane label
   ansible.builtin.command: >-
     kubectl label nodes --overwrite {{ item }} openstack-control-plane=enabled
   become: true
   loop: "{{ groups['controller-node'] }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | create openstack artifacts directory
   ansible.builtin.file:
     path: "{{ os_artifacts_dir }}"
     state: directory
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | get admin keyring
   ansible.builtin.command: >-
@@ -24,11 +30,15 @@
   register: result
   become: true
   when: '"ceph" in storage_backends'
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | set fact for admin keyring
   ansible.builtin.set_fact:
     ceph_admin_key: "{{ result.stdout }}"
   when: '"ceph" in storage_backends'
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | get cinder keyring
   ansible.builtin.command: >-
@@ -36,23 +46,33 @@
   register: result
   become: true
   when: '"ceph" in storage_backends'
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | set fact for cinder keyring
   ansible.builtin.set_fact:
     ceph_cinder_key: "{{ result.stdout }}"
   when: '"ceph" in storage_backends'
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | add openvswitch to osh_infra_charts if neutron_ml2_plugin is ovs
   ansible.builtin.set_fact:
     osh_infra_charts: "{{ is_ovs|ternary(osh_infra_charts|union(['openvswitch']), osh_infra_charts) }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | add ceph-provisioners to osh_infra_charts if ceph in storage_backends
   ansible.builtin.set_fact:
     osh_infra_charts: "{{ is_ceph|ternary(osh_infra_charts|union(['ceph-provisioners']), osh_infra_charts) }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | debug
   ansible.builtin.debug:
     msg: "{{ osh_infra_charts }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | templating osh infra values
   ansible.builtin.template:
@@ -60,6 +80,8 @@
     src: "osh_infra/{{ item }}.yml.j2"
     mode: "0644"
   loop: "{{ osh_infra_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: osh-infra
 
 - name: OpenStack | create dependency chart directory
@@ -68,6 +90,8 @@
     state: directory
     mode: "0755"
   loop: "{{ osh_infra_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: osh-infra
 
 - name: OpenStack | symlink helm-toolkit dependency chart
@@ -76,6 +100,8 @@
     src: "{{ osh_infra_path }}/helm-toolkit"
     state: link
   loop: "{{ osh_infra_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: osh-infra
 
 - name: OpenStack | deploy osh infra charts
@@ -88,6 +114,8 @@
       - "{{ os_artifacts_dir }}/{{ item }}.yml"
   become: true
   loop: "{{ osh_infra_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: ["osh-infra", "deploy-chart"]
 
 - name: OpenStack | create dependency chart directory for osh
@@ -96,6 +124,8 @@
     state: directory
     mode: "0755"
   loop: "{{ osh_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: osh
 
 - name: OpenStack | symlink helm-toolkit dependency chart for osh
@@ -104,6 +134,8 @@
     src: "{{ osh_infra_path }}/helm-toolkit"
     state: link
   loop: "{{ osh_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: osh
 
 - name: OpenStack | templating osh values
@@ -112,6 +144,8 @@
     src: "osh/{{ item }}.yml.j2"
     mode: "0644"
   loop: "{{ osh_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: osh
 
 - name: OpenStack | deploy osh charts
@@ -124,6 +158,8 @@
       - "{{ os_artifacts_dir }}/{{ item }}.yml"
   become: true
   loop: "{{ osh_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: ["osh", "deploy-chart"]
 
 - name: OpenStack | templating btx chart values
@@ -132,6 +168,8 @@
     src: "{{ item }}.yml.j2"
     mode: "0644"
   loop: "{{ btx_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: btx
 
 - name: OpenStack | deploy btx charts
@@ -143,6 +181,8 @@
       - "{{ os_artifacts_dir }}/{{ item }}.yml"
   become: true
   loop: "{{ btx_charts }}"
+  delegate_to: localhost
+  run_once: true
   tags: btx
 
 - name: OpenStack | create .btx.env
@@ -158,6 +198,6 @@
     insertafter: EOF
     marker: "# {mark} BTX ENV BLOCK"
     block: >-
-      . .btx.env
+      . {{ ansible_env.HOME }}/.btx.env
   tags: btx
 ...
