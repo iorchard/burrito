@@ -151,4 +151,13 @@
     src: ".btx.env"
     mode: "0600"
   tags: btx
+
+- name: OpenStack | add .btx.env in .bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    insertafter: EOF
+    marker: "# {mark} BTX ENV BLOCK"
+    block: >-
+      . .btx.env
+  tags: btx
 ...
