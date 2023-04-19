@@ -12,7 +12,7 @@
     - { role: burrito.system, tags: ['system', 'burrito']}
 
 - name: provision openstack
-  hosts: localhost
+  hosts: kube_control_plane
   any_errors_fatal: true
   roles:
     - { role: burrito.openstack, tags: ['openstack', 'burrito']}
