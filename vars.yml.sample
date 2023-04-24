@@ -1,7 +1,9 @@
 ---
 ### common
 common_password: "<password>"
-# define network interface names
+### define network interface names
+# set overlay_iface_name to null if you do not want to set up overlay network.
+# then, only provider network will be set up.
 svc_iface_name: eth0
 mgmt_iface_name: eth1
 provider_iface_name: eth2
