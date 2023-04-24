@@ -176,9 +176,13 @@ conf:
       router_distributed: {{ ovs_dvr|ternary('True', 'False') }}
       core_plugin: ml2
       global_physnet_mtu: {{ openstack_mtu }}
+{% if overlay_iface_name %}
       service_plugins: {{ bgp_dragent|ternary('neutron_dynamic_routing.services.bgp.bgp_plugin.BgpPlugin,neutron.services.l3_router.l3_router_plugin.L3RouterPlugin', 'router') }}
       l3_ha: true
       l3_ha_network_type: vxlan
+{% else %}
+      service_plugins: []
+{% endif %}
       dhcp_agents_per_network: 2
     nova:
       cafile: /etc/neutron/certs/ca.crt
@@ -211,19 +215,23 @@ conf:
     ml2_conf:
       ml2:
         extension_drivers: port_security
-        type_drivers: flat{% if ovs_provider[0].vlan_ranges %},vlan{% endif %},vxlan
-        tenant_network_types: vxlan
+        type_drivers: flat{% if ovs_provider[0].vlan_ranges %},vlan{% endif %}{% if overlay_iface_name %},vxlan{% endif %}
+
+        tenant_network_types: {{ overlay_iface_name|ternary('vxlan', []) }}
+
         mechanism_drivers: {{ is_ovs|ternary("openvswitch", "linuxbridge") }},l2population
       ml2_type_flat:
         flat_networks: "*"
 {% if is_ovs %}
 {% if ovs_provider[0].vlan_ranges %}
       ml2_type_vlan:
-        network_vlan_ranges: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.vlan_ranges }},{% endfor %}"
+        network_vlan_ranges: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.vlan_ranges }}{% if not loop.last %},{% endif %}{% endfor %}"
 {% endif %}
 {% endif %}
+{% if overlay_iface_name %}
       ml2_type_vxlan:
         vni_ranges: "1:1000"
+{% endif %}
       securitygroup:
         enable_ipset: false
 {% if not is_ovs %}
@@ -237,7 +245,7 @@ conf:
         enable_security_group: true
         firewall_driver: iptables
       vxlan:
-        enable_vxlan: true
+        enable_vxlan: {{ overlay_iface_name|ternary('true', 'false') }}
         l2_population: true
         arp_responder: false
 {% endif %}
@@ -253,10 +261,12 @@ conf:
         l2_population: true
         arp_responder: true
 {% endif %}
+{% if overlay_iface_name %}
   l3_agent:
     DEFAULT:
       interface_driver: {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
       agent_mode: {{ ovs_dvr | ternary('dvr', 'legacy') }}
+{% endif %}
 {% if bgp_dragent %}
   bgp_dragent:
     DEFAULT:
@@ -352,8 +362,9 @@ endpoints:
         default: 8443
 
 manifests:
-  daemonset_lb_agent: {{ is_ovs|ternary(false, true) }}
-  daemonset_ovs_agent: {{ is_ovs|ternary(true, false) }}
+  daemonset_lb_agent: {{ is_ovs|ternary('false', 'true') }}
+  daemonset_ovs_agent: {{ is_ovs|ternary('true', 'false') }}
+  daemonset_l3_agent: {{ overlay_iface_name|ternary('true', 'false') }}
   daemonset_sriov_agent: false
   daemonset_metadata_agent: true
   daemonset_bgp_dragent: {{ bgp_dragent }}
