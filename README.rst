@@ -208,7 +208,7 @@ Create a vault file to encrypt passwords.::
 
 Check the connection to other nodes.::
 
-   $ ansible -m ping all
+   $ ./run.sh ping
 
 Install
 ----------

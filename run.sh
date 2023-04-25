@@ -9,6 +9,7 @@ function USAGE() {
   echo
   echo "playbook_name"
   echo "============="
+  echo "ping      - ping to all nodes."
   echo "preflight - play common tasks, i.e. yum repo settings."
   echo "ha        - play ha stack tasks, HAProxy/KeepAlived."
   echo "ceph      - play ceph installation tasks."
@@ -34,6 +35,11 @@ shift
 
 OFFLINE_VARS=
 
+if [[ "${PLAYBOOK}" = "ping" ]]; then
+  . ~/.envs/burrito/bin/activate
+  ansible -m ping --extra-vars=@vars.yml all
+  exit 0
+fi
 if [ -f .offline_flag ]; then
   # check offline services status
   if ${CURRENT_DIR}/scripts/offline_services.sh -s &>/dev/null; then
@@ -64,5 +70,5 @@ if [[ "${PLAYBOOK}" = "landing" && -z ${OFFLINE_VARS} ]]; then
   exit 1
 fi
 
-source ~/.envs/burrito/bin/activate
+. ~/.envs/burrito/bin/activate
 ansible-playbook --extra-vars=@vars.yml ${OFFLINE_VARS} ${FLAGS} ${PLAYBOOK}.yml

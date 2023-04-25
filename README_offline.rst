@@ -29,14 +29,6 @@ I assume there are 5 networks.
 * overlay network: OpenStack overlay network (e.g. 192.168.23.0/24)
 * storage network: Ceph public/cluster network (e.g. 192.168.24.0/24)
 
-Copy ssh keypair
------------------
-
-Create ssh key pair and distribute the public key to all other nodes.::
-
-   $ ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ''
-   $ ssh-copy-id <other_node>
-
 Set up the ISO repo
 ---------------------
 
@@ -236,7 +228,7 @@ Create a vault file to encrypt passwords.::
 
 Check the connection to other nodes.::
 
-   $ ansible -m ping all
+   $ ./run.sh ping
 
 Install
 ----------

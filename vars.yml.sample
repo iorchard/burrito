@@ -2,7 +2,7 @@
 ### common
 # deploy_ssh_key: (boolean) create ssh keypair and copy it to other nodes.
 # default: false
-deploy_ssh_key: true
+deploy_ssh_key: false
 
 ### define network interface names
 # set overlay_iface_name to null if you do not want to set up overlay network.
@@ -203,7 +203,7 @@ calico_vxlan_mode: 'Never'
 # Registry deployment
 registry_enabled: true
 registry_namespace: kube-system
-registry_storage_class: "rbd"
+registry_storage_class: "{{ storage_backends[0] }}"
 registry_disk_size: "30Gi"
 registry_service_type: "NodePort"
 registry_service_nodeport: "32680"
