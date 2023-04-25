@@ -15,7 +15,7 @@ Assumptions
 
 * OS is installed using Burrito CD/ISO.
 * The first node in controller group is the ansible deployer.
-* Ansible user in every node has a passwordless sudo privilege.
+* Ansible user in every node has a sudo privilege.
 * All nodes should be in /etc/hosts.
 
 Networks
@@ -86,24 +86,24 @@ Install python packages.::
 Prepare
 --------
 
-Run offline_prepare.sh script.::
+Run prepare.sh script with offline flag.::
 
-   $ ./prepare_offline.sh
+   $ ./prepare.sh offline
 
 Edit hosts.::
 
    $ vi hosts
-   control1 ansible_host=192.168.21.31 ansible_port=22 ansible_user=clex ansible_connection=local ansible_python_interpreter=/usr/bin/python3
-   control2 ansible_host=192.168.21.32 ansible_port=22 ansible_user=clex 
-   control3 ansible_host=192.168.21.33 ansible_port=22 ansible_user=clex
-   network1 ansible_host=192.168.21.34 ansible_port=22 ansible_user=clex
-   network2 ansible_host=192.168.21.35 ansible_port=22 ansible_user=clex
-   compute1 ansible_host=192.168.21.36 ansible_port=22 ansible_user=clex
-   compute2 ansible_host=192.168.21.37 ansible_port=22 ansible_user=clex
-   storage1 ansible_host=192.168.21.38 monitor_address=192.168.24.38 radosgw_address=192.168.24.38 ansible_port=22 ansible_user=clex
-   storage2 ansible_host=192.168.21.39 monitor_address=192.168.24.39 radosgw_address=192.168.24.39 ansible_port=22 ansible_user=clex
-   storage3 ansible_host=192.168.21.40 monitor_address=192.168.24.40 radosgw_address=192.168.24.40 ansible_port=22 ansible_user=clex
-   
+   control1 ip=192.168.21.31 ansible_port=22 ansible_user=clex ansible_connection=local ansible_python_interpreter=/usr/bin/python3
+   control2 ip=192.168.21.32 ansible_port=22 ansible_user=clex 
+   control3 ip=192.168.21.33 ansible_port=22 ansible_user=clex
+   network1 ip=192.168.21.34 ansible_port=22 ansible_user=clex
+   network2 ip=192.168.21.35 ansible_port=22 ansible_user=clex
+   compute1 ip=192.168.21.36 ansible_port=22 ansible_user=clex
+   compute2 ip=192.168.21.37 ansible_port=22 ansible_user=clex
+   storage1 ip=192.168.21.38 monitor_address=192.168.24.38 radosgw_address=192.168.24.38 ansible_port=22 ansible_user=clex
+   storage2 ip=192.168.21.39 monitor_address=192.168.24.39 radosgw_address=192.168.24.39 ansible_port=22 ansible_user=clex
+   storage3 ip=192.168.21.40 monitor_address=192.168.24.40 radosgw_address=192.168.24.40 ansible_port=22 ansible_user=clex
+ 
    # ceph nodes
    [mons]
    storage[1:3]
@@ -150,49 +150,89 @@ Edit vars.yml.::
 
    $ vi vars.yml
    ---
-   ## common
-   common_password: "<password>"
-   # define network interface names
+   ### common
+   # deploy_ssh_key: (boolean) create ssh keypair and copy it to other nodes.
+   # default: false
+   deploy_ssh_key: true
+
+   ### define network interface names
+   # set overlay_iface_name to null if you do not want to set up overlay network.
+   # then, only provider network will be set up.
    svc_iface_name: eth0
    mgmt_iface_name: eth1
    provider_iface_name: eth2
    overlay_iface_name: eth3
    storage_iface_name: eth4
 
-   ## ntp
+   ### ntp
    # Specify time servers for control nodes.
    # You can use the default ntp.org servers or time servers in your network.
    # If servers are offline and there is no time server in your network,
    #   set ntp_servers to empty list.
-   #   Then, the control nodes will be the ntp peers.
+   #   Then, the control nodes will be the ntp servers for other nodes.
    # ntp_servers: []
    ntp_servers:
      - 0.pool.ntp.org
      - 1.pool.ntp.org
      - 2.pool.ntp.org
 
-   # ceph osd volume device list
-   lvm_volumes:
-     - data: /dev/sdb
-     - data: /dev/sdc
-     - data: /dev/sdd
-
-   ### keepalived VIP address
+   ### keepalived
    keepalived_vip: "192.168.21.90"
-  
+
+   ### storage
+   # storage backends: ceph and(or) netapp
+   # If there are multiple backends, the first one is the default backend.
+   storage_backends:
+     - netapp
+     - ceph
+   
+   # ceph: set ceph configuration in group_vars/all/ceph_vars.yml
+   # netapp: set netapp configuration in group_vars/all/netapp_vars.yml
+   
    ### MTU setting
    calico_mtu: 1500
    openstack_mtu: 1500
 
    ### neutron
-   # is_ovs: set true for openvswitch, set false for linuxbridge
-   is_ovs: true
+   # is_ovs: set false for linuxbridge(default), set true for openvswitch
+   is_ovs: false
    bgp_dragent: false
-   
-   
+    
    ###################################################
    ## Do not edit below if you are not an expert!!!  #
    ###################################################
+
+If you set ceph in storage_backends, edit group_vars/all/ceph.yml.::
+
+   ---
+   # ceph config
+   lvm_volumes:
+     - data: /dev/sdb
+     - data: /dev/sdc
+     - data: /dev/sdd
+   ...
+
+If you set netapp in storage_backends, edit group_vars/all/netapp.yml.::
+
+   ---
+   netapp:
+     - name: netapp1
+       managementLIF: "192.168.100.230"
+       dataLIF: "192.168.140.19"
+       svm: "svm01"
+       username: "admin"
+       password: "<netapp_admin_password>"
+       nfsMountOptions: "nfsvers=4,lookupcache=pos"
+       shares:
+         - /dev03
+   ...
+
+Create a vault file to encrypt passwords.::
+
+   $ ./vault.sh
+   user password:
+   openstack admin password:
+   Encryption successful
 
 Check the connection to other nodes.::
 

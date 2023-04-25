@@ -1,6 +1,9 @@
 ---
 ### common
-common_password: "<password>"
+# deploy_ssh_key: (boolean) create ssh keypair and copy it to other nodes.
+# default: false
+deploy_ssh_key: true
+
 ### define network interface names
 # set overlay_iface_name to null if you do not want to set up overlay network.
 # then, only provider network will be set up.
@@ -29,27 +32,11 @@ keepalived_vip: "192.168.21.90"
 # storage backends: ceph and(or) netapp
 # If there are multiple backends, the first one is the default backend.
 storage_backends:
-  - ceph
   - netapp
+  - ceph
 
-# ceph config
-lvm_volumes:
-  - data: /dev/sdb
-  - data: /dev/sdc
-  - data: /dev/sdd
-
-# netapp config
-netapp:
-  - name: netapp1
-    managementLIF: "192.168.100.230"
-    dataLIF: "192.168.140.19"
-    svm: "svm01"
-    username: "admin"
-    password: "<netapp_admin_password>"
-    nfsMountOptions: "nfsvers=4,lookupcache=pos"
-    shares:
-      - /dev12
-      - /dev03
+# ceph: set ceph configuration in group_vars/all/ceph_vars.yml
+# netapp: set netapp configuration in group_vars/all/netapp_vars.yml
 
 ### MTU setting
 calico_mtu: 1500
@@ -64,6 +51,10 @@ bgp_dragent: false
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
 ###################################################
+# vault passwords
+ansible_password: "{{ vault_ssh_password }}"
+ansible_become_password: "{{ vault_sudo_password }}"
+
 # offline installation flag - default false
 # do not change this variable to true
 # if you want offline installation, just add offline_vars.yml in extra-vars
@@ -94,12 +85,11 @@ ceph_repository: community
 ceph_repository_type: cdn
 ceph_stable_release: quincy
 osd_objectstore: bluestore
-docker_pull_timeout: "60s"
 
 # set the size, min_size, and single_osd_node
 ceph_pool_default_size: "{% if (groups['osds']|length) > 3 %}3{% else %}2{% endif %}"
 ceph_pool_default_min_size: "{% if (groups['osds']|length) > 3 %}2{% else %}1{% endif %}"
-single_osd_node: "{% if (groups['osds']|length) == 1 %}{{ true|bool }}{% else %}{{ false|bool }}{% endif %}"
+single_osd_node: "{{ ((groups['osds']|length) == 1)|ternary('true', 'false') }}"
 
 ceph_conf_overrides:
   global:
@@ -213,7 +203,7 @@ calico_vxlan_mode: 'Never'
 # Registry deployment
 registry_enabled: true
 registry_namespace: kube-system
-registry_storage_class: "{{ storage_backends[0] }}"
+registry_storage_class: "rbd"
 registry_disk_size: "30Gi"
 registry_service_type: "NodePort"
 registry_service_nodeport: "32680"
@@ -230,7 +220,7 @@ ceph_rgw_port: 7480
 ceph_public_network: "{{ public_network }}"
 ceph_cluster_network: "{{ cluster_network }}"
 
-# storageclass_name is used by ingress, mariadb, rabbitmq, glance, nova
+# storageclass_name is used by ingress, mariadb, rabbitmq.yml.j2
 # Default: the first one of storage_backends
 storageclass_name: "{{ storage_backends[0] }}"
 
@@ -241,23 +231,23 @@ ingress:
 # mariadb
 mariadb:
   volume_size: "30Gi"
-  admin_password: "{{ common_password }}"
+  admin_password: "{{ vault_mariadb_root_password }}"
 
 # rabbitmq
 rabbitmq:
   volume_size: "768Mi"
-  password: "{{ common_password }}"
+  password: "{{ vault_rabbitmq_openstack_password }}"
 
 # keystone
-os_admin_password: "{{ common_password }}"
+os_admin_password: "{{ vault_openstack_admin_password }}"
 keystone:
-  password: "{{ common_password }}"
+  password: "{{ vault_keystone_password }}"
 
 # glance
 glance:
   stores: "{{ storage_backends|map('extract', {'ceph': 'rbd', 'netapp': 'file'})|list|first }}"
   default_store: "{{ storage_backends|map('extract', {'ceph': 'rbd', 'netapp': 'file'})|list|unique|first }}"
-  password: "{{ common_password }}"
+  password: "{{ vault_glance_password }}"
   nginx:
     proxy_body_size: "102400M"
     proxy_read_timeout: "1800"
@@ -265,17 +255,17 @@ glance:
 
 # placement
 placement:
-  password: "{{ common_password }}"
+  password: "{{ vault_placement_password }}"
 
 # libvirt
-ceph_secret_uuid: 55b1a639-3ce3-470c-9205-99ea9b5045f9
+ceph_secret_uuid: "{{ vault_ceph_secret_uuid }}"
 
 # neutron
 neutron_ml2_plugin: "{{ is_ovs|ternary('openvswitch', 'linuxbridge') }}"
 neutron:
   tunnel: "{{ overlay_iface_name }}"
   tunnel_compute: "{{ overlay_iface_name }}"
-  password: "{{ common_password }}"
+  password: "{{ vault_neutron_password }}"
 ovs_dvr: "{{ is_ovs|ternary(true, false) }}"
 ovs_provider:
   - name: external
@@ -290,7 +280,7 @@ nova:
   vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
   hypervisor_host_interface: "{{ mgmt_iface_name }}"
   libvirt_live_migration_interface: "{{ mgmt_iface_name }}"
-  password: "{{ common_password }}"
+  password: "{{ vault_nova_password }}"
   volume_size: "500Gi"
 
 nova_uid: 42424
@@ -303,16 +293,17 @@ cinder_backends: "{% for s in storage_backends %}{% if s == 'ceph' %}rbd1{% endi
 cinder:
   enabled_backends: "{{ cinder_backends }}"
   default_volume_type: "{{ cinder_backends|split(',')|first }}"
-  password: "{{ common_password }}"
+  password: "{{ vault_cinder_password }}"
 
 # horizon
 horizon:
-  password: "{{ common_password }}"
+  password: "{{ vault_horizon_password }}"
   timezone: "Asia/Seoul"
 
 # barbican
 barbican:
-  password: "{{ common_password }}"
+  password: "{{ vault_barbican_password }}"
+  kek: "{{ vault_barbican_kek | b64encode }}"
 
 ### btx
 btx:
