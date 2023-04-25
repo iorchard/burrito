@@ -24,6 +24,10 @@
         kubectl -n {{ registry_namespace }} \
           cp /mnt/registry/docker \
           {{ registry_pod.resources[0].metadata.name }}:/var/lib/registry/
+      register: _copy_result
+      until: _copy_result.rc == 0
+      retries: 3
+      delay: 3
       become: true
       when: offline
     - name: Registry | run registry.sh script (online)
