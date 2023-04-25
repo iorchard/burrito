@@ -15,4 +15,8 @@
         - "{{ ansible_os_family | lower }}.yml"
       paths:
         - "."
+
+- name: Main | import sshkey tasks
+  ansible.builtin.import_tasks: "sshkey.yml"
+  when: deploy_ssh_key
 ...
