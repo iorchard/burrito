@@ -85,6 +85,7 @@ ceph_repository: community
 ceph_repository_type: cdn
 ceph_stable_release: quincy
 osd_objectstore: bluestore
+docker_pull_timeout: "60s"
 
 # set the size, min_size, and single_osd_node
 ceph_pool_default_size: "{% if (groups['osds']|length) > 3 %}3{% else %}2{% endif %}"
@@ -220,7 +221,7 @@ ceph_rgw_port: 7480
 ceph_public_network: "{{ public_network }}"
 ceph_cluster_network: "{{ cluster_network }}"
 
-# storageclass_name is used by ingress, mariadb, rabbitmq.yml.j2
+# storageclass_name is used by ingress, mariadb, rabbitmq, glance, nova
 # Default: the first one of storage_backends
 storageclass_name: "{{ storage_backends[0] }}"
 
