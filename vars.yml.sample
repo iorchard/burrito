@@ -54,7 +54,6 @@ bgp_dragent: false
 # vault passwords
 ansible_password: "{{ vault_ssh_password }}"
 ansible_become_password: "{{ vault_sudo_password }}"
-ansible_python_interpreter: /usr/bin/python3
 
 # offline installation flag - default false
 # do not change this variable to true
