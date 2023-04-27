@@ -85,16 +85,16 @@ Run prepare.sh script with offline flag.::
 Edit hosts.::
 
    $ vi hosts
-   control1 ip=192.168.21.31 ansible_port=22 ansible_user=clex ansible_connection=local ansible_python_interpreter=/usr/bin/python3
-   control2 ip=192.168.21.32 ansible_port=22 ansible_user=clex 
-   control3 ip=192.168.21.33 ansible_port=22 ansible_user=clex
-   network1 ip=192.168.21.34 ansible_port=22 ansible_user=clex
-   network2 ip=192.168.21.35 ansible_port=22 ansible_user=clex
-   compute1 ip=192.168.21.36 ansible_port=22 ansible_user=clex
-   compute2 ip=192.168.21.37 ansible_port=22 ansible_user=clex
-   storage1 ip=192.168.21.38 monitor_address=192.168.24.38 radosgw_address=192.168.24.38 ansible_port=22 ansible_user=clex
-   storage2 ip=192.168.21.39 monitor_address=192.168.24.39 radosgw_address=192.168.24.39 ansible_port=22 ansible_user=clex
-   storage3 ip=192.168.21.40 monitor_address=192.168.24.40 radosgw_address=192.168.24.40 ansible_port=22 ansible_user=clex
+   control1 ip=192.168.21.31 ansible_connection=local
+   control2 ip=192.168.21.32
+   control3 ip=192.168.21.33
+   network1 ip=192.168.21.34
+   network2 ip=192.168.21.35
+   compute1 ip=192.168.21.36
+   compute2 ip=192.168.21.37
+   storage1 ip=192.168.21.38 monitor_address=192.168.24.38 radosgw_address=192.168.24.38
+   storage2 ip=192.168.21.39 monitor_address=192.168.24.39 radosgw_address=192.168.24.39
+   storage3 ip=192.168.21.40 monitor_address=192.168.24.40 radosgw_address=192.168.24.40
  
    # ceph nodes
    [mons]
@@ -194,7 +194,7 @@ Edit vars.yml.::
    ## Do not edit below if you are not an expert!!!  #
    ###################################################
 
-If you set ceph in storage_backends, edit group_vars/all/ceph.yml.::
+If ceph is in storage_backends, edit group_vars/all/ceph_vars.yml.::
 
    ---
    # ceph config
@@ -204,7 +204,7 @@ If you set ceph in storage_backends, edit group_vars/all/ceph.yml.::
      - data: /dev/sdd
    ...
 
-If you set netapp in storage_backends, edit group_vars/all/netapp.yml.::
+If netapp is in storage_backends, edit group_vars/all/netapp_vars.yml.::
 
    ---
    netapp:
@@ -247,13 +247,14 @@ Run HA stack playbook.::
 
    $ ./run.sh ha
 
-Check if KeepAlived VIPs are created in the first controller node.
+Check if KeepAlived VIP is created in management interface 
+on the first controller node.
 
 Run ceph playbook if ceph is in storage_backends.::
 
    $ ./run.sh ceph
 
-Check ceph health.::
+Check ceph health after running ceph playbook.::
 
    $ sudo ceph -s
 
@@ -265,7 +266,8 @@ Run netapp playbook if netapp is in storage_backends.::
 
    $ ./run.sh netapp
 
-Check all pods are running and ready in trident namespace.::
+Check all pods are running and ready in trident namespace after running
+netapp playbook.::
 
    $ sudo kubectl get pods -n trident
 
@@ -278,8 +280,7 @@ Check all pods are running and ready in kube-system namespace.::
 
    $ sudo kubectl get pods -n kube-system
 
-Run registry playbook to pull, tag, and push images 
-from the seed registry to the local registry.::
+Run registry playbook to pull, tag, and push images to the local registry.::
 
    $ ./run.sh registry
 
@@ -293,7 +294,8 @@ Run burrito playbook.::
 
    $ ./run.sh burrito
 
-Last but not least, Run landing playbook to set up local registry on k8s.::
+Last but not least, 
+Run landing playbook to set up genesis registry and local repository on k8s.::
 
    $ ./run.sh landing
 
@@ -339,7 +341,7 @@ If everything goes well, the output looks like this.::
    +------------------+------------------------------------------------+
    | Field            | Value                                          |
    +------------------+------------------------------------------------+
-   | addresses        | private-net=192.168.22.207                     |
+   | addresses        | public-net=192.168.22.207                      |
    | flavor           | m1.tiny (410f3140-3fb5-4efb-94e5-73d77d6242cf) |
    | image            | cirros (870cf94b-8d2b-43bd-b244-4bf7846ff39e)  |
    | name             | test                                           |
