@@ -1,0 +1,78 @@
+1.1.0 Aster
+============
+
+This is the second minor release in the Aster series.
+
+Notable changes
+----------------
+
+* Use ansible-vault to encrypt passwords. Previously passwords are set up as
+  plain text in vars.yml. All passwords except ansible user password and 
+  openstack admin password are randomly generated.
+* Support ssh-key copy on a deployer to other nodes.
+* Upgrade ceph quincy release from 17.2.5 to 17.2.6.
+* Support for provider-only network setup.
+  We can skip overlay (=selfservice) network setup by setting 
+  overlay_iface_name to null in vars.yml.
+* Support netapp ontap_nas storage backend.
+  Burrito now supports two storage backends - ceph and netapp.
+* Upgrade btx version from 1.0.0 to 1.1.0.
+
+Changelog
+----------
+
+* fix: add ansible_python_interpreter=/usr/bin/python3 back to hosts.sample; remove ansible_python_interpreter in vars.yml.sample; (jijisa@iorchard.net)
+* doc: update README in hosts file edit; (jijisa@iorchard.net)
+* feature: simplify inventory hosts file; (jijisa@iorchard.net)
+* osh template: change image repo variables from containerd_insecure_registries.local_registry to common variable names like docker_image_repo to support both online and offline installation; (jijisa@iorchard.net)
+* update README; (jijisa@iorchard.net)
+* add docker_pull_timeout: "60s" back to vars.yml.sample.; (jijisa@iorchard.net)
+* add ping test in run.sh ; updated README ; upgrade btx image to 1.1.0 in scripts/images.txt ; modify deploy_ssh_key default value to false in vars.yml.sample ; fix registry_storage_class to storage_backends[0] in vars.yml.sample; (jijisa@iorchard.net)
+* use ansible-vault to encrypt ssh and sudo passwords ; use ansible-vault to encrypt openstack passwords ; no need to copy a ssh keypair from deployer to other nodes manually ; add deploy_ssh_key boolean variable in vars.yml.sample ; updated README.rst and README_offline.rst ; integrate prepare_offline.sh into prepare.sh ; run './prepare.sh offline' for offline installation.; (jijisa@iorchard.net)
+* add retries in Registry | copy registry image into the registry pod (offline) task; (jijisa@iorchard.net)
+* add support for provider-network only setup; (jijisa@iorchard.net)
+* upgrade btx version to 1.1.0; (jijisa@iorchard.net)
+* put .btx.env on all control nodes; (jijisa@iorchard.net)
+* feature: source .btx.env in .bashrc; (jijisa@iorchard.net)
+* add when condition in netapp playbook so that it is skipped when netapp is not in storage_backends.; (jijisa@iorchard.net)
+* copy iso image data to registry pod directly; (jijisa@iorchard.net)
+* updated btx nova_vnc_cert submodules; (jijisa@iorchard.net)
+* update btx to the latest; (jijisa@iorchard.net)
+* updated README; (jijisa@iorchard.net)
+* upgrade btx image tag to 1.0.1. ; add docker_pull_timeout: "60s" to speed up ceph-ansible installation; (jijisa@iorchard.net)
+* updated btx and nova_vnc_cert source; (jijisa@iorchard.net)
+* change btx image version to latest; (jijisa@iorchard.net)
+* change image repo to docker_image_repo variable to support both online and offline; (jijisa@iorchard.net)
+* fix: change keepalived_vip_svc to keepalived_vip in s3cfg_controller.j2; (jijisa@iorchard.net)
+* Add netapp playbook in README; (jijisa@iorchard.net)
+* Set ceph configuration depending on ceph in storage_backends; (jijisa@iorchard.net)
+* fix: set job_backup_storage_init to enable_cinder_backup bool value in manifests; (jijisa@iorchard.net)
+* set backends.rbd1 to null if ceph not in storage_backends. ; remove cinder-storage-init dependencies in   cinder-{api,backup,scheduler,volume,volume-usage-audit}   if ceph not in storage_backends. ; do not run job-storage-init is ceph not in storage_backends.; (jijisa@iorchard.net)
+* fix: change the hardcoded registry_storage_class to storage_backends[0]; (jijisa@iorchard.net)
+* fix: change the hardcoded storage class name to global variable storageclass_name; (jijisa@iorchard.net)
+* fix: change the hardcoded storage class name to global variable storageclass_name; (jijisa@iorchard.net)
+* remove chown cinder home; It has no effect since nfs mount happens after chown; (jijisa@iorchard.net)
+* change back to nova:yoga-ubuntu_focal image; (jijisa@iorchard.net)
+* revert the upgraded versions to the original ones; (jijisa@iorchard.net)
+* upgrade k8s from 1.24.8 to 1.24.12; (jijisa@iorchard.net)
+* change nova image from ubuntu focal to ubuntu jammy; (jijisa@iorchard.net)
+* Support multiple shares in one netapp backend. ; Use bootstrap to set volume type to private. It used to be set in btx. ; Set cinder/glance class_name to {{ storageclass_name }} in global variable. ; Add pvc_instance PVC mountpath in nova-compute-init container.; (jijisa@iorchard.net)
+* remove comments; (jijisa@iorchard.net)
+* add netapp storage backend; (jijisa@iorchard.net)
+* add when conditional statement; (jijisa@iorchard.net)
+* add ;.swp in .gitignore; (jijisa@iorchard.net)
+* remove vim swap file; (jijisa@iorchard.net)
+* add netapp as storage_backend; (jijisa@iorchard.net)
+* modified_rabbitmq_start.sh.tpl; (beomjin@iorchard.co.kr)
+* btx modifications; (jijisa@iorchard.net)
+* modified README.rst typo; (healthat@iorchard.co.kr)
+* fix: set is_ovs to false; (jijisa@iorchard.net)
+
+
+BTX
+++++
+
+* Dynamically create ENV from .env in Dockerfile ; Move btx, burrito-test.sh, bashrc.txt to bin/ directory; (jijisa@iorchard.co.kr)
+* add tridentctl binary; (jijisa@iorchard.co.kr)
+* add enable_ceph values; change root's HOME to /data after login (/root/.bashrc) ; add s3cmd alias to expand s3cmd -c /root/.s3cfg; (jijisa@iorchard.co.kr)
+
