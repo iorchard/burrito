@@ -92,6 +92,7 @@ horizon:
 ## barbican
 barbican:
   password: ~
+  kek: ~
 
 ## btx
 btx:

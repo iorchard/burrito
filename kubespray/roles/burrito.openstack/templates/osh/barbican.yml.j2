@@ -24,6 +24,8 @@ conf:
       ssl_ca_file: /etc/rabbitmq/certs/ca.crt
       ssl_cert_file: /etc/rabbitmq/certs/tls.crt
       ssl_key_file: /etc/rabbitmq/certs/tls.key
+    simple_crypto_plugin:
+      kek: '{{ barbican.kek }}'
 
 endpoints:
   identity:
