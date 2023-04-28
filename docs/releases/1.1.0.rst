@@ -21,6 +21,7 @@ Notable changes
 Changelog
 ----------
 
+* feature: add randomly generated kek in barbican.conf; (jijisa@iorchard.net)
 * fix: add ansible_python_interpreter=/usr/bin/python3 back to hosts.sample; remove ansible_python_interpreter in vars.yml.sample; (jijisa@iorchard.net)
 * doc: update README in hosts file edit; (jijisa@iorchard.net)
 * feature: simplify inventory hosts file; (jijisa@iorchard.net)
