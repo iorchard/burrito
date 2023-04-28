@@ -85,7 +85,7 @@ Run prepare.sh script with offline flag.::
 Edit hosts.::
 
    $ vi hosts
-   control1 ip=192.168.21.31 ansible_connection=local
+   control1 ip=192.168.21.31 ansible_connection=local ansible_python_interpreter=/usr/bin/python3
    control2 ip=192.168.21.32
    control3 ip=192.168.21.33
    network1 ip=192.168.21.34
