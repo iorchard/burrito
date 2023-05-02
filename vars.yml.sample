@@ -202,7 +202,7 @@ calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
 # Registry deployment
-registry_enabled: true
+registry_enabled: "{{ offline|ternary(true, false) }}"
 registry_namespace: kube-system
 registry_storage_class: "{{ storage_backends[0] }}"
 registry_disk_size: "30Gi"
