@@ -253,16 +253,6 @@ Check all pods are running and ready in kube-system namespace.::
 
    $ sudo kubectl get pods -n kube-system
 
-Run registry playbook to pull, tag, and push images to the local registry.::
-
-   $ ./run.sh registry
-
-Check the images in the local registry.::
-
-   $ curl -s <keepalived_vip>:32680/v2/_catalog
-
-Repositories should not be empty.
-
 Run burrito playbook.::
 
    $ sudo helm plugin install https://github.com/databus23/helm-diff
@@ -307,14 +297,14 @@ If everything goes well, the output looks like this.::
    The last IP address to allocate (e.g. 192.168.22.200): 192.168.22.210
    Okay. I got the last address of provider network pool: 192.168.22.210
    ...
-   +------------------+------------------------------------------------+
-   | Field            | Value                                          |
-   +------------------+------------------------------------------------+
-   | addresses        | public-net=192.168.22.207                      |
-   | flavor           | m1.tiny (410f3140-3fb5-4efb-94e5-73d77d6242cf) |
-   | image            | cirros (870cf94b-8d2b-43bd-b244-4bf7846ff39e)  |
-   | name             | test                                           |
-   | status           | ACTIVE                                         |
-   | volumes_attached | id='2cf21340-b7d4-464f-a11b-22043cc2d3e6'      |
-   +------------------+------------------------------------------------+
+   +------------------+------------------------------------------------------------------------------------+
+   | Field            | Value                                                                              |
+   +------------------+------------------------------------------------------------------------------------+
+   | addresses        | private-net=172.30.1.45, 192.168.22.113                                            |
+   | flavor           | disk='1', ephemeral='0', , original_name='m1.tiny', ram='512', swap='0', vcpus='1' |
+   | image            | cirros (69794a94-ef91-4057-b64c-13ec53a8015f)                                      |
+   | name             | test                                                                               |
+   | status           | ACTIVE                                                                             |
+   | volumes_attached | delete_on_termination='False', id='afe28a3b-18f1-4230-b499-f707d73b1d43'           |
+   +------------------+------------------------------------------------------------------------------------+
 
