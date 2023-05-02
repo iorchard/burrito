@@ -58,10 +58,17 @@ install() {
     exit 1
   fi
   source ~/.envs/burrito/bin/activate
-  ansible-playbook --extra-vars=@vars.yml \
-      --extra-vars="{\"$KEY\": [\"${NAME}\"]}" \
-      $TAG_OPTS \
-      ${KUBESPRAY_PATH}/burrito.yml
+  pushd ${CURRENT_DIR}/../
+    OFFLINE_VARS=
+    if [ -f .offline_flag ] && \
+      ${CURRENT_DIR}/offline_services.sh -s &>/dev/null; then
+      OFFLINE_VARS="--extra-vars=@offline_vars.yml"
+    fi
+    ansible-playbook --extra-vars=@vars.yml ${OFFLINE_VARS} \
+        --extra-vars="{\"$KEY\": [\"${NAME}\"]}" \
+        ${TAG_OPTS} \
+        ${KUBESPRAY_PATH}/burrito.yml
+  popd
 }
 uninstall() {
   set +e
