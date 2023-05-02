@@ -1,10 +1,10 @@
 Burrito Scripts
-====================
+===============
 
 There are three scripts in this directory.
 
 burrito.sh
---------------
+-----------
 
 This script is for installing/uninstalling each openstack component.
 
@@ -28,7 +28,7 @@ If you want to uninstall glance, run it with uninstall action.::
 clean_openstack_ns.sh
 -----------------------
 
-This script is for cleaning everything in openstack namespace.
+This script is for deleting everything in openstack namespace.
 
 Usage::
 
@@ -39,12 +39,9 @@ Usage::
 clean_all.sh
 ---------------
 
-This script is for cleaning openstack namespace and resetting kubernetes 
-cluster.
+This script is for deleting openstack namespace and kubernetes cluster.
 
 Usage::
 
    $ ./clean_all.sh
-
-
 
