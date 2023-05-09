@@ -188,7 +188,6 @@ Edit vars.yml.::
    ### neutron
    # is_ovs: set false for linuxbridge(default), set true for openvswitch
    is_ovs: false
-   bgp_dragent: false
     
    ###################################################
    ## Do not edit below if you are not an expert!!!  #
