@@ -71,4 +71,4 @@ if [[ "${PLAYBOOK}" = "landing" && -z ${OFFLINE_VARS} ]]; then
 fi
 
 . ~/.envs/burrito/bin/activate
-ansible-playbook --extra-vars=@vars.yml ${OFFLINE_VARS} ${FLAGS} ${PLAYBOOK}.yml
+ansible-playbook --user=${USER} --extra-vars=@vars.yml ${OFFLINE_VARS} ${FLAGS} ${PLAYBOOK}.yml
