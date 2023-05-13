@@ -46,6 +46,15 @@ openstack_mtu: 1500
 # is_ovs: set false for linuxbridge(default), set true for openvswitch 
 is_ovs: false
 
+# metallb
+# To use metallb LoadBalancer, set this to true
+metallb_enabled: false
+# set up MetalLB LoadBalancer IP range or cidr notation
+# IP range: 192.168.20.95-192.168.20.98 (4 IPs can be assigned)
+# Only one IP: 192.168.20.95/32
+metallb_ip_range:
+  - "192.168.20.95-192.168.20.98"
+
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
 ###################################################
@@ -211,15 +220,6 @@ seed_registry_port: "5000"
 containerd_insecure_registries:
   "local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"
   "seed_registry": "{{ keepalived_vip }}:{{ seed_registry_port }}"
-
-# metallb
-# To use metallb LoadBalancer, set this to true
-metallb_enabled: false
-# set up MetalLB LoadBalancer IP range or cidr notation
-# IP range: 192.168.20.95-192.168.20.98 (ip range, 4 IPs can be assigned)
-# One IP Only: 192.168.20.95/32
-metallb_ip_range:
-  - "192.168.20.95-192.168.20.98"
 
 metallb_speaker_nodeselector:
   node-role.kubernetes.io/control-plane: ""
