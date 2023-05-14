@@ -188,7 +188,16 @@ Edit vars.yml.::
    ### neutron
    # is_ovs: set false for linuxbridge(default), set true for openvswitch
    is_ovs: false
-    
+   
+   # metallb
+   # To use metallb LoadBalancer, set this to true
+   metallb_enabled: false
+   # set up MetalLB LoadBalancer IP range or cidr notation
+   # IP range: 192.168.20.95-192.168.20.98 (4 IPs can be assigned)
+   # Only one IP: 192.168.20.95/32
+   metallb_ip_range:
+     - "192.168.20.95-192.168.20.98"
+   
    ###################################################
    ## Do not edit below if you are not an expert!!!  #
    ###################################################
