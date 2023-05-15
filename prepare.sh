@@ -23,3 +23,4 @@ mkdir -p group_vars/all
 cp ceph_vars.yml.tpl group_vars/all/ceph_vars.yml
 cp netapp_vars.yml.tpl group_vars/all/netapp_vars.yml
 
+./scripts/patch.sh
