@@ -206,7 +206,7 @@ conf:
       vencrypt_client_key: /etc/pki/nova-novncproxy/client-key.pem
       vencrypt_client_cert: /etc/pki/nova-novncproxy/client-cert.pem
       vencrypt_ca_certs: /etc/pki/nova-novncproxy/ca-cert.pem
-      novncproxy_base_url: https://{{ keepalived_vip_svc }}:30608/vnc_auto.html
+      novncproxy_base_url: https://{{ keepalived_vip }}:30608/vnc_auto.html
     libvirt:
       connection_uri: "qemu+tcp://127.0.0.1/system"
       images_type: qcow2
