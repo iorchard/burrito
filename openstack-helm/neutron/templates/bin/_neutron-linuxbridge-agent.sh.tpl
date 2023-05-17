@@ -19,7 +19,9 @@ set -ex
 exec neutron-linuxbridge-agent \
   --config-file /etc/neutron/neutron.conf \
   --config-file /etc/neutron/plugins/ml2/ml2_conf.ini \
+{{- if .Values.conf.plugins.linuxbridge_agent.vxlan.enable_vxlan }}
   --config-file /tmp/pod-shared/ml2-local-ip.ini \
+{{- end }}
 {{- if and ( empty .Values.conf.neutron.DEFAULT.host ) ( .Values.pod.use_fqdn.neutron_agent ) }}
   --config-file /tmp/pod-shared/neutron-agent.ini \
 {{- end }}
