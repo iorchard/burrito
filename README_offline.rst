@@ -1,6 +1,8 @@
 Burrito Offline Installation
 ================================
 
+Burrito is a security-hardened OpenStack on Kubernetes Platform.
+
 This is a guide to install Burrito in offline environment.
 
 Use the Burrito CD or ISO to install in offline.
@@ -317,12 +319,25 @@ Check openstack status.::
 
 All services should be up and running.
 
+Horizon
+----------
+
+The horizon dashboard listens on tcp 31000 on controller nodes.
+
+Open your browser.
+
+If keepalived_svc_vip is set,
+go to https://<keepalived_vip_svc>:31000/
+
+If keepalived_svc_ip is not set,
+go to https://<keepalived_vip>:31000/
+
+Accept the locally generate TLS certificate and log in.
+The admin password is the one you set when you run vault.sh script
+(openstack admin password: ).
+
 Test
 ------
-
-Source btx environment and run btx in test mode.::
-
-   $ . ~/.btx.env
 
 The command "btx --test"
 
