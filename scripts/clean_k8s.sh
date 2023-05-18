@@ -4,8 +4,6 @@ set -e
 
 CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
 
-${CURRENT_DIR}/clean_openstack.sh $@
-
 source ~/.envs/burrito/bin/activate
 OFFLINE_VARS=
 pushd ${CURRENT_DIR}/../
