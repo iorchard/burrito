@@ -25,10 +25,10 @@ ntp_servers:
   - 1.pool.ntp.org
   - 2.pool.ntp.org
 
-### keepalived VIP on management network
-keepalived_vip: "192.168.21.90"
-# keepalived VIP on service network
-keepalived_vip_svc: "192.168.20.90"
+### keepalived VIP on management network (mandatory)
+keepalived_vip: ""
+# keepalived VIP on service network (optional)
+keepalived_vip_svc: ""
 
 ### storage
 # storage backends: ceph and(or) netapp

@@ -1,11 +1,11 @@
 --- kubespray/roles/kubernetes/preinstall/tasks/0090-etchosts.yml	2022-11-15 16:31:48.896145322 +0900
-+++ patches/kubespray/roles/kubernetes/preinstall/tasks/0090-etchosts.yml	2023-05-12 20:45:59.374733952 +0900
++++ patches/kubespray/roles/kubernetes/preinstall/tasks/0090-etchosts.yml	2023-05-18 23:02:28.349317991 +0900
 @@ -5,7 +5,7 @@
        {% for item in (groups['k8s_cluster'] + groups['etcd']|default([]) + groups['calico_rr']|default([]))|unique -%}
        {% if 'access_ip' in hostvars[item] or 'ip' in hostvars[item] or 'ansible_default_ipv4' in hostvars[item] -%}
        {{ hostvars[item]['access_ip'] | default(hostvars[item]['ip'] | default(hostvars[item]['ansible_default_ipv4']['address'])) }}
 -      {%- if ('ansible_hostname' in hostvars[item] and item != hostvars[item]['ansible_hostname']) %} {{ hostvars[item]['ansible_hostname'] }}.{{ dns_domain }} {{ hostvars[item]['ansible_hostname'] }} {% else %} {{ item }}.{{ dns_domain }} {{ item }} {% endif %}
-+      {%- if ('ansible_hostname' in hostvars[item] and item != hostvars[item]['ansible_hostname']) %} {{ hostvars[item]['ansible_hostname'] }} {{ hostvars[item]['ansible_hostname'] }}.{{ dns_domain }} {% else %} {{ item }} {{ item }}.{{ dns_domain }} {% endif %}
++      {%- if ('ansible_hostname' in hostvars[item] and item != hostvars[item]['ansible_hostname']) %} {{ hostvars[item]['ansible_hostname'] }} {% else %} {{ item }} {% endif %}
  
        {% endif %}
        {% endfor %}
