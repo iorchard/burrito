@@ -259,7 +259,6 @@ conf:
         tunnel_types: {{ overlay_iface_name|ternary('vxlan', '') }}
         l2_population: true
         arp_responder: true
-{% endif %}
 {% if overlay_iface_name %}
   l3_agent:
     DEFAULT:
