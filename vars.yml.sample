@@ -25,8 +25,10 @@ ntp_servers:
   - 1.pool.ntp.org
   - 2.pool.ntp.org
 
-### keepalived
-keepalived_vip: "192.168.21.90"
+### keepalived VIP on management network (mandatory)
+keepalived_vip: ""
+# keepalived VIP on service network (optional)
+keepalived_vip_svc: ""
 
 ### storage
 # storage backends: ceph and(or) netapp
@@ -46,11 +48,12 @@ openstack_mtu: 1500
 # is_ovs: set false for linuxbridge(default), set true for openvswitch 
 is_ovs: false
 
-# metallb
+### metallb
 # To use metallb LoadBalancer, set this to true
 metallb_enabled: false
 # set up MetalLB LoadBalancer IP range or cidr notation
-# IP range: 192.168.20.95-192.168.20.98 (4 IPs can be assigned)
+# IP range: 192.168.20.95-192.168.20.98 (4 IPs can be assigned.)
+# CIDR: 192.168.20.128/26 (192.168.20.128 - 191 can be assigned.)
 # Only one IP: 192.168.20.95/32
 metallb_ip_range:
   - "192.168.20.95-192.168.20.98"
@@ -77,8 +80,6 @@ keepalived_interface: "{{ mgmt_iface_name }}"
 # make keepalived service vip optional.
 # keepalived service interface vip for future use (default: no setup).
 keepalived_interface_svc: "{{ svc_iface_name }}"
-# if you want to set up VIP on service network, assign VIP address here
-keepalived_vip_svc: ""
 
 ### ceph-ansible
 # ceph network cidr - recommend the same cidr for public/cluster networks.

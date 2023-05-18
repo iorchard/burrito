@@ -198,6 +198,8 @@
     insertafter: EOF
     marker: "# {mark} BTX ENV BLOCK"
     block: >-
-      . {{ ansible_env.HOME }}/.btx.env
+      if kubectl -n openstack get po -l application=btx -o jsonpath='{.items[0].metadata.name}' &>/dev/null; then
+        . {{ ansible_env.HOME }}/.btx.env
+      fi
   tags: btx
 ...

@@ -1,7 +1,7 @@
 Burrito
 =========
 
-Burrito is the OpenStack on Kubernetes Platform.
+Burrito is a security-hardened OpenStack on Kubernetes Platform.
 
 Supported OS
 ---------------
@@ -125,7 +125,7 @@ Edit vars.yml.::
    ### common
    # deploy_ssh_key: (boolean) create ssh keypair and copy it to other nodes.
    # default: false
-   deploy_ssh_key: true
+   deploy_ssh_key: false
    
    ### define network interface names
    # set overlay_iface_name to null if you do not want to set up overlay network.
@@ -148,8 +148,10 @@ Edit vars.yml.::
      - 1.pool.ntp.org
      - 2.pool.ntp.org
    
-   ### keepalived
-   keepalived_vip: "192.168.21.90"
+   ### keepalived VIP on management network (mandatory)
+   keepalived_vip: ""
+   # keepalived VIP on service network (optional)
+   keepalived_vip_svc: ""
    
    ### storage
    # storage backends: ceph and(or) netapp
@@ -166,14 +168,15 @@ Edit vars.yml.::
    openstack_mtu: 1500
    
    ### neutron
-   # is_ovs: set false for linuxbridge(default), set true for openvswitch
+   # is_ovs: set false for linuxbridge(default), set true for openvswitch 
    is_ovs: false
    
-   # metallb
+   ### metallb
    # To use metallb LoadBalancer, set this to true
    metallb_enabled: false
    # set up MetalLB LoadBalancer IP range or cidr notation
-   # IP range: 192.168.20.95-192.168.20.98 (4 IPs can be assigned)
+   # IP range: 192.168.20.95-192.168.20.98 (4 IPs can be assigned.)
+   # CIDR: 192.168.20.128/26 (192.168.20.128 - 191 can be assigned.)
    # Only one IP: 192.168.20.95/32
    metallb_ip_range:
      - "192.168.20.95-192.168.20.98"
@@ -276,12 +279,25 @@ Check openstack status.::
 
 All services should be up and running.
 
+Horizon
+----------
+
+The horizon dashboard listens on tcp 31000 on controller nodes.
+
+Open your browser. 
+
+If keepalived_vip_svc is set, 
+go to https://<keepalived_vip_svc>:31000/
+
+If keepalived_vip_svc is not set,
+go to https://<keepalived_vip>:31000/
+
+Accept the locally generated self-signed TLS certificate and log in.
+The admin password is the one you set when you run vault.sh script
+(openstack admin password: ).
+
 Test
 ------
-
-Source btx environment and run btx in test mode.::
-
-   $ . ~/.btx.env
 
 The command "btx --test"
 

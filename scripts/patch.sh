@@ -5,7 +5,7 @@ set -e
 ACTION=${1:-""}
 
 if [ "x${ACTION}" = "x-r" ]; then
-  for p in patches/[0-9][0-9]-patch.txt; do
+  for p in patches/[0-9][0-9]-patch*.txt; do
     if ! patch -sfp0 --dry-run <${p} >/dev/null; then
       patch -R -p0 <${p}
     else
@@ -13,7 +13,7 @@ if [ "x${ACTION}" = "x-r" ]; then
     fi
   done
 else
-  for p in patches/[0-9][0-9]-patch.txt; do
+  for p in patches/[0-9][0-9]-patch*.txt; do
     if ! patch -Rsfp0 --dry-run <${p} >/dev/null; then
       patch -p0 <${p}
     else
