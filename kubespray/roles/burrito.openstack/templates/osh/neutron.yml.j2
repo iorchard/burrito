@@ -58,6 +58,8 @@ labels:
     node_selector_key: openstack-network-plane
     node_selector_value: enabled
 pod:
+  use_fqdn:
+    neutron_agent: false
   resources:
     nginx:
       requests:
