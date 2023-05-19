@@ -1,0 +1,34 @@
+1.1.2 Aster
+============
+
+This is the 2nd patch release in the Aster 1.1 series.
+
+Notable changes
+----------------
+
+* Add clean_ceph.sh script for deleting ceph.
+* Add metallb installation option.
+* Nodes except a deployer do not need to put host information in /etc/hosts.
+
+Burrito Changelog
+------------------
+
+* fix: set use_fqdn.neutron_agent to false in neutron.yml.j2; (jijisa@iorchard.net)
+* fix: remove patches/00-patch-kubespray-etchosts.txt; no need to modify kubespray etchosts task; set pod.use_fqdn.compute to false to disable --use-fqdn option in nova-compute liveness/readiness; (jijisa@iorchard.net)
+* feature: update patch files and script; doc: update README; (jijisa@iorchard.net)
+* fix: typo in neutron.yml.j2; (jijisa@iorchard.net)
+* fix: set auto_bridge_add: {} in linuxbridge; set ovs tunnel_types to empty string if overlay_iface_name is null; (jijisa@iorchard.net)
+* doc: add horizon connection method; move keepalived_vip_svc variable up to edit-area in vars.yml.sample; (jijisa@iorchard.net)
+* fix: check if btx pod is running before sourcing .btx.env; (jijisa@iorchard.net)
+* fix: use keepalived_vip_svc if it is set up. fall back to keepalived_vip if keepalived_vip_svc is not set up; (jijisa@iorchard.net)
+* fix: (openstack) modify nova novncproxy url in nova.yml.j2; (jijisa@iorchard.net)
+* fix: add a missing scripts/patch.sh script; (jijisa@iorchard.net)
+* feature: add patch.sh script; add 01-patch.txt to patch ceph-ansible/infrastructure-playbooks/purge-cluster.yml; (jijisa@iorchard.net)
+* feature: add ceph purge script; (jijisa@iorchard.net)
+* doc: update README to include metallb configuration; (jijisa@iorchard.net)
+* feature: add metallb images in scripts/images.txt; (jijisa@iorchard.net)
+* refactor: move metallb config to upper-edit area in vars.yml.sample; (jijisa@iorchard.net)
+* fix: add keystone_credential_cleanup image in keystone.yml.j2; it is used when keystone is uninstalled.; (jijisa@iorchard.net)
+* feature: add patches directory; it is used to patch 3rd party submodules; (jijisa@iorchard.net)
+* refactor: reorganize vars.yml.sample. put rarely used variables in do-not-edit area.; (jijisa@iorchard.net)
+* feature: support metallb installation; (jijisa@iorchard.net)
