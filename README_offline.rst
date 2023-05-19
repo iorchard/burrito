@@ -12,13 +12,13 @@ Supported OS
 
 * Rocky Linux 8.x: Only supported OS currently
 
-Assumptions
--------------
+Pre-requisites
+---------------
 
 * OS is installed using Burrito CD/ISO.
 * The first node in controller group is the ansible deployer.
 * Ansible user in every node has a sudo privilege.
-* All nodes should be in /etc/hosts.
+* All nodes should be in /etc/hosts on the deployer node.
 
 Networks
 -----------
@@ -173,6 +173,8 @@ Edit vars.yml.::
    ### keepalived VIP on management network (mandatory)
    keepalived_vip: ""
    # keepalived VIP on service network (optional)
+   # Set this if you do not have a direct access to management network
+   # so you need to access horizon dashboard through service network.
    keepalived_vip_svc: ""
    
    ### storage
@@ -325,7 +327,7 @@ All services should be up and running.
 Horizon
 ----------
 
-The horizon dashboard listens on tcp 31000 on controller nodes.
+The horizon dashboard listens on tcp 31000 on control nodes.
 
 Open your browser.
 
