@@ -28,6 +28,8 @@ ntp_servers:
 ### keepalived VIP on management network (mandatory)
 keepalived_vip: ""
 # keepalived VIP on service network (optional)
+# Set this if you do not have a direct access to management network
+# so you need to access horizon dashboard through service network.
 keepalived_vip_svc: ""
 
 ### storage
