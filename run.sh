@@ -19,6 +19,7 @@ function USAGE() {
   echo "registry  - play local registry setup tasks."
   echo "burrito   - play openstack installation tasks."
   echo "landing   - play localrepo/genesis registry setup tasks.(offline only)"
+  echo "scale     - play kubernetes add to node tasks."
   echo
   echo "ansible_parameters"
   echo "=================="
@@ -51,7 +52,12 @@ if [ -f .offline_flag ]; then
     exit 1
   fi
 fi
-[[ "${PLAYBOOK}" = "k8s" ]] && FLAGS="-b" || FLAGS=""
+
+if [[ "${PLAYBOOK}" = "k8s" || "${PLAYBOOK}" = "scale" ]]; then
+  FLAGS="-b"
+else
+  FLAGS=""
+fi
 FLAGS="${FLAGS} $@"
 
 if [[ "${PLAYBOOK}" = "burrito" && -n ${OFFLINE_VARS} ]]; then

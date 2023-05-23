@@ -1,0 +1,5 @@
+---
+# Add To K8S NODE
+- import_playbook: kubespray/scale.yml
+...
+
