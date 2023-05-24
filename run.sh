@@ -19,7 +19,8 @@ function USAGE() {
   echo "registry  - play local registry setup tasks."
   echo "burrito   - play openstack installation tasks."
   echo "landing   - play localrepo/genesis registry setup tasks.(offline only)"
-  echo "scale     - play kubernetes add to node tasks."
+  echo "scale     - play Add kubernetes compute node task."
+  echo "novakey   - play k8s-burrito and novakey-burrito tasks."
   echo
   echo "ansible_parameters"
   echo "=================="

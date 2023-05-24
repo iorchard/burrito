@@ -1,0 +1,13 @@
+---
+- name: Deploy k8s burrito playbook
+  any_errors_fatal: true
+  ansible.builtin.import_playbook: kubespray/burrito.yml
+  tags: k8s-burrito
+
+- name: Deploy nova compute sshkey copy playbook
+  any_errors_fatal: true
+  ansible.builtin.import_playbook: nova_compute_sshkey_copy/setup.yml
+  tags: novakey-burrito
+
+...
+
