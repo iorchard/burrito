@@ -13,20 +13,16 @@ Add compute2 hostname and IP in /etc/hosts.::
    $ sudo vi /etc/hosts
    192.168.21.124 bon-compute2
 
-Copy the ssh key to bon-compute2.::
-
-   $ ssh-copy-id bon-compute2
-
 Edit inventory hosts to add the new compute node.::
 
    $ diff -u hosts.bak hosts
    --- hosts.bak        2023-02-20 13:54:45.365350417 +0900
    +++ hosts    2023-02-20 14:43:02.897660764 +0900
    @@ -1,6 +1,7 @@
-    bon-controller ip=192.168.21.121 ansible_port=22 ansible_user=clex ansible_connection=local ansible_python_interpreter=/usr/bin/python3
-    bon-compute ip=192.168.21.122 ansible_port=22 ansible_user=clex
-    bon-storage ip=192.168.21.123 monitor_address=192.168.24.123 radosgw_address=192.168.24.123 ansible_port=22 ansible_user=clex
-   +bon-compute2 ip=192.168.21.124 ansible_port=22 ansible_user=clex
+    bon-controller ip=192.168.21.121 ansible_connection=local ansible_python_interpreter=/usr/bin/python3
+    bon-compute ip=192.168.21.122 
+    bon-storage ip=192.168.21.123 monitor_address=192.168.24.123 radosgw_address=192.168.24.123 
+   +bon-compute2 ip=192.168.21.124
 
     # ceph nodes
     [mons]
@@ -56,7 +52,7 @@ Edit inventory hosts to add the new compute node.::
 
 Check the connection to the new node bon-compute2.::
 
-   $ ansible -m ping bon-compute2
+   $ ./run.sh ping 
    bon-compute2 | SUCCESS => {
        "ansible_facts": {
            "discovered_interpreter_python": "/usr/libexec/platform-python"
@@ -77,9 +73,7 @@ Run ceph playbook.::
 
 Add the node to k8s cluster.::
 
-   $ source ~/.envs/burrito/bin/activate
-   $ ansible-playbook -i hosts --extra-vars=@vars.yml -b kubespray/scale.yml \
-      --limit=bon-compute2
+   $ ./run.sh scale --limit=bon-compute2
 
 Check if the new node is added as a k8s node.::
 

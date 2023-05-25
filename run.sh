@@ -16,9 +16,10 @@ function USAGE() {
   echo "netapp    - play netapp installation tasks."
   echo "k8s       - play kubernetes installation tasks."
   echo "patch     - play kubernetes security patch tasks."
-  echo "registry  - play local registry setup tasks."
+  echo "registry  - play local registry setup tasks.(offline only)"
   echo "burrito   - play openstack installation tasks."
   echo "landing   - play localrepo/genesis registry setup tasks.(offline only)"
+  echo "scale     - play kubernetes node addition tasks."
   echo
   echo "ansible_parameters"
   echo "=================="
@@ -51,15 +52,19 @@ if [ -f .offline_flag ]; then
     exit 1
   fi
 fi
-[[ "${PLAYBOOK}" = "k8s" ]] && FLAGS="-b" || FLAGS=""
+[[ "${PLAYBOOK}" = "k8s" || "${PLAYBOOK}" = "scale" ]] && FLAGS="-b" || FLAGS=""
 FLAGS="${FLAGS} $@"
 
+[[ "${PLAYBOOK}" = "scale" ]] && PLAYBOOK="kubespray/${PLAYBOOK}" || :
+
 if [[ "${PLAYBOOK}" = "burrito" && -n ${OFFLINE_VARS} ]]; then
+  if ! (helm plugin list | grep -q ^diff); then
   # install helm diff plugin
   HELM_DIFF_TARBALL="/mnt/files/github.com/databus23/helm-diff/releases/download/v3.6.0/helm-diff-linux-amd64.tgz"
   HELM_PLUGINS=$(helm env | grep HELM_PLUGINS |cut -d'"' -f2)
   mkdir -p ${HELM_PLUGINS}
   tar -C ${HELM_PLUGINS} -xzf ${HELM_DIFF_TARBALL}
+  fi
   helm plugin list
 fi
 
