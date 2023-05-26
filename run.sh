@@ -9,6 +9,7 @@ function USAGE() {
   echo
   echo "playbook_name"
   echo "============="
+  echo "vault     - create an ansible vault."
   echo "ping      - ping to all nodes."
   echo "preflight - play common tasks, i.e. yum repo settings."
   echo "ha        - play ha stack tasks, HAProxy/KeepAlived."
@@ -36,6 +37,11 @@ shift
 
 OFFLINE_VARS=
 
+if [[ "${PLAYBOOK}" = "vault" ]]; then
+  . ~/.envs/burrito/bin/activate
+  ${CURRENT_DIR}/vault.sh
+  exit 0
+fi
 if [[ "${PLAYBOOK}" = "ping" ]]; then
   . ~/.envs/burrito/bin/activate
   ansible -m ping --extra-vars=@vars.yml all
