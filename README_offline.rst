@@ -10,7 +10,7 @@ Use the Burrito CD or ISO to install in offline.
 Supported OS
 ----------------
 
-* Rocky Linux 8.x: Only supported OS currently
+* Rocky Linux 8.x
 
 Pre-requisites
 ---------------
@@ -23,7 +23,7 @@ Pre-requisites
 Networks
 -----------
 
-I assume there are 5 networks.
+The standard number of networks for burrito is 5.
 
 * service network: Public service network (e.g. 192.168.20.0/24)
 * management network: Management and internal network (e.g. 192.168.21.0/24)
@@ -44,8 +44,8 @@ If you inserted the CD,::
 
     $ sudo mount -o ro /dev/sr0 /mnt
 
-Install ansible in virtual env
-----------------------------------
+Prepare
+--------
 
 Untar burrito tarball from the mounted iso.::
 
@@ -55,34 +55,13 @@ Go to burrito directory.::
 
    $ cd burrito-<version>
 
-Start offline repo and registry services.::
-
-   $ ./scripts/offline_services.sh --up
-
-Install python 3.9.::
-
-   $ sudo dnf -y install python39
-
-Create virtual env.::
-
-   $ python3.9 -m venv ~/.envs/burrito
-
-Activate the virtual env.::
-
-   $ source ~/.envs/burrito/bin/activate
-
-Install python packages.::
-
-   $ pip install --no-index --find-links /mnt/pypi /mnt/pypi/{pip,wheel}-*
-   $ pip install --no-index --find-links /mnt/pypi \
-               --requirement requirements.txt
-
-Prepare
---------
-
 Run prepare.sh script with offline flag.::
 
    $ ./prepare.sh offline
+   Enter management network interface name:
+
+It will prompt for the management network interface name. 
+Enter the management network interface name. (e.g. eth1)
 
 Edit hosts.::
 
@@ -236,10 +215,14 @@ If netapp is in storage_backends, edit group_vars/all/netapp_vars.yml.::
 
 Create a vault file to encrypt passwords.::
 
-   $ ./vault.sh
-   user password:
+   $ ./run.sh vault
+   <user> password:
    openstack admin password:
    Encryption successful
+
+Enter <user> password for ssh connection.
+Enter openstack admin password which will be used when you connect to 
+openstack horizon dashboard.
 
 Check the connection to other nodes.::
 
@@ -271,11 +254,18 @@ Run ceph playbook if ceph is in storage_backends.::
 
 Check ceph health after running ceph playbook.::
 
-   $ sudo ceph -s
+   $ sudo ceph health
+   HEALTH_OK
+
+It should show HEALTH_OK.
 
 Run k8s playbook.::
 
    $ ./run.sh k8s
+
+Check all nodes are in ready state.::
+
+   $ sudo kubectl get nodes
 
 Run netapp playbook if netapp is in storage_backends.::
 
@@ -337,7 +327,7 @@ go to https://<keepalived_vip_svc>:31000/
 If keepalived_vip_svc is not set,
 go to https://<keepalived_vip>:31000/
 
-Accept the locally generated self-signed TLS certificate and log in.
+Accept the self-signed TLS certificate and log in.
 The admin password is the one you set when you run vault.sh script
 (openstack admin password: ).
 

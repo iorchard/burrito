@@ -9,6 +9,7 @@ function USAGE() {
   echo
   echo "playbook_name"
   echo "============="
+  echo "vault     - create an ansible vault."
   echo "ping      - ping to all nodes."
   echo "preflight - play common tasks, i.e. yum repo settings."
   echo "ha        - play ha stack tasks, HAProxy/KeepAlived."
@@ -36,6 +37,11 @@ shift
 
 OFFLINE_VARS=
 
+if [[ "${PLAYBOOK}" = "vault" ]]; then
+  . ~/.envs/burrito/bin/activate
+  ${CURRENT_DIR}/vault.sh
+  exit 0
+fi
 if [[ "${PLAYBOOK}" = "ping" ]]; then
   . ~/.envs/burrito/bin/activate
   ansible -m ping --extra-vars=@vars.yml all
@@ -62,11 +68,11 @@ if [[ "${PLAYBOOK}" = "burrito" && -n ${OFFLINE_VARS} ]]; then
   if ! (helm plugin list | grep -q ^diff); then
   # install helm diff plugin
   HELM_DIFF_TARBALL="/mnt/files/github.com/databus23/helm-diff/releases/download/v3.6.0/helm-diff-linux-amd64.tgz"
-  HELM_PLUGINS=$(helm env | grep HELM_PLUGINS |cut -d'"' -f2)
-  mkdir -p ${HELM_PLUGINS}
-  tar -C ${HELM_PLUGINS} -xzf ${HELM_DIFF_TARBALL}
+  HELM_PLUGINS=$(sudo helm env | grep HELM_PLUGINS |cut -d'"' -f2)
+  sudo mkdir -p ${HELM_PLUGINS}
+  sudo tar -C ${HELM_PLUGINS} -xzf ${HELM_DIFF_TARBALL}
   fi
-  helm plugin list
+  sudo helm plugin list
 fi
 
 if [[ "${PLAYBOOK}" = "landing" && -z ${OFFLINE_VARS} ]]; then
