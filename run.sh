@@ -52,10 +52,11 @@ if [ -f .offline_flag ]; then
     exit 1
   fi
 fi
-[[ "${PLAYBOOK}" = "k8s" || "${PLAYBOOK}" = "scale" ]] && FLAGS="-b" || FLAGS=""
+[[ "${PLAYBOOK}" = "k8s" || "${PLAYBOOK}" = "scale" ]] && FLAGS="-b" || FLAGS=
 FLAGS="${FLAGS} $@"
 
 [[ "${PLAYBOOK}" = "scale" ]] && PLAYBOOK="kubespray/${PLAYBOOK}" || :
+[[ "${PLAYBOOK}" = "k8s" ]] && PLAYBOOK="kubespray/cluster" || :
 
 if [[ "${PLAYBOOK}" = "burrito" && -n ${OFFLINE_VARS} ]]; then
   if ! (helm plugin list | grep -q ^diff); then
