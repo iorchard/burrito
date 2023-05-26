@@ -1,5 +1,0 @@
----
-- name: Deploy kubespray playbook
-  ansible.builtin.import_playbook: kubespray/cluster.yml
-  tags: kubespray
-...
