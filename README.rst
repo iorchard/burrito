@@ -11,14 +11,15 @@ Supported OS
 Pre-requisites
 --------------
 
-* The first node in controller group is the ansible deployer.
+* The first node in control group is the ansible deployer.
 * Ansible user in every node has a sudo privilege.
 * All nodes should be in /etc/hosts on the deployer node.
+* python3 package should be already installed on every node.
 
 Networks
 -----------
 
-I assume there are 5 networks.
+The standard number of networks for burrito is 5.
 
 * service network: Public service network (e.g. 192.168.20.0/24)
 * management network: Management and internal network (e.g. 192.168.21.0/24)
@@ -26,34 +27,16 @@ I assume there are 5 networks.
 * overlay network: OpenStack overlay network (e.g. 192.168.23.0/24)
 * storage network: Ceph public/cluster network (e.g. 192.168.24.0/24)
 
-Install packages
------------------
+Prepare
+--------
 
-For deploy node::
+Install git package on the deployer if not already installed.::
 
-   $ sudo dnf -y install git python3 python39 python3-cryptography epel-release
-
-For other nodes::
-
-   $ sudo dnf -y install python3 epel-release
-
-Set up python virtual env
------------------------------
-
-Create python virtual env.::
-
-   $ python3.9 -m venv ~/.envs/burrito
-
-Activate the virtual env.::
-
-   $ source ~/.envs/burrito/bin/activate
+   $ sudo dnf -y install git
 
 Get the burrito source.::
 
    $ git clone --recursive https://github.com/iorchard/burrito.git
-
-Prepare
---------
 
 Go to burrito.::
 
@@ -213,10 +196,14 @@ If netapp is in storage_backends, edit group_vars/all/netapp_vars.yml.::
 
 Create a vault file to encrypt passwords.::
 
-   $ ./vault.sh
-   user password: 
-   openstack admin password: 
+   $ ./run.sh vault
+   <user> password:
+   openstack admin password:
    Encryption successful
+
+Enter <user> password for ssh connection.
+Enter openstack admin password which will be used when you connect to 
+openstack horizon dashboard.
 
 Check the connection to other nodes.::
 
@@ -242,11 +229,18 @@ Run ceph playbook if ceph is in storage_backends.::
 
 Check ceph health after running ceph playbook.::
 
-   $ sudo ceph -s
+   $ sudo ceph health
+   HEALTH_OK
+
+It should show HEALTH_OK.
 
 Run k8s playbook.::
 
    $ ./run.sh k8s
+
+Check all nodes are in ready state.::
+
+   $ sudo kubectl get nodes
 
 Run netapp playbook if netapp is in storage_backends.::
 
@@ -294,7 +288,7 @@ go to https://<keepalived_vip_svc>:31000/
 If keepalived_vip_svc is not set,
 go to https://<keepalived_vip>:31000/
 
-Accept the locally generated self-signed TLS certificate and log in.
+Accept the self-signed TLS certificate and log in.
 The admin password is the one you set when you run vault.sh script
 (openstack admin password: ).
 

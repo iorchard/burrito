@@ -10,7 +10,7 @@ Use the Burrito CD or ISO to install in offline.
 Supported OS
 ----------------
 
-* Rocky Linux 8.x: Only supported OS currently
+* Rocky Linux 8.x
 
 Pre-requisites
 ---------------
@@ -23,7 +23,7 @@ Pre-requisites
 Networks
 -----------
 
-I assume there are 5 networks.
+The standard number of networks for burrito is 5.
 
 * service network: Public service network (e.g. 192.168.20.0/24)
 * management network: Management and internal network (e.g. 192.168.21.0/24)
@@ -254,11 +254,18 @@ Run ceph playbook if ceph is in storage_backends.::
 
 Check ceph health after running ceph playbook.::
 
-   $ sudo ceph -s
+   $ sudo ceph health
+   HEALTH_OK
+
+It should show HEALTH_OK.
 
 Run k8s playbook.::
 
    $ ./run.sh k8s
+
+Check all nodes are in ready state.::
+
+   $ sudo kubectl get nodes
 
 Run netapp playbook if netapp is in storage_backends.::
 
@@ -320,7 +327,7 @@ go to https://<keepalived_vip_svc>:31000/
 If keepalived_vip_svc is not set,
 go to https://<keepalived_vip>:31000/
 
-Accept the locally generated self-signed TLS certificate and log in.
+Accept the self-signed TLS certificate and log in.
 The admin password is the one you set when you run vault.sh script
 (openstack admin password: ).
 
