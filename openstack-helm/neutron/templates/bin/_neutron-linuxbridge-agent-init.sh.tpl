@@ -33,6 +33,7 @@ do
   fi
 done
 
+{{- if .Values.conf.plugins.linuxbridge_agent.vxlan.enable_vxlan }}
 tunnel_interface="{{- .Values.network.interface.tunnel -}}"
 if [ -z "${tunnel_interface}" ] ; then
     # search for interface with tunnel network routing
@@ -56,6 +57,7 @@ tee > /tmp/pod-shared/ml2-local-ip.ini << EOF
 [vxlan]
 local_ip = "${LOCAL_IP}"
 EOF
+{{- end }}
 
 {{- if and ( empty .Values.conf.neutron.DEFAULT.host ) ( .Values.pod.use_fqdn.neutron_agent ) }}
 mkdir -p /tmp/pod-shared
