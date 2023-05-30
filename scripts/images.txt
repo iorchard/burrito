@@ -17,7 +17,7 @@ docker.io/library/nginx:1.23
 docker.io/library/nginx:1.23.0-alpine
 docker.io/library/rabbitmq:3.11
 docker.io/library/rabbitmq:3.11-management
-docker.io/library/registry:2.8.1
+docker.io/library/registry:2.8.2
 docker.io/netapp/trident:22.10.0
 docker.io/netapp/trident-autosupport:22.10
 docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_focal
