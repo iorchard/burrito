@@ -213,6 +213,7 @@ calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
 
 # Registry deployment
+registry_version: "2.8.2"
 registry_enabled: "{{ offline|ternary(true, false) }}"
 registry_namespace: kube-system
 registry_storage_class: "{{ storage_backends[0] }}"
