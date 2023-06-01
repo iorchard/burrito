@@ -1,5 +1,5 @@
-Burrito Offline Installation
-============================
+Burrito Installation
+====================
 
 Burrito is a security-hardened OpenStack on Kubernetes Platform.
 
@@ -10,12 +10,7 @@ Burrito includes the following open source software.
 * openstack-helm: to install container-based openstack components on top of
   kubernetes cluster.
 
-This is a guide to install Burrito in offline environment.
-
-Use the Burrito ISO to install.
-
-You can build your own burrito iso using burrito_iso project
-(https://github.com/iorchard/burrito_iso)
+This is a guide to install Burrito in online environment.
 
 Supported OS
 -------------
@@ -66,10 +61,10 @@ storage3                .108                                     .108
 Pre-requisites
 ---------------
 
-* OS is installed using Burrito ISO.
+* Rocky Linux 8.x is installed on every node.
+* The python3 package should be already installed on every node.
 * The first node in control group is the ansible deployer.
-* Ansible user in every node has a sudo privilege. I assume the ansible user
-  is `clex` in this document.
+* Ansible user in every node has a sudo privilege.
 * All nodes should be in /etc/hosts on the deployer node.
 
 Here is the example of /etc/hosts on the deployer node.::
@@ -87,26 +82,21 @@ Here is the example of /etc/hosts on the deployer node.::
 Prepare
 --------
 
-Mount the iso file.::
+Install git package on the deployer if not already installed.::
 
-   $ sudo mount -o loop,ro <path/to/burrito_iso_file> /mnt
+   $ sudo dnf -y install git
 
-Check the burrito tarball in /mnt.::
+Get the burrito source.::
 
-   $ ls /mnt/burrito-*.tar.gz
-   /mnt/burrito-<version>.tar.gz
-
-Untar the burrito tarball to user's home directory.::
-
-   $ tar xzf /mnt/burrito-<version>.tar.gz
+   $ git clone --recursive https://github.com/iorchard/burrito.git
 
 Go to burrito directory.::
 
-   $ cd burrito-<version>
+   $ cd burrito
 
 Run prepare.sh script with offline flag.::
 
-   $ ./prepare.sh offline
+   $ ./prepare.sh
    Enter management network interface name: eth1
 
 It will prompt for the management network interface name. 
@@ -225,7 +215,7 @@ Edit vars.yml.::
    ###################################################
 
 Description of each variable
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 deploy_ssh_key (default: false)
   If true, it creates a ssh keypair on the deployer node and copy the public
@@ -394,14 +384,15 @@ Check if the local yum repository is set up on all nodes.::
 
 Check if the ntp servers and clients are configured.
 
-When you set ntp_servers to empty list (ntp_servers: []),
-each control node should have other control nodes as time servers.::
+When you set ntp_servers to the default ntp servers,
+each control node should have the ntp pool servers on the internet.::
 
    control1$ chronyc sources
-   MS Name/IP address      Stratum Poll Reach LastRx Last sample               
-   ========================================================================
-   ^? control2             9   6   377   491   +397ms[ +397ms] +/-  382us
-   ^? control3             9   6   377   490   -409ms[ -409ms] +/-  215us
+   MS Name/IP address         Stratum Poll Reach LastRx Last sample      
+   =========================================================================
+   ^* send.mx.cdnetworks.com  2  10   377    98  -1096us[-1049us] +/-   49ms
+   ^- 121.162.54.1            3   6   377     1  -4196us[-4196us] +/-   38ms
+   ^+ 106.247.248.106         2  10   377    50  +2862us[+2862us] +/-   61ms
 
 Compute/storage nodes should have control nodes as time servers.::
 
@@ -644,41 +635,7 @@ Check all pods are running and ready in kube-system namespace.::
 Wait until the registry pod is running and ready.
 
 
-Step.7 Registry
-+++++++++++++++
-
-The Registry installation step implements the following tasks.
-
-* Get the registry pod name.
-* Copy container images from ISO to the registry pod.
-
-Install
-^^^^^^^
-
-Run registry playbook.::
-
-   $ ./run.sh registry
-
-Verify
-^^^^^^
-
-Check the images are in the local registry.::
-
-   $ curl -s <keepalived_vip>:32680/v2/_catalog | jq
-   {
-       "repositories": [
-           "airshipit/kubernetes-entrypoint",
-           "calico/cni",
-           "calico/kube-controllers",
-           ...
-           "sig-storage/csi-resizer",
-           "sig-storage/csi-snapshotter"
-       ]
-   }
-
-Registries in output should not be empty.
-
-Step.8 Burrito
+Step.7 Burrito
 +++++++++++++++
 
 The Burrito installation step implements the following tasks.
@@ -694,6 +651,7 @@ Install
 
 Run burrito playbook.::
 
+   $ sudo helm plugin install https://github.com/databus23/helm-diff
    $ ./run.sh burrito
 
 Verify
@@ -708,38 +666,6 @@ Check all pods are running and ready in openstack namespace.::
    rabbitmq-rabbitmq-0                    1/1     Running     0          27m
    rabbitmq-rabbitmq-1                    1/1     Running     0          27m
    rabbitmq-rabbitmq-2                    1/1     Running     0          27m
-
-Step.9 landing
-+++++++++++++++
-
-The Landing installation step implements the following tasks.
-
-* Deploy the genesis registry service on control nodes.
-* Deploy the local yum repository pod in burrito namespace.
-* Register the registry and repository service in haproxy.
-
-Install
-^^^^^^^
-
-Run landing playbook.::
-
-   $ ./run.sh landing
-
-Verify
-^^^^^^
-
-Check if the genesis registry service is running on control nodes.::
-
-   $ sudo systemctl status genesis_registry.service
-   genesis_registry.service - Geneis Registry service
-   ...
-      Active: active (running) since Wed 2023-05-31 20:40:30 KST; 3min 7s ago
-
-Check if the local repository pod is running and ready in burrito namespace.::
-
-   $ sudo kubectl get pods -n burrito
-   NAME                        READY   STATUS    RESTARTS   AGE
-   localrepo-c4bc5b89d-nbtq9   1/1     Running   0          3m38s
 
 
 Congratulations! 
@@ -897,7 +823,7 @@ has a provider network access.::
        inet6 fe80::f816:3eff:feed:bc7b/64 scope link
           valid_lft forever preferred_lft forever
 
-Password is the default cirros password.
+Password is the default cirros password. 
 (hint: password seems to be created by someone who loves Chicago Cubs
 baseball team.)
 
