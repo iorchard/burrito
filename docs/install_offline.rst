@@ -15,7 +15,7 @@ This is a guide to install Burrito in offline environment.
 Use the Burrito ISO to install.
 
 You can build your own burrito iso using burrito_iso.git project
-(https://github.com/iorchard/burrito.iso)
+(https://github.com/iorchard/burrito_iso)
 
 Supported OS
 -------------
@@ -40,20 +40,24 @@ Reference network architecture
 
 This is the reference network architecture.
 
+* control/compute machines have all 5 networks.
+* No ip addresses are assigned on the provider network.
+* storage machines have 2 networks (management and storage)
+
 ========  ============ ============ ============ ============ ============
 hostname  service      management   provider     overlay      storage
 --------  ------------ ------------ ------------ ------------ ------------
- .        eth1         eth2         eth3         eth4         eth5
+ .        eth0         eth1         eth2         eth3         eth4
  .        192.168.20.x 192.168.21.x 192.168.22.x 192.168.23.x 192.168.24.x 
 ========  ============ ============ ============ ============ ============
-control1  .101          .101          .           .101           .101
-control2  .102          .102          .           .102           .102
-control3  .103          .103          .           .103           .103
-compute1  .104          .104          .           .104           .104
-compute2  .105          .105          .           .105           .105
-storage1  .106          .106          .           .106           .106
-storage2  .107          .107          .           .107           .107
-storage3  .108          .108          .           .108           .108
+control1  .101          .101          (no ip)     .101           .101
+control2  .102          .102          (no ip)     .102           .102
+control3  .103          .103          (no ip)     .103           .103
+compute1  .104          .104          (no ip)     .104           .104
+compute2  .105          .105          (no ip)     .105           .105
+storage1                .106                                     .106
+storage2                .107                                     .107
+storage3                .108                                     .108
 ========  ============ ============ ============ ============ ============
 
 * KeepAlived VIP on management: 192.168.21.100
@@ -148,6 +152,9 @@ Edit hosts inventory file.::
    # openstack nodes
    [controller-node]
    control[1:3]
+     
+   [network-node]
+   control[1:3]
    
    [compute-node]
    compute[1:2]
@@ -236,7 +243,7 @@ deploy_ssh_key (default: false)
   If false, it does not create a ssh keypair. Ansible will use vault-encrypted
   user's password to ssh into other nodes.
 
-*_iface_name
+\*_iface_name
   Set each network interface name.
 
   If you want to set up only provider network, set overlay_iface_name to null.
@@ -257,7 +264,8 @@ keepalived_vip (mandatory)
 keepalived_vip_svc (optional)
   Assign VIP address on service network for horizon dashboard service.
   Set this if you do not have a direct access to management network.
-  If it is not assigned, you have to connect to horizon dashboard using
+
+  If it is not assigned, you have to connect to horizon dashboard via
   keepalived_vip on management network.
 
 storage_backends
@@ -265,12 +273,12 @@ storage_backends
 
   If there are multiple backends, the first one is the default backend.
   It means the default storageclass, glance store and the default cinder 
-  volume type is the first backend in this variable.
+  volume type is the first backend.
 
-  The dynamic PVCs are created on the default backend if you do not 
+  The Persisten Volumes are created on the default backend if you do not 
   specify the storageclass name.
   The volumes are created on the default volume type if you do not specify
-  the volume type
+  the volume type.
 
 is_ovs (default: false)
   Set false to use openstack linuxbridge L2 agent.
@@ -279,16 +287,17 @@ is_ovs (default: false)
 
 metallb_enabled (default: false)
   Set true to use metallb LoadBalancer.
-  (See `metallb <https://metallb.universe.tf/>`_)
+  (See ` what is metallb? <https://metallb.universe.tf/>`_)
 
 metallb_ip_range
-  Set metallb LoadBalancer IP range or cidr notation
-  IP range: 192.168.20.95-192.168.20.98 (4 IPs can be assigned.)
-  CIDR: 192.168.20.128/26 (192.168.20.128 - 191 can be assigned.)
-  Only one IP: 192.168.20.95/32 (192.168.20.95 can be assigned.)
+  Set metallb LoadBalancer IP range or cidr notation.
+
+  * IP range: 192.168.20.95-192.168.20.98 (4 IPs can be assigned.)
+  * CIDR: 192.168.20.128/26 (192.168.20.128 - 191 can be assigned.)
+  * Only one IP: 192.168.20.95/32 (192.168.20.95 can be assigned.)
 
 If ceph is in storage_backends, 
-first run lsblk command on storage nodes and get the device names.::
+run lsblk command on storage nodes to get the device names.::
 
    $ lsblk -p
    NAME        MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
@@ -327,7 +336,7 @@ If netapp is in storage_backends, edit group_vars/all/netapp_vars.yml.::
    ...
 
 
-If you do not know these netapp variables, consult netapp engineer.
+If you do not know what these netapp variables are, consult netapp engineer.
 
 Create a vault file to encrypt passwords.::
 
@@ -337,6 +346,7 @@ Create a vault file to encrypt passwords.::
    Encryption successful
 
 Enter <user> password for ssh connection to other nodes.
+
 Enter openstack admin password which will be used when you connect to 
 openstack horizon dashboard.
 
@@ -360,7 +370,7 @@ For example::
    control2                   : ok=19   changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
    control3                   : ok=19   changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
 
-And each step has a verification process, so be sure to verify 
+Each step has a verification process, so be sure to verify 
 before proceeding to the next step. 
 
 **Never proceed to the next step if the verification fails.**
@@ -368,11 +378,11 @@ before proceeding to the next step.
 Step.1 Preflight
 +++++++++++++++++
 
-The Preflight installation step implements the following settings.
+The Preflight installation step implements the following tasks.
 
-* Set up the local yum repository.
+* Set up a local yum repository.
 * Configure NTP time servers and clients.
-* Deploy the public ssh key to other nodes (if deploy_ssh_key is true)
+* Deploy the public ssh key to other nodes (if deploy_ssh_key is true).
 
 Install
 ^^^^^^^
@@ -413,12 +423,13 @@ Compute/storage nodes should have control nodes as time servers.::
 Step.2 HA 
 ++++++++++
 
-The HA installation step implements the following settings.
+The HA installation step implements the following tasks.
 
 * Set up KeepAlived service.
 * Set up HAProxy service.
 
 KeepAlived and HAProxy services are the vital services for burrito platform.
+
 OpenStack ingress, local container registry, local yum repository,
 ceph Rados Gateway services are dependent of them.
 
@@ -483,6 +494,40 @@ Check ceph health after running ceph playbook.::
 
 It should show HEALTH_OK.
 
+To get the detailed health status, run `sudo ceph -s` command.
+It will show the output like this.::
+
+   $ sudo ceph -s
+     cluster:
+       id:     cd7bdd5a-1814-4e6a-9e07-c2bdc3f53fea
+       health: HEALTH_OK
+    
+     services:
+       mon: 3 daemons, quorum storage1,storage2,storage3 (age 17h)
+       mgr: storage2(active, since 17h), standbys: storage1, storage3
+       osd: 9 osds: 9 up (since 17h), 9 in (since 17h)
+       rgw: 3 daemons active (3 hosts, 1 zones)
+    
+     data:
+       pools:   10 pools, 513 pgs
+       objects: 2.54k objects, 7.3 GiB
+       usage:   19 GiB used, 431 GiB / 450 GiB avail
+       pgs:     513 active+clean
+
+There are 4 services - mon, mgr, osd, and rgw.
+
+Sometimes it could show `HEALTH_WARN <something> have recently crashed`.
+Don't worry. it is mostly harmless warning.
+
+List the crashes.::
+
+   $ sudo ceph crash ls
+
+Archive all crashes.::
+
+   $ sudo ceph crash archive-all
+
+Then, check ceph health again. It should show HEALTH_OK now.
 
 Step.4 Kubernetes
 +++++++++++++++++
@@ -604,7 +649,7 @@ Check all pods are running and ready in kube-system namespace.::
    nodelocaldns-vlb8w                         1/1   Running   0             59m
    registry-5v9th                             1/1   Running   0             58m
 
-Wait until the registry pod should be running and ready.
+Wait until the registry pod is running and ready.
 
 
 Step.7 Registry
@@ -646,10 +691,11 @@ Step.8 Burrito
 
 The Burrito installation step implements the following tasks.
 
-* Set up rados gateway user and client configuration(s3cfg).
+* Create a rados gateway user(default: cloudpc) and 
+  a client configuration(s3cfg).
 * Deploy nova vnc TLS certificate.
 * Deploy openstack components.
-* Create nova ssh keypair and copy the public key on every compute nodes.
+* Create a nova ssh keypair and copy them on every compute nodes.
 
 Install
 ^^^^^^^
@@ -663,7 +709,7 @@ Verify
 
 Check all pods are running and ready in openstack namespace.::
 
-   $ sudo kubectl get pods -n kube-system
+   $ sudo kubectl get pods -n openstack
    NAME                                   READY   STATUS      RESTARTS   AGE
    barbican-api-664986fd5-jkp9x           1/1     Running     0          4m23s
    ...
@@ -692,7 +738,7 @@ Verify
 
 Check if the genesis registry service is running on control nodes.::
 
-   $ sudo systemctl status genesisregistry.service
+   $ sudo systemctl status genesis_registry.service
    genesis_registry.service - Geneis Registry service
    ...
       Active: active (running) since Wed 2023-05-31 20:40:30 KST; 3min 7s ago
@@ -704,7 +750,9 @@ Check if the local repository pod is running and ready in burrito namespace.::
    localrepo-c4bc5b89d-nbtq9   1/1     Running   0          3m38s
 
 
-Congratulations! You just finished the installation of burrito platform.
+Congratulations! 
+
+You've just finished the installation of burrito platform.
 
 Horizon
 ----------
@@ -725,12 +773,12 @@ Here is how to connect to horizon dashboard on your browser.
    The admin password is the one you set when you run vault.sh script
    (openstack admin password:).
 
-Next, perform the basic openstack operation test using btx - burrito toolbox.
+Next, perform the basic openstack operation test using btx (burrito toolbox).
 
 BTX
 ++++
 
-BTX is the toolbox for burrito platform.
+BTX is a toolbox for burrito platform.
 It should be already up and running.::
 
    $ sudo kubectl -n openstack get pods -l application=btx
@@ -757,7 +805,7 @@ Check openstack volume service status.::
 * If you set up both ceph and netapp storage backends, 
   both volume services are enabled and up in the output.
 * The cinder-volume-worker@rbd1 is the service for ceph backend
-  the cinder-volume-worker@netapp1 is the service for netapp backend.
+  and the cinder-volume-worker@netapp1 is the service for netapp backend.
 
 Check openstack network agent status.::
 
@@ -778,12 +826,12 @@ Check openstack network agent status.::
    | f0a396d3-8200-41c3-9057-5d609204be3f | Metadata agent     | control2 | None              | :-)   | UP    | neutron-metadata-agent    |
    +--------------------------------------+--------------------+----------+-------------------+-------+-------+---------------------------+
 
-* All agents should be `:-)` and 'UP'.
+* All agents should be :-) and UP.
 * If you set overlay_iface_name to null, there is no 'L3 agent' in Agent Type
   column.
-* If you set os_ovs to false, there should be 'Linux bridge agent' in Agent
+* If you set is_ovs to false, there should be 'Linux bridge agent' in Agent
   Type column.
-* If you set os_ovs to true, there should be 'Open vSwitch agent' in Agent
+* If you set is_ovs to true, there should be 'Open vSwitch agent' in Agent
   Type column.
 
 
@@ -804,7 +852,7 @@ Check openstack compute service status.::
    +--------------------------------------+----------------+---------------------------------+----------+---------+-------+----------------------------+
 
 * All services should be `enabled` and `up`.
-* All compute hostnames should be in Host column.
+* Each compute node should have nova-compute service.
 
 Test
 ^^^^
@@ -812,7 +860,7 @@ Test
 The command "btx --test"
 
 * Creates a provider network and subnet.
-  When it creates a provider network, it will ask an address pool range.
+  When it creates a provider network, it will ask for an address pool range.
 * Creates a cirros image.
 * Adds security group rules.
 * Creates a flavor.
@@ -847,7 +895,7 @@ If everything goes well, the output looks like this.::
 Connect to the instance via provider network ip using ssh on the machine that 
 has a provider network access.::
 
-   (a node with provider network access)$ ssh cirros@192.168.22.104
+   (a node on provider network)$ ssh cirros@192.168.22.104
    cirros@192.168.22.104's password:
    $ ip address show dev eth0
    2: eth0:<BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc pfifo_fast qlen 1000
@@ -858,5 +906,4 @@ has a provider network access.::
           valid_lft forever preferred_lft forever
 
 Password is the default cirros password (hint: password seems to be created by someone who loves Chicago Cubs baseball team.)
-
 
