@@ -341,8 +341,6 @@ It should show SUCCESS on all nodes.
 Install
 --------
 
-There are 9 installation steps.
-
 There should be no *failed* tasks in *PLAY RECAP* on each playbook run.
 
 For example::
