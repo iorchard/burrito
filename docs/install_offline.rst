@@ -15,7 +15,7 @@ This is a guide to install Burrito in offline environment.
 Use the Burrito ISO to install.
 
 You can build your own burrito iso using burrito_iso.git project
-(https://github.com/iorchard/burrito.iso)
+(https://github.com/iorchard/burrito_iso)
 
 Supported OS
 -------------
