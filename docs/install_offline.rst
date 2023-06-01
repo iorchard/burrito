@@ -47,7 +47,7 @@ This is the reference network architecture.
 ========  ============ ============ ============ ============ ============
 hostname  service      management   provider     overlay      storage
 --------  ------------ ------------ ------------ ------------ ------------
- .        eth1         eth2         eth3         eth4         eth5
+ .        eth0         eth1         eth2         eth3         eth4
  .        192.168.20.x 192.168.21.x 192.168.22.x 192.168.23.x 192.168.24.x 
 ========  ============ ============ ============ ============ ============
 control1  .101          .101          (no ip)     .101           .101
@@ -152,6 +152,9 @@ Edit hosts inventory file.::
    # openstack nodes
    [controller-node]
    control[1:3]
+     
+   [network-node]
+   control[1:3]
    
    [compute-node]
    compute[1:2]
@@ -240,7 +243,7 @@ deploy_ssh_key (default: false)
   If false, it does not create a ssh keypair. Ansible will use vault-encrypted
   user's password to ssh into other nodes.
 
-*_iface_name
+\*_iface_name
   Set each network interface name.
 
   If you want to set up only provider network, set overlay_iface_name to null.
