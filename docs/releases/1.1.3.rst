@@ -1,0 +1,23 @@
+1.1.3 Aster
+============
+
+This is the 3rd patch release in the Aster 1.1 series.
+
+Burrito Changelog
+------------------
+
+* doc: update README; add install.rst for online installation; (jijisa@iorchard.net)
+* refactor: move network-node group to do-not-edit area in hosts.sample; move MTU and is_ovs settings to do-not-edit area in vars.yml.sample; (jijisa@iorchard.net)
+* doc: add install_offline.rst; (jijisa@iorchard.net)
+* refactor: reorganize hosts inventory file; (jijisa@iorchard.net)
+* fix: update registry tarball and image to 2.8.2; (jijisa@iorchard.net)
+* enhance: do not even create ml2-local-ip.ini if vxlan is disabled; (jijisa@iorchard.net)
+* doc: update README; (jijisa@iorchard.net)
+* fix: install helm plugin into root home; (jijisa@iorchard.net)
+* feature: add vault in run.sh; update README_offline.rst; (jijisa@iorchard.net)
+* feature: update prepare.sh to include all preparation tasks; (jijisa@iorchard.net)
+* refactor: use kubespray/cluster.yml directly instead of k8s.yml; remove k8s.yml; (jijisa@iorchard.net)
+* modified compute node and run.sh; (beomjin@iorchard.co.kr)
+* doc: update comment on keepalived_vip_svc in vars.yml.sample; (jijisa@iorchard.net)
+* doc: update README and 1.1.2 release notes; (jijisa@iorchard.net)
+* fix: regression bug; add --user parameter in run.sh. This is for tasks using ansible_user variable.; (jijisa@iorchard.net)
