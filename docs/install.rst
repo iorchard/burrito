@@ -145,7 +145,10 @@ Edit hosts inventory file.::
    # openstack nodes
    [controller-node]
    control[1:3]
-     
+   
+   [network-node]
+   control[1:3]
+   
    [compute-node]
    compute[1:2]
    
