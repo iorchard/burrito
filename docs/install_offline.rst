@@ -40,17 +40,21 @@ Reference network architecture
 
 This is the reference network architecture.
 
+* control/compute machines have all 5 networks.
+* No ip addresses are assigned on the provider network.
+* storage machines have 2 networks (management and storage)
+
 ========  ============ ============ ============ ============ ============
 hostname  service      management   provider     overlay      storage
 --------  ------------ ------------ ------------ ------------ ------------
  .        eth1         eth2         eth3         eth4         eth5
  .        192.168.20.x 192.168.21.x 192.168.22.x 192.168.23.x 192.168.24.x 
 ========  ============ ============ ============ ============ ============
-control1  .101          .101          .           .101           .101
-control2  .102          .102          .           .102           .102
-control3  .103          .103          .           .103           .103
-compute1  .104          .104          .           .104           .104
-compute2  .105          .105          .           .105           .105
+control1  .101          .101          (no ip)     .101           .101
+control2  .102          .102          (no ip)     .102           .102
+control3  .103          .103          (no ip)     .103           .103
+compute1  .104          .104          (no ip)     .104           .104
+compute2  .105          .105          (no ip)     .105           .105
 storage1                .106                                     .106
 storage2                .107                                     .107
 storage3                .108                                     .108
