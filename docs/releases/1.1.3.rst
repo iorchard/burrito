@@ -6,6 +6,7 @@ This is the 3rd patch release in the Aster 1.1 series.
 Burrito Changelog
 ------------------
 
+* fix: move back to network-node to edit area in hosts.sample; update install documents; (jijisa@iorchard.net)
 * doc: update README; add install.rst for online installation; (jijisa@iorchard.net)
 * refactor: move network-node group to do-not-edit area in hosts.sample; move MTU and is_ovs settings to do-not-edit area in vars.yml.sample; (jijisa@iorchard.net)
 * doc: add install_offline.rst; (jijisa@iorchard.net)
