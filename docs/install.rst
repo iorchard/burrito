@@ -105,7 +105,7 @@ Enter the management network interface name. (e.g. eth1)
 inventory hosts and variables
 +++++++++++++++++++++++++++++
 
-There are three groups of hosts in burrito.
+There are 4 groups of hosts in burrito.
 
 * Control node: runs kubernetes and openstack control-plane components.
 * Network node: runs kubernetes worker and openstack network services.
