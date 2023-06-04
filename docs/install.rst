@@ -105,6 +105,18 @@ Enter the management network interface name. (e.g. eth1)
 inventory hosts and variables
 +++++++++++++++++++++++++++++
 
+There are three groups of hosts in burrito.
+
+* Control node: runs kubernetes and openstack control-plane components.
+* Network node: runs kubernetes worker and openstack network services.
+* Compute node: runs kubernetes worker and openstack hypervisor and network
+  agent to operate instances.
+* Storage node: runs Ceph storage services - monitor, manager, osd, 
+  rados gateway.
+
+Network node is optional.
+Control node usually acts as both control node and network node.
+
 Edit hosts inventory file.::
 
    $ vi hosts
@@ -155,6 +167,9 @@ Edit hosts inventory file.::
    ###################################################
    ## Do not touch below if you are not an expert!!! #
    ###################################################
+
+Beware that control nodes are in network-node group since there is no
+network node in this case.
 
 Edit vars.yml.::
 
