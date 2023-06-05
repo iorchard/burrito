@@ -392,12 +392,6 @@ Run preflight playbook.::
 Verify
 ^^^^^^
 
-Check if the local yum repository is set up on all nodes.::
-
-   $ sudo dnf repolist
-   repo id                               repo name
-   burrito                               Burrito Repo
-
 Check if the ntp servers and clients are configured.
 
 When you set ntp_servers to the default ntp servers,
@@ -646,9 +640,6 @@ Check all pods are running and ready in kube-system namespace.::
    nodelocaldns-dzcjr                         1/1   Running   0             59m
    nodelocaldns-plhwm                         1/1   Running   0             59m
    nodelocaldns-vlb8w                         1/1   Running   0             59m
-   registry-5v9th                             1/1   Running   0             58m
-
-Wait until the registry pod is running and ready.
 
 
 Step.7 Burrito
