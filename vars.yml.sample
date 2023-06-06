@@ -168,7 +168,7 @@ docker_image_repo: "docker.io"
 quay_image_repo: "quay.io"
 download_run_once: false
 bin_dir: /usr/bin
-kube_version: v1.24.8
+kube_version: v1.24.14
 kube_proxy_strict_arp: true
 podsecuritypolicy_enabled: true
 kubeconfig_localhost: true
@@ -206,6 +206,42 @@ kube_apiserver_admission_event_rate_limits:
     qps: 500
     burst: 5000
 kube_encrypt_secret_data: true
+podsecuritypolicy_restricted_spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'RunAsAny'
+  seLinux:
+    rule: 'RunAsAny'
+  runAsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: false
+
   
 # calico
 calico_network_backend: bird
@@ -221,15 +257,35 @@ registry_disk_size: "30Gi"
 registry_service_type: "NodePort"
 registry_service_nodeport: "32680"
 seed_registry_port: "5000"
-containerd_insecure_registries:
-  "local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"
-  "seed_registry": "{{ keepalived_vip }}:{{ seed_registry_port }}"
+containerd_insecure_registries: >-
+  {% if registry_enabled -%}
+  "local_registry": "http://{{ keepalived_vip }}:{{ registry_service_nodeport }}"
+  "seed_registry": "http://{{ keepalived_vip }}:{{ seed_registry_port }}"
+  {% else -%}
+  {}
+  {% endif -%}
 
-metallb_speaker_nodeselector:
-  node-role.kubernetes.io/control-plane: ""
-metallb_controller_nodeselector:
-  node-role.kubernetes.io/control-plane: ""
 metallb_protocol: "layer2"
+metallb_config:
+  controller:
+    nodeselector:
+      node-role.kubernetes.io/control-plane: ""
+  speaker:
+    nodeselector:
+      node-role.kubernetes.io/control-plane: ""
+  address_pools:
+    primary:
+      ip_range:
+        - "{{ metallb_ip_range }}"
+      auto_assign: true
+  layer2:
+    - primary
+  layer3:
+    defaults:
+      peer_port: 179
+      hold_time: 120s
+    communities: {}
+    metallb_peers: {}
 
 ### burrito variables
 # haproxy role variables

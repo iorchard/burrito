@@ -1,0 +1,89 @@
+--- kubespray/roles/kubernetes-apps/metallb/templates/metallb.yaml.j2	2023-06-05 23:03:49.131613364 +0900
++++ patches/kubespray/roles/kubernetes-apps/metallb/templates/metallb.yaml.j2	2023-06-05 23:03:39.713617868 +0900
+@@ -7,7 +7,85 @@
+     pod-security.kubernetes.io/enforce: privileged
+     pod-security.kubernetes.io/warn: privileged
+   name: metallb-system
+-
++---
++apiVersion: policy/v1beta1
++kind: PodSecurityPolicy
++metadata:
++  labels:
++    app: metallb
++  name: controller
++spec:
++  allowPrivilegeEscalation: false
++  allowedCapabilities: []
++  allowedHostPaths: []
++  defaultAddCapabilities: []
++  defaultAllowPrivilegeEscalation: false
++  fsGroup:
++    ranges:
++    - max: 65535
++      min: 1
++    rule: MustRunAs
++  hostIPC: false
++  hostNetwork: false
++  hostPID: false
++  privileged: false
++  readOnlyRootFilesystem: true
++  requiredDropCapabilities:
++  - ALL
++  runAsUser:
++    ranges:
++    - max: 65535
++      min: 1
++    rule: MustRunAs
++  seLinux:
++    rule: RunAsAny
++  supplementalGroups:
++    ranges:
++    - max: 65535
++      min: 1
++    rule: MustRunAs
++  volumes:
++  - configMap
++  - secret
++  - emptyDir
++---
++apiVersion: policy/v1beta1
++kind: PodSecurityPolicy
++metadata:
++  labels:
++    app: metallb
++  name: speaker
++spec:
++  allowPrivilegeEscalation: false
++  allowedCapabilities:
++  - NET_RAW
++  allowedHostPaths: []
++  defaultAddCapabilities: []
++  defaultAllowPrivilegeEscalation: false
++  fsGroup:
++    rule: RunAsAny
++  hostIPC: false
++  hostNetwork: true
++  hostPID: false
++  hostPorts:
++  - max: 7472
++    min: 7472
++  - max: 7946
++    min: 7946
++  privileged: true
++  readOnlyRootFilesystem: true
++  requiredDropCapabilities:
++  - ALL
++  runAsUser:
++    rule: RunAsAny
++  seLinux:
++    rule: RunAsAny
++  supplementalGroups:
++    rule: RunAsAny
++  volumes:
++  - configMap
++  - secret
++  - emptyDir
+ ---
+ apiVersion: apiextensions.k8s.io/v1
+ kind: CustomResourceDefinition
