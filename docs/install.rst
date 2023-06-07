@@ -286,7 +286,7 @@ storage_backends
   It means the default storageclass, glance store and the default cinder 
   volume type is the first backend.
 
-  The Persisten Volumes are created on the default backend if you do not 
+  The Persistent Volumes are created on the default backend if you do not 
   specify the storageclass name.
   The volumes are created on the default volume type if you do not specify
   the volume type.
