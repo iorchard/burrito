@@ -39,8 +39,7 @@ metallb_enabled: false
 # IP range: 192.168.20.95-192.168.20.98 (4 IPs can be assigned.)
 # CIDR: 192.168.20.128/26 (192.168.20.128 - 191 can be assigned.)
 # Only one IP: 192.168.20.95/32
-metallb_ip_range:
-  - "192.168.20.95-192.168.20.98"
+metallb_ip_range: "192.168.20.95-192.168.20.98"
 
 ### storage
 # storage backends: ceph and(or) netapp
