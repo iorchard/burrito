@@ -1,17 +1,48 @@
 ---
-- name: Deploy ceph burrito playbook
+- name: setup rados gateway user
+  hosts: rgws:kube_control_plane
+  gather_facts: true
   any_errors_fatal: true
-  ansible.builtin.import_playbook: ceph-ansible/burrito.yml
-  tags: ceph-burrito
+
+  tasks:
+    - name: set auth_client_required to cephx
+      ansible.builtin.command: >-
+        ceph config set mon auth_client_required cephx
+      become: true
+      delegate_to: "{{ groups['rgws'][0] }}"
+      run_once: true
+      when: '"ceph" in storage_backends'
+      tags: ceph-burrito
+
+  roles:
+    - role: burrito.rgw-user
+      when: '"ceph" in storage_backends'
+      tags: ceph-burrito
 
 - name: Deploy nova vnc TLS certificates playbook
   any_errors_fatal: true
   ansible.builtin.import_playbook: nova_vnc_cert/site.yml
   tags: novavnc-burrito
 
-- name: Deploy k8s burrito playbook
+- name: setup cert-manager
+  hosts: localhost
   any_errors_fatal: true
-  ansible.builtin.import_playbook: kubespray/burrito.yml
+  roles:
+    - { role: burrito.cert-manager, tags: ['cert-manager', 'burrito']}
+  tags: k8s-burrito
+
+- name: setup system
+  hosts: k8s_cluster
+  any_errors_fatal: true
+  roles:
+    - { role: burrito.system, tags: ['system', 'burrito']}
+  tags: k8s-burrito
+
+- name: provision openstack
+  hosts: kube_control_plane
+  any_errors_fatal: true
+  roles:
+    - { role: burrito.openstack, tags: ['openstack', 'burrito']}
   tags: k8s-burrito
 
 - name: Deploy nova compute sshkey copy playbook

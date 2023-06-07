@@ -1,3 +1,0 @@
-keepalived:
-  - vip_interface: eth1
-    vip: 192.168.21.70

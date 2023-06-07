@@ -1,0 +1,126 @@
+---
+## common
+osh_infra_path: "{{ playbook_dir }}/openstack-helm-infra"
+osh_path: "{{ playbook_dir }}/openstack-helm"
+btx_path: "{{ playbook_dir }}/btx/helm"
+os_artifacts_dir: "{{ ansible_env.HOME }}/openstack-artifacts"
+pod:
+  replicas: 1
+storageclass_name: ~
+kube_pod_subnet: ~
+ceph_admin_key: ~
+ceph_secret_uuid: ~
+
+# TLS
+tls:
+  duration: 87600h
+  renewBefore: 360h
+
+## ingress
+ingress:
+  volume_size: "10Gi"
+
+## ceph_provisioners
+ceph_public_network: ~
+ceph_cluster_network: ~
+
+## mariadba
+mariadb:
+  volume_size: "30Gi"
+  admin_password: ~
+
+## rabbitmq
+rabbitmq:
+  volume_size: "768Mi"
+  password: ~
+
+## libvirt
+ceph_cinder_key: ~
+
+## keystone
+os_admin_password: ~
+keystone:
+  password: ~
+
+## glance
+glance:
+  stores: ~
+  default_store: ~
+  password: ~
+  nginx:
+    proxy_body_size: "102400M"
+    proxy_read_timeout: "1800"
+  pvc_size: "100Gi"
+
+## placement
+placement:
+  password: ~
+
+## neutron
+is_ovs: true
+neutron:
+  tunnel: ~
+  tunnel_compute: ~
+neutron_ml2_plugin: "openvswitch"
+ovs_dvr: true
+ovs_provider:
+  - name: external
+    bridge: br-ex
+    iface: ~
+    vlan_ranges: ""
+bgp_dragent: false
+
+## nova
+nova:
+  vncserver_proxyclient_interface: ~
+  hypervisor_host_interface: ~
+  libvirt_live_migration_interface: ~
+  password: ~
+  pvc_size: "100Gi"
+
+## cinder
+cinder:
+  enabled_backends: ~
+  default_volume_type: ~
+  password: ~
+
+## horizon
+horizon:
+  password: ~
+  timezone: "UTC"
+
+## barbican
+barbican:
+  password: ~
+  kek: ~
+
+## btx
+btx:
+  pvc:
+    size: "20Gi"
+
+# openvswitch chart will be added dynamically if neutron_ml2_plugin == ovs.
+# See "OpenStack | add openvswitch to osh_infra_charts" task
+# ceph-provisioners chart will be added if "ceph" in storage_backends.
+# See "OpenStack | add ceph-provisioners to osh_infra_charts" task
+is_ceph: "{{ 'ceph' in storage_backends }}"
+osh_infra_charts:
+  - ingress
+  - mariadb
+  - rabbitmq
+  - memcached
+  - libvirt
+
+osh_charts:
+  - keystone
+  - glance
+  - placement
+  - neutron
+  - nova
+  - cinder
+  - horizon
+  - barbican
+
+btx_charts:
+  - btx
+...

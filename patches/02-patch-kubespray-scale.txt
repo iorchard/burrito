@@ -1,0 +1,15 @@
+--- kubespray/playbooks/scale.yml	2023-06-05 18:12:58.056172488 +0900
++++ patches/kubespray/playbooks/scale.yml	2023-06-05 18:11:54.573214468 +0900
+@@ -98,6 +98,12 @@
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+   environment: "{{ proxy_disable_env }}"
++
++  pre_tasks:
++    - name: set discovery_type to file
++      ansible.builtin.set_fact:
++        discovery_type: "file"
++
+   roles:
+     - { role: kubespray-defaults }
+     - { role: kubernetes/kubeadm, tags: kubeadm }
