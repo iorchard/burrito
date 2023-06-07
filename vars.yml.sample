@@ -259,8 +259,8 @@ registry_service_nodeport: "32680"
 seed_registry_port: "5000"
 containerd_insecure_registries: >-
   {% if registry_enabled -%}
-  "local_registry": "http://{{ keepalived_vip }}:{{ registry_service_nodeport }}"
-  "seed_registry": "http://{{ keepalived_vip }}:{{ seed_registry_port }}"
+  "local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"
+  "seed_registry": "{{ keepalived_vip }}:{{ seed_registry_port }}"
   {% else -%}
   {}
   {% endif -%}
