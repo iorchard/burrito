@@ -1,15 +1,6 @@
 Burrito Installation
 ====================
 
-Burrito is a security-hardened OpenStack on Kubernetes Platform.
-
-Burrito includes the following open source software.
-
-* ceph-ansible: To install the ceph distributed storage system
-* kubespray: To install kubernetes cluster 
-* openstack-helm: to install container-based openstack components on top of
-  kubernetes cluster.
-
 This is a guide to install Burrito in online environment.
 
 Supported OS
@@ -546,11 +537,11 @@ Check all nodes are in ready state.::
 
    $ sudo kubectl get nodes
    NAME       STATUS   ROLES           AGE   VERSION
-   compute1   Ready    <none>          15m   v1.24.8
-   compute2   Ready    <none>          15m   v1.24.8
-   control1   Ready    control-plane   17m   v1.24.8
-   control2   Ready    control-plane   16m   v1.24.8
-   control3   Ready    control-plane   16m   v1.24.8
+   compute1   Ready    <none>          15m   v1.24.14
+   compute2   Ready    <none>          15m   v1.24.14
+   control1   Ready    control-plane   17m   v1.24.14
+   control2   Ready    control-plane   16m   v1.24.14
+   control3   Ready    control-plane   16m   v1.24.14
 
 
 Step.5 Netapp
@@ -701,7 +692,7 @@ Here is how to connect to horizon dashboard on your browser.
 Next, perform the basic openstack operation test using btx (burrito toolbox).
 
 BTX
-++++
+---
 
 BTX is a toolbox for burrito platform.
 It should be already up and running.::
@@ -780,7 +771,7 @@ Check openstack compute service status.::
 * Each compute node should have nova-compute service.
 
 Test
-^^^^
++++++
 
 The command "btx --test"
 

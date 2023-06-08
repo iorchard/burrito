@@ -1,5 +1,5 @@
 Add a compute node
-======================
+==================
 
 This is a guide to add a compute node on the existing burrito cluster.
 
@@ -8,7 +8,10 @@ the IP address is 192.168.21.124
 
 All the works are done on the ansible deployer.
 
-Add compute2 hostname and IP in /etc/hosts.::
+Define the new compute node
+-----------------------------
+
+Add bon-compute2 hostname and IP in /etc/hosts.::
 
    $ sudo vi /etc/hosts
    192.168.21.124 bon-compute2
@@ -49,7 +52,6 @@ Edit inventory hosts to add the new compute node.::
     bon-compute
    +bon-compute2
 
-
 Check the connection to the new node bon-compute2.::
 
    $ ./run.sh ping 
@@ -61,11 +63,13 @@ Check the connection to the new node bon-compute2.::
        "ping": "pong"
    }
 
+
+Install on the new node
+------------------------
+
 Run preflight playbook for bon-compute2.::
 
    $ ./run.sh preflight --limit=bon-compute2
-
-Skip ha stack playbook since it is not the controller node.
 
 Run ceph playbook.::
 
@@ -82,8 +86,6 @@ Check if the new node is added as a k8s node.::
    bon-compute      Ready    <none>          3d15h   v1.24.8
    bon-compute2     Ready    <none>          3m39s   v1.24.8
    bon-controller   Ready    control-plane   3d15h   v1.24.8
-
-Skip patch, registry playbook since it is the compute node.
 
 Run burrito playbook with k8s-burrito and novakey-burrito tags.::
 
