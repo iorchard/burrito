@@ -1,15 +1,6 @@
 Burrito Offline Installation
 ============================
 
-Burrito is a security-hardened OpenStack on Kubernetes Platform.
-
-Burrito includes the following open source software.
-
-* ceph-ansible: To install the ceph distributed storage system
-* kubespray: To install kubernetes cluster 
-* openstack-helm: to install container-based openstack components on top of
-  kubernetes cluster.
-
 This is a guide to install Burrito in offline environment.
 
 Use the Burrito ISO to install.
@@ -784,7 +775,7 @@ Here is how to connect to horizon dashboard on your browser.
 Next, perform the basic openstack operation test using btx (burrito toolbox).
 
 BTX
-++++
+---
 
 BTX is a toolbox for burrito platform.
 It should be already up and running.::
@@ -863,7 +854,7 @@ Check openstack compute service status.::
 * Each compute node should have nova-compute service.
 
 Test
-^^^^
+++++
 
 The command "btx --test"
 
