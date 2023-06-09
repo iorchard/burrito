@@ -716,7 +716,7 @@ Check all pods are running and ready in openstack namespace.::
    rabbitmq-rabbitmq-1                    1/1     Running     0          27m
    rabbitmq-rabbitmq-2                    1/1     Running     0          27m
 
-Step.9 landing
+Step.9 Landing
 +++++++++++++++
 
 The Landing installation step implements the following tasks.
