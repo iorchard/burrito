@@ -8,16 +8,21 @@ Welcome to Burrito's documentation!
    This project is under active development.
 
 .. toctree::
+   :caption: Introduction
    :maxdepth: 2
 
    intro
-   install/install
-   install/install_offline
+
+.. toctree::
+   :caption: Installation
+   :maxdepth: 2
+
+   Online Installation <install/install>
+   Offline Installation <install/install_offline>
+
+.. toctree::
+   :caption: Operation
+   :maxdepth: 2
+
    operation/add_compute_node
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
