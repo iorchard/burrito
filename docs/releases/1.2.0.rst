@@ -11,7 +11,7 @@ Notable changes
   Apply the patch files without modifying the upstream repository directly.
 * The kubespray is fixed to release-2.22 which is the last branch to support
   kubernetes 1.24.x version.
-* The ceph-ansible is fixed to stable-7.9 which is the branch to support
+* The ceph-ansible is fixed to stable-7.0 which is the branch to support
   Ceph Quincy 17.2.x version.
 * Add qemu-utils package in btx image 
   The qemu-img command is used a lot by engineers.
