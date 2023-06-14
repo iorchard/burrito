@@ -12,8 +12,8 @@ data:
         "monitors": [
 {% for h in groups['mons'] %}
           "{{ hostvars[h]['ansible_' + storage_iface_name].ipv4.address }}"{% if not loop.last %},{% endif %}
-{% endfor %}
 
+{% endfor %}
         ]
       }
     ]
