@@ -95,6 +95,8 @@ ceph_repository_type: cdn
 ceph_stable_release: quincy
 osd_objectstore: bluestore
 docker_pull_timeout: "60s"
+monitor_interface: "{{ storage_iface_name }}"
+radosgw_interface: "{{ storage_iface_name }}"
 
 # set the size, min_size, and single_osd_node
 ceph_pool_default_size: "{% if (groups['osds']|length) > 3 %}3{% else %}2{% endif %}"
