@@ -73,17 +73,6 @@
   become: true
   loop: "{{ genesis_registry.images }}"
 
-- name: Genesis Registry | take down offline services
-  ansible.builtin.shell: >-
-    ./offline_services.sh --down registry
-  args:
-    chdir: "{{ playbook_dir }}/scripts"
-  become: true
-  register: res
-  failed_when: res.rc not in [0, 10]
-  delegate_to: "{{ groups['kube_control_plane'][0] }}"
-  run_once: true
-
 - name: Genesis Registry | add genesis registry section in haproxy.cfg
   ansible.builtin.blockinfile:
     path: "/etc/haproxy/haproxy.cfg"
@@ -127,67 +116,32 @@
 
 - name: Genesis Registry | apply patch to csi-rbdplugin daemonset
   kubernetes.core.k8s_json_patch:
-    kind: ReplicaSet
+    kind: DaemonSet
     namespace: "ceph-csi"
     name: csi-rbdplugin
-    patch:
-      - op: replace
-        path: "/spec/template/spec/containers/{{ idx }}/image"
-        value: "{{ containerd_insecure_registries.genesis_registry }}/{{ item }}"
+    patch: "{{ rbdplugin_patch_list }}"
   become: true
   delegate_to: localhost
   run_once: true
-  loop:
-    - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
-    - "cephcsi/cephcsi:{{ cephcsi_version }}"
-    - "cephcsi/cephcsi:{{ cephcsi_version }}"
-  loop_control:
-    index_var: idx
 
 - name: Genesis Registry | apply patch to csi-rbdplugin-provisioner deployment
   kubernetes.core.k8s_json_patch:
-    kind: ReplicaSet
+    kind: Deployment
     namespace: "ceph-csi"
-    name: csi-rbdplugin
-    patch:
-      - op: replace
-        path: "/spec/template/spec/containers/{{ idx }}/image"
-        value: "{{ containerd_insecure_registries.genesis_registry }}/{{ item }}"
+    name: csi-rbdplugin-provisioner
+    patch: "{{ provisioner_patch_list }}"
   become: true
   delegate_to: localhost
   run_once: true
-  loop:
-    - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
-    - "sig-storage/csi-snapshotter:{{ csi_snapshooter_version }}"
-    - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
-    - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
-    - "cephcsi/cephcsi:{{ cephcsi_version }}"
-    - "cephcsi/cephcsi:{{ cephcsi_version }}"
-    - "cephcsi/cephcsi:{{ cephcsi_version }}"
-  loop_control:
-    index_var: idx
 
-# Do not run the below tasks since it is unnessary tasks. 
-# ReplicaSet does not update image automatically
-# So I need to kill it.
-#- name: Genesis Registry | get registry pod name
-#  kubernetes.core.k8s_info:
-#    kind: Pod
-#    namespace: "{{ registry_namespace }}"
-#    label_selectors:
-#      - "k8s-app=registry"
-#  register: registry_pod
-#  delegate_to: localhost
-#  run_once: true
-#
-#- name: Genesis Registry | kill the registry
-#  kubernetes.core.k8s:
-#    state: absent
-#    api_version: v1
-#    namespace: "{{ registry_namespace }}"
-#    kind: Pod
-#    name: "{{ registry_pod.resources[0].metadata.name }}"
-#  become: true
-#  delegate_to: localhost
-#  run_once: true
+- name: Genesis Registry | take down offline services
+  ansible.builtin.shell: >-
+    ./offline_services.sh --down registry
+  args:
+    chdir: "{{ playbook_dir }}/scripts"
+  become: true
+  register: res
+  failed_when: res.rc not in [0, 10]
+  delegate_to: "{{ groups['kube_control_plane'][0] }}"
+  run_once: true
 ...
