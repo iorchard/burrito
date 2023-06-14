@@ -1,4 +1,7 @@
 ---
+- name: gather facts for rgws servers
+  hosts: rgws
+
 - name: setup haproxy
   hosts: kube_control_plane
   any_errors_fatal: true
