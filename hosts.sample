@@ -3,9 +3,9 @@ control2 ip=192.168.21.102
 control3 ip=192.168.21.103
 compute1 ip=192.168.21.104
 compute2 ip=192.168.21.105
-storage1 ip=192.168.21.106 monitor_address=192.168.24.106 radosgw_address=192.168.24.106
-storage2 ip=192.168.21.107 monitor_address=192.168.24.107 radosgw_address=192.168.24.107
-storage3 ip=192.168.21.108 monitor_address=192.168.24.108 radosgw_address=192.168.24.108
+storage1 ip=192.168.21.106
+storage2 ip=192.168.21.107
+storage3 ip=192.168.21.108
 
 # ceph nodes
 [mons]

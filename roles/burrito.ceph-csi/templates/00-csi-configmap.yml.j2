@@ -11,9 +11,9 @@ data:
         "clusterID": "{{ ceph_cluster_id }}",
         "monitors": [
 {% for h in groups['mons'] %}
-          "{{ hostvars[h].monitor_address }}"{% if not loop.last %},{% endif %}
-{% endfor %}
+          "{{ hostvars[h]['ansible_' + storage_iface_name].ipv4.address }}"{% if not loop.last %},{% endif %}
 
+{% endfor %}
         ]
       }
     ]

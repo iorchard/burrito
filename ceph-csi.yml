@@ -1,4 +1,7 @@
 ---
+- name: gather facts for rgws servers
+  hosts: rgws
+
 - name: deploy ceph-csi
   hosts: localhost
   any_errors_fatal: true
