@@ -54,21 +54,24 @@
 - name: Genesis Registry | pull registry image from seed registry
   ansible.builtin.shell: >-
     nerdctl pull \
-      {{ containerd_insecure_registries.seed_registry }}/{{genesis_registry.image }}
+      {{ containerd_insecure_registries.seed_registry }}/{{ item }}
   become: true
+  loop: "{{ genesis_registry.images }}"
 
 - name: Genesis Registry | tag registry image for genesis registry
   ansible.builtin.shell: >-
     nerdctl tag \
-      {{ containerd_insecure_registries.seed_registry }}/{{genesis_registry.image }} \
-      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{genesis_registry.image }}
+      {{ containerd_insecure_registries.seed_registry }}/{{ item }} \
+      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
   become: true
+  loop: "{{ genesis_registry.images }}"
 
 - name: Genesis Registry | push registry image to each genesis registry
   ansible.builtin.shell: >-
     nerdctl push \
-      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{genesis_registry.image }}
+      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
   become: true
+  loop: "{{ genesis_registry.images }}"
 
 - name: Genesis Registry | take down offline services
   ansible.builtin.shell: >-
@@ -109,7 +112,7 @@
   notify:
     - haproxy restart service
 
-- name: Genesis Registry | apply a patch to registry replicaset
+- name: Genesis Registry | apply patch to registry replicaset
   kubernetes.core.k8s_json_patch:
     kind: ReplicaSet
     namespace: "{{ registry_namespace }}"
@@ -117,31 +120,74 @@
     patch:
       - op: replace
         path: /spec/template/spec/containers/0/image
-        value: "{{ containerd_insecure_registries.genesis_registry }}/{{ genesis_registry.image }}"
+        value: "{{ containerd_insecure_registries.genesis_registry }}/library/registry:{{ registry_version }}"
   become: true
   delegate_to: localhost
   run_once: true
 
+- name: Genesis Registry | apply patch to csi-rbdplugin daemonset
+  kubernetes.core.k8s_json_patch:
+    kind: ReplicaSet
+    namespace: "ceph-csi"
+    name: csi-rbdplugin
+    patch:
+      - op: replace
+        path: "/spec/template/spec/containers/{{ idx }}/image"
+        value: "{{ containerd_insecure_registries.genesis_registry }}/{{ item }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+  loop:
+    - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
+    - "cephcsi/cephcsi:{{ cephcsi_version }}"
+    - "cephcsi/cephcsi:{{ cephcsi_version }}"
+  loop_control:
+    index_var: idx
+
+- name: Genesis Registry | apply patch to csi-rbdplugin-provisioner deployment
+  kubernetes.core.k8s_json_patch:
+    kind: ReplicaSet
+    namespace: "ceph-csi"
+    name: csi-rbdplugin
+    patch:
+      - op: replace
+        path: "/spec/template/spec/containers/{{ idx }}/image"
+        value: "{{ containerd_insecure_registries.genesis_registry }}/{{ item }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+  loop:
+    - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
+    - "sig-storage/csi-snapshotter:{{ csi_snapshooter_version }}"
+    - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
+    - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
+    - "cephcsi/cephcsi:{{ cephcsi_version }}"
+    - "cephcsi/cephcsi:{{ cephcsi_version }}"
+    - "cephcsi/cephcsi:{{ cephcsi_version }}"
+  loop_control:
+    index_var: idx
+
+# Do not run the below tasks since it is unnessary tasks. 
 # ReplicaSet does not update image automatically
 # So I need to kill it.
-- name: Genesis Registry | get registry pod name
-  kubernetes.core.k8s_info:
-    kind: Pod
-    namespace: "{{ registry_namespace }}"
-    label_selectors:
-      - "k8s-app=registry"
-  register: registry_pod
-  delegate_to: localhost
-  run_once: true
-
-- name: Genesis Registry | kill the registry
-  kubernetes.core.k8s:
-    state: absent
-    api_version: v1
-    namespace: "{{ registry_namespace }}"
-    kind: Pod
-    name: "{{ registry_pod.resources[0].metadata.name }}"
-  become: true
-  delegate_to: localhost
-  run_once: true
+#- name: Genesis Registry | get registry pod name
+#  kubernetes.core.k8s_info:
+#    kind: Pod
+#    namespace: "{{ registry_namespace }}"
+#    label_selectors:
+#      - "k8s-app=registry"
+#  register: registry_pod
+#  delegate_to: localhost
+#  run_once: true
+#
+#- name: Genesis Registry | kill the registry
+#  kubernetes.core.k8s:
+#    state: absent
+#    api_version: v1
+#    namespace: "{{ registry_namespace }}"
+#    kind: Pod
+#    name: "{{ registry_pod.resources[0].metadata.name }}"
+#  become: true
+#  delegate_to: localhost
+#  run_once: true
 ...

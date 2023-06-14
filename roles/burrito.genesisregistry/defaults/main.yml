@@ -3,7 +3,14 @@ genesis_registry:
   root_dir: "/var/lib/registry"
   secret: "{{ lookup('community.general.random_string', length=12, base64=True) }}"
   conf: "/etc/genesis_registry.conf"
-  image: "library/registry:{{ registry_version }}"
+  images:
+    - "library/registry:{{ registry_version }}"
+    - "cephcsi/cephcsi:{{ cephcsi_version }}"
+    - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
+    - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
+    - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
+    - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
+    - "sig-storage/csi-snapshotter:{{ csi_snapshooter_version }}"
   addr: "{{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}"
 
 keepalived_vip: ~
@@ -11,4 +18,5 @@ balance: roundrobin
 inter: 2s
 rise: 2
 fall: 3
+
 ...
