@@ -47,7 +47,7 @@ spec:
       priorityClassName: system-cluster-critical
       containers:
         - name: csi-provisioner
-          image: {{ kube_image_repo }}/sig-storage/csi-provisioner:v3.3.0
+          image: {{ kube_image_repo }}/sig-storage/csi-provisioner:{{ csi_provisioner_version }}
           args:
             - "--csi-address=$(ADDRESS)"
             - "--v=1"
@@ -69,7 +69,7 @@ spec:
             - name: socket-dir
               mountPath: /csi
         - name: csi-snapshotter
-          image: {{ kube_image_repo }}/sig-storage/csi-snapshotter:v6.1.0
+          image: {{ kube_image_repo }}/sig-storage/csi-snapshotter:{{ csi_snapshooter_version }}
           args:
             - "--csi-address=$(ADDRESS)"
             - "--v=1"
@@ -84,7 +84,7 @@ spec:
             - name: socket-dir
               mountPath: /csi
         - name: csi-attacher
-          image: {{ kube_image_repo }}/sig-storage/csi-attacher:v4.0.0
+          image: {{ kube_image_repo }}/sig-storage/csi-attacher:{{ csi_attacher_version }}
           args:
             - "--v=1"
             - "--csi-address=$(ADDRESS)"
@@ -99,7 +99,7 @@ spec:
             - name: socket-dir
               mountPath: /csi
         - name: csi-resizer
-          image: {{ kube_image_repo }}/sig-storage/csi-resizer:v1.6.0
+          image: {{ kube_image_repo }}/sig-storage/csi-resizer:{{ csi_resizer_version }}
           args:
             - "--csi-address=$(ADDRESS)"
             - "--v=1"
@@ -117,7 +117,7 @@ spec:
               mountPath: /csi
         - name: csi-rbdplugin
           # for stable functionality replace canary with latest release version
-          image: {{ quay_image_repo }}/cephcsi/cephcsi:v3.7.2
+          image: {{ quay_image_repo }}/cephcsi/cephcsi:{{ cephcsi_version }}
           args:
             - "--nodeid=$(NODE_ID)"
             - "--type=rbd"
@@ -174,7 +174,7 @@ spec:
               readOnly: true
         - name: csi-rbdplugin-controller
           # for stable functionality replace canary with latest release version
-          image: {{ quay_image_repo }}/cephcsi/cephcsi:v3.7.2
+          image: {{ quay_image_repo }}/cephcsi/cephcsi:{{ cephcsi_version }}
           args:
             - "--type=controller"
             - "--v=5"
@@ -195,7 +195,7 @@ spec:
             - name: ceph-config
               mountPath: /etc/ceph/
         - name: liveness-prometheus
-          image: {{ quay_image_repo }}/cephcsi/cephcsi:v3.7.2
+          image: {{ quay_image_repo }}/cephcsi/cephcsi:{{ cephcsi_version }}
           args:
             - "--type=liveness"
             - "--endpoint=$(CSI_ENDPOINT)"
