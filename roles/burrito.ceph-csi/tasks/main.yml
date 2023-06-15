@@ -61,4 +61,24 @@
   with_fileglob:
     - "{{ artifacts_dir }}/[0-9]*"
   become: true
+
+- name: ceph-csi | wait until registry is running.
+  kubernetes.core.k8s_info:
+    kind: Pod
+    label_selectors:
+      - k8s-app = registry
+    namespace: kube-system
+    wait: yes
+    wait_sleep: 5
+    wait_timeout: 120
+  become: true
+  register: registry_pod
+  when: storage_backends[0] == 'ceph'
+
+- name: fail if registry is not running
+  ansible.builtin.fail:
+    msg: "Registry is not running after 120 seconds. Give up!"
+  when:
+    - storage_backends[0] == 'ceph'
+    - registry_pod.resources[0].status.phase != 'Running'
 ...
