@@ -73,9 +73,12 @@
     wait_timeout: 120
   become: true
   register: registry_pod
+  when: storage_backends[0] == 'ceph'
 
 - name: fail if registry is not running
   ansible.builtin.fail:
     msg: "Registry is not running after 120 seconds. Give up!"
-  when: registry_pod.resources[0].status.phase != 'Running'
+  when:
+    - storage_backends[0] == 'ceph'
+    - registry_pod.resources[0].status.phase != 'Running'
 ...
