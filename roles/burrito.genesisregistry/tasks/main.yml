@@ -54,32 +54,24 @@
 - name: Genesis Registry | pull registry image from seed registry
   ansible.builtin.shell: >-
     nerdctl pull \
-      {{ containerd_insecure_registries.seed_registry }}/{{genesis_registry.image }}
+      {{ containerd_insecure_registries.seed_registry }}/{{ item }}
   become: true
+  loop: "{{ genesis_registry.images }}"
 
 - name: Genesis Registry | tag registry image for genesis registry
   ansible.builtin.shell: >-
     nerdctl tag \
-      {{ containerd_insecure_registries.seed_registry }}/{{genesis_registry.image }} \
-      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{genesis_registry.image }}
+      {{ containerd_insecure_registries.seed_registry }}/{{ item }} \
+      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
   become: true
+  loop: "{{ genesis_registry.images }}"
 
 - name: Genesis Registry | push registry image to each genesis registry
   ansible.builtin.shell: >-
     nerdctl push \
-      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{genesis_registry.image }}
+      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
   become: true
-
-- name: Genesis Registry | take down offline services
-  ansible.builtin.shell: >-
-    ./offline_services.sh --down registry
-  args:
-    chdir: "{{ playbook_dir }}/scripts"
-  become: true
-  register: res
-  failed_when: res.rc not in [0, 10]
-  delegate_to: "{{ groups['kube_control_plane'][0] }}"
-  run_once: true
+  loop: "{{ genesis_registry.images }}"
 
 - name: Genesis Registry | add genesis registry section in haproxy.cfg
   ansible.builtin.blockinfile:
@@ -109,7 +101,7 @@
   notify:
     - haproxy restart service
 
-- name: Genesis Registry | apply a patch to registry replicaset
+- name: Genesis Registry | apply patch to registry replicaset
   kubernetes.core.k8s_json_patch:
     kind: ReplicaSet
     namespace: "{{ registry_namespace }}"
@@ -117,31 +109,39 @@
     patch:
       - op: replace
         path: /spec/template/spec/containers/0/image
-        value: "{{ containerd_insecure_registries.genesis_registry }}/{{ genesis_registry.image }}"
+        value: "{{ containerd_insecure_registries.genesis_registry }}/library/registry:{{ registry_version }}"
   become: true
   delegate_to: localhost
   run_once: true
 
-# ReplicaSet does not update image automatically
-# So I need to kill it.
-- name: Genesis Registry | get registry pod name
-  kubernetes.core.k8s_info:
-    kind: Pod
-    namespace: "{{ registry_namespace }}"
-    label_selectors:
-      - "k8s-app=registry"
-  register: registry_pod
+- name: Genesis Registry | apply patch to csi-rbdplugin daemonset
+  kubernetes.core.k8s_json_patch:
+    kind: DaemonSet
+    namespace: "ceph-csi"
+    name: csi-rbdplugin
+    patch: "{{ rbdplugin_patch_list }}"
+  become: true
   delegate_to: localhost
   run_once: true
 
-- name: Genesis Registry | kill the registry
-  kubernetes.core.k8s:
-    state: absent
-    api_version: v1
-    namespace: "{{ registry_namespace }}"
-    kind: Pod
-    name: "{{ registry_pod.resources[0].metadata.name }}"
+- name: Genesis Registry | apply patch to csi-rbdplugin-provisioner deployment
+  kubernetes.core.k8s_json_patch:
+    kind: Deployment
+    namespace: "ceph-csi"
+    name: csi-rbdplugin-provisioner
+    patch: "{{ provisioner_patch_list }}"
   become: true
   delegate_to: localhost
+  run_once: true
+
+- name: Genesis Registry | take down offline services
+  ansible.builtin.shell: >-
+    ./offline_services.sh --down registry
+  args:
+    chdir: "{{ playbook_dir }}/scripts"
+  become: true
+  register: res
+  failed_when: res.rc not in [0, 10]
+  delegate_to: "{{ groups['kube_control_plane'][0] }}"
   run_once: true
 ...

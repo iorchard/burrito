@@ -243,7 +243,6 @@ podsecuritypolicy_restricted_spec:
         max: 65535
   readOnlyRootFilesystem: false
 
-  
 # calico
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
@@ -289,10 +288,18 @@ metallb_config:
     metallb_peers: {}
 
 ### burrito variables
-# haproxy role variables
+# burrito.haproxy role variables
 ceph_rgw_port: 7480
 
-# kubespray/roles/burrito.openstack/.../ceph_provisioners.yml.j2
+# burrito.ceph-csi role variables
+cephcsi_version: "v3.7.2"
+csi_attacher_version: "v4.0.0"
+csi_node_driver_registrar_version: "v2.5.1"
+csi_provisioner_version: "v3.3.0"
+csi_resizer_version: "v1.6.0"
+csi_snapshooter_version: "v6.1.0"
+
+# burrito.openstack role variables
 ceph_public_network: "{{ public_network }}"
 ceph_cluster_network: "{{ cluster_network }}"
 
