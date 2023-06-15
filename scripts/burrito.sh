@@ -7,7 +7,7 @@ CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
 OSH_INFRA_PATH=${CURRENT_DIR}/../openstack-helm-infra
 OSH_PATH=${CURRENT_DIR}/../openstack-helm
 BTX_PATH=${CURRENT_DIR}/../btx/helm
-KUBESPRAY_PATH=${CURRENT_DIR}/../kubespray
+TOP_PATH=${CURRENT_DIR}/..
 OVERRIDE_PATH=$HOME/openstack-artifacts
 
 declare -A path_arr=(
@@ -67,7 +67,7 @@ install() {
     ansible-playbook --extra-vars=@vars.yml ${OFFLINE_VARS} \
         --extra-vars="{\"$KEY\": [\"${NAME}\"]}" \
         ${TAG_OPTS} \
-        ${KUBESPRAY_PATH}/burrito.yml
+        ${TOP_PATH}/burrito.yml
   popd
 }
 uninstall() {
