@@ -98,22 +98,34 @@
           server {{ h }} {{ hostvars[h].ip }}:{{ genesis_registry_port }} check inter {{ inter }} rise {{ rise }} fall {{ fall }} on-marked-down shutdown-sessions
           {% endfor %}
   become: true
-  notify:
-    - haproxy restart service
+
+- name: Genesis Registry | take down offline services
+  ansible.builtin.shell: >-
+    ./offline_services.sh --down registry
+  args:
+    chdir: "{{ playbook_dir }}/scripts"
+  become: true
+  register: res
+  failed_when: res.rc not in [0, 10]
+  delegate_to: "{{ groups['kube_control_plane'][0] }}"
+  run_once: true
 
 - name: Genesis Registry | apply patch to kubernetes static pods
   ansible.builtin.replace:
-    path: "{{ k8s_manifest_dir }}/{{ item }}.yaml"
+    path: "{{ k8s_manifest_dir }}/{{ item.name }}.yaml"
     regexp: "{{ containerd_insecure_registries.seed_registry }}"
     replace: "{{ containerd_insecure_registries.genesis_registry }}"
   become: true
   loop: "{{ k8s_services }}"
 
-- name: Genesis Registry | restart kubelet service
+- name: Genesis Registry | restart haproxy and kubelet service
   ansible.builtin.service:
-    name: "kubelet.service"
+    name: "{{ item }}"
     state: "restarted"
-    become: true
+  become: true
+  loop:
+    - haproxy.service
+    - kubelet.service
 
 - name: Genesis Registry | wait until kubernetes services are running.
   kubernetes.core.k8s_info:
@@ -121,38 +133,25 @@
     namespace: kube-system
     label_selectors:
       - tier = control-plane
-      - "component = {{ item }}"
+      - "component = {{ item.name }}"
     wait: true
     wait_sleep: 5
     wait_timeout: 120
-  become: true
-  loop: "{{ k8s_services }}"
-
-- name: Genesis Registry | apply patch to kube-proxy daemonset
-  kubernetes.core.k8s_json_patch:
-    kind: DaemonSet
-    namespace: kube-system
-    name: kube-proxy
-    patch:
-      - op: replace
-      - path: /spec/template/spec/containers/0/image"
-      - value: "{{ containerd_insecure_registries.genesis_registry }}/{{ kube_version }}"
   become: true
   delegate_to: localhost
   run_once: true
-
-- name: Genesis Registry | wait until kube-proxy services are running.
-  kubernetes.core.k8s_info:
-    kind: Pod
-    namespace: kube-system
-    label_selectors:
-      - tier = control-plane
-      - "component = {{ item }}"
-    wait: true
-    wait_sleep: 5
-    wait_timeout: 120
-  become: true
   loop: "{{ k8s_services }}"
+
+# cannot use kubernetes.core.k8s_json_patch 
+# since kube-proxy patch needs to specify name in addition to image.
+# So I use kubectl patch command.
+- name: Genesis Registry | apply patch to kube-proxy daemonset
+  ansible.builtin.command: >-
+    kubectl patch ds kube-proxy -n kube-system -p \
+      '{"spec": {"template": {"spec": {"containers": [{"name": "kube-proxy", "image": "{{ containerd_insecure_registries.genesis_registry }}/kube-proxy:{{ kube_version }}"}]}}}}'
+  become: true
+  delegate_to: localhost
+  run_once: true
 
 - name: Genesis Registry | apply patch to registry replicaset
   kubernetes.core.k8s_json_patch:
@@ -185,16 +184,5 @@
     patch: "{{ provisioner_patch_list }}"
   become: true
   delegate_to: localhost
-  run_once: true
-
-- name: Genesis Registry | take down offline services
-  ansible.builtin.shell: >-
-    ./offline_services.sh --down registry
-  args:
-    chdir: "{{ playbook_dir }}/scripts"
-  become: true
-  register: res
-  failed_when: res.rc not in [0, 10]
-  delegate_to: "{{ groups['kube_control_plane'][0] }}"
   run_once: true
 ...
