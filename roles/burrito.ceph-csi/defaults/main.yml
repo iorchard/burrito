@@ -21,4 +21,6 @@ csi_node_driver_registrar_version: "v2.5.1"
 csi_provisioner_version: "v3.3.0"
 csi_resizer_version: "v1.6.0"
 csi_snapshooter_version: "v6.1.0"
+# wait timeout for registry in seconds (default: 300s = 5m)
+registry_ready_timeout: 300
 ...
