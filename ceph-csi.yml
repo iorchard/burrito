@@ -1,6 +1,6 @@
 ---
-- name: gather facts for rgws servers
-  hosts: rgws
+- name: gather facts for mon servers
+  hosts: mons
 
 - name: deploy ceph-csi
   hosts: localhost

@@ -298,6 +298,7 @@ csi_node_driver_registrar_version: "v2.5.1"
 csi_provisioner_version: "v3.3.0"
 csi_resizer_version: "v1.6.0"
 csi_snapshooter_version: "v6.1.0"
+registry_ready_timeout: 300
 
 # burrito.openstack role variables
 ceph_public_network: "{{ public_network }}"
@@ -333,7 +334,7 @@ glance:
   password: "{{ vault_glance_password }}"
   nginx:
     proxy_body_size: "102400M"
-    proxy_read_timeout: "1800"
+    proxy_read_timeout: "3600"
   volume_size: "500Gi"
 
 # placement

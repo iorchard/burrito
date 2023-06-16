@@ -70,15 +70,20 @@
     namespace: kube-system
     wait: yes
     wait_sleep: 5
-    wait_timeout: 120
+    wait_timeout: "{{ registry_ready_timeout }}"
   become: true
   register: registry_pod
-  when: storage_backends[0] == 'ceph'
+  when:
+    - storage_backends[0] == 'ceph'
+    - registry_enabled
 
 - name: fail if registry is not running
   ansible.builtin.fail:
-    msg: "Registry is not running after 120 seconds. Give up!"
+    msg: >-
+      Registry is not running after {{ registry_ready_timeout }} seconds.
+      Give up!
   when:
     - storage_backends[0] == 'ceph'
+    - registry_enabled
     - registry_pod.resources[0].status.phase != 'Running'
 ...
