@@ -137,7 +137,11 @@
     wait: true
     wait_sleep: 5
     wait_timeout: 120
+  register: _result
   become: true
+  until: not _result.failed
+  retries: 5
+  delay: 5
   delegate_to: localhost
   run_once: true
   loop: "{{ k8s_services }}"
