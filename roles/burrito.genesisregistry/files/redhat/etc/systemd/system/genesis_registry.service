@@ -1,5 +1,5 @@
 [Unit]
-Description=Geneis Registry service
+Description=Genesis Registry service
 After=network-online.target
 
 [Service]
