@@ -1,6 +1,6 @@
 ---
 - name: gather facts for mon servers
-  hosts: mon
+  hosts: mons
 
 - name: deploy ceph-csi
   hosts: localhost
