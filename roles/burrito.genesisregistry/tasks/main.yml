@@ -101,6 +101,59 @@
   notify:
     - haproxy restart service
 
+- name: Genesis Registry | apply patch to kubernetes static pods
+  ansible.builtin.replace:
+    path: "{{ k8s_manifest_dir }}/{{ item }}.yaml"
+    regexp: "{{ containerd_insecure_registries.seed_registry }}"
+    replace: "{{ containerd_insecure_registries.genesis_registry }}"
+  become: true
+  loop: "{{ k8s_services }}"
+
+- name: Genesis Registry | restart kubelet service
+  ansible.builtin.service:
+    name: "kubelet.service"
+    state: "restarted"
+    become: true
+
+- name: Genesis Registry | wait until kubernetes services are running.
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: kube-system
+    label_selectors:
+      - tier = control-plane
+      - "component = {{ item }}"
+    wait: true
+    wait_sleep: 5
+    wait_timeout: 120
+  become: true
+  loop: "{{ k8s_services }}"
+
+- name: Genesis Registry | apply patch to kube-proxy daemonset
+  kubernetes.core.k8s_json_patch:
+    kind: DaemonSet
+    namespace: kube-system
+    name: kube-proxy
+    patch:
+      - op: replace
+      - path: /spec/template/spec/containers/0/image"
+      - value: "{{ containerd_insecure_registries.genesis_registry }}/{{ kube_version }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Genesis Registry | wait until kube-proxy services are running.
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: kube-system
+    label_selectors:
+      - tier = control-plane
+      - "component = {{ item }}"
+    wait: true
+    wait_sleep: 5
+    wait_timeout: 120
+  become: true
+  loop: "{{ k8s_services }}"
+
 - name: Genesis Registry | apply patch to registry replicaset
   kubernetes.core.k8s_json_patch:
     kind: ReplicaSet
@@ -117,7 +170,7 @@
 - name: Genesis Registry | apply patch to csi-rbdplugin daemonset
   kubernetes.core.k8s_json_patch:
     kind: DaemonSet
-    namespace: "ceph-csi"
+    namespace: ceph-csi
     name: csi-rbdplugin
     patch: "{{ rbdplugin_patch_list }}"
   become: true
@@ -127,7 +180,7 @@
 - name: Genesis Registry | apply patch to csi-rbdplugin-provisioner deployment
   kubernetes.core.k8s_json_patch:
     kind: Deployment
-    namespace: "ceph-csi"
+    namespace: ceph-csi
     name: csi-rbdplugin-provisioner
     patch: "{{ provisioner_patch_list }}"
   become: true

@@ -68,7 +68,7 @@
     label_selectors:
       - k8s-app = registry
     namespace: kube-system
-    wait: yes
+    wait: true
     wait_sleep: 5
     wait_timeout: "{{ registry_ready_timeout }}"
   become: true
