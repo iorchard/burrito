@@ -177,6 +177,7 @@
     label_selectors:
       - "k8s-app=registry"
   register: registry_pod
+  become: true
   delegate_to: localhost
   run_once: true
 

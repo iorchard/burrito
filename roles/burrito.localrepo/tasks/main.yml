@@ -50,6 +50,7 @@
     label_selectors:
       - "k8s-app=localrepo"
   register: localrepo_pod
+  become: true
   delegate_to: localhost
   run_once: true
 
