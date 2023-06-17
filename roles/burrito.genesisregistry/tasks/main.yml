@@ -170,6 +170,29 @@
   delegate_to: localhost
   run_once: true
 
+- name: Genesis Registry | get registry pod name
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ registry_namespace }}"
+    label_selectors:
+      - "k8s-app=registry"
+  register: registry_pod
+  delegate_to: localhost
+  run_once: true
+
+- name: Genesis Registry | apply patch to registry pod
+  kubernetes.core.k8s_json_patch:
+    kind: Pod
+    namespace: "{{ registry_namespace }}"
+    name: "{{ registry_pod.resources[0].metadata.name }}"
+    patch:
+      - op: replace
+        path: /spec/containers/0/image
+        value: "{{ containerd_insecure_registries.genesis_registry }}/library/registry:{{ registry_version }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
 - name: Genesis Registry | apply patch to csi-rbdplugin daemonset
   kubernetes.core.k8s_json_patch:
     kind: DaemonSet
