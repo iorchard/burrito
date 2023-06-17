@@ -18,7 +18,7 @@ network:
 conf:
   ceph:
     global:
-      mon_host: {% for h in groups['mons'] %}{{ hostvars[h].monitor_address }}{% if not loop.last %},{% endif %}{% endfor %}
+      mon_host: {% for h in groups['mons'] %}{{ hostvars[h]['ansible_' + storage_iface_name].ipv4.address }}{% if not loop.last %},{% endif %}{% endfor %}
 
 manifests:
   configmap_bin: false

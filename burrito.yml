@@ -1,4 +1,7 @@
 ---
+- name: gather facts for mon servers
+  hosts: mons
+
 - name: setup rados gateway user
   hosts: rgws:kube_control_plane
   gather_facts: true

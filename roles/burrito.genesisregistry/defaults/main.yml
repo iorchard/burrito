@@ -5,6 +5,10 @@ genesis_registry:
   conf: "/etc/genesis_registry.conf"
   images:
     - "library/registry:{{ registry_version }}"
+    - "kube-apiserver:{{ kube_version }}"
+    - "kube-controller-manager:{{ kube_version }}"
+    - "kube-proxy:{{ kube_version }}"
+    - "kube-scheduler:{{ kube_version }}"
     - "cephcsi/cephcsi:{{ cephcsi_version }}"
     - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
     - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
@@ -18,6 +22,14 @@ balance: roundrobin
 inter: 2s
 rise: 2
 fall: 3
+
+# kubernetes patch variables
+k8s_manifest_dir: "/etc/kubernetes/manifests"
+k8s_services:
+  - {name: "kube-apiserver", port: 6443}
+  - {name: "kube-controller-manager", port: 10257}
+  - {name: "kube-scheduler", port: 10259}
+
 # csi_rbdplugin daemonset patch variables
 csi_rbdplugin_images:
   - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
