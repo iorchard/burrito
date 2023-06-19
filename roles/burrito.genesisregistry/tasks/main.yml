@@ -127,9 +127,9 @@
     - haproxy.service
     - kubelet.service
 
-- name: Genesis Registry | pause for 5 seconds
+- name: Genesis Registry | pause before checking kubernetes services
   ansible.builtin.pause:
-    seconds: 5
+    seconds: 10
 
 - name: Genesis Registry | wait until kubernetes services are running.
   kubernetes.core.k8s_info:

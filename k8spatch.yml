@@ -41,9 +41,9 @@
       become: true
       tags: k8spatch
 
-    - name: Patch | pause for 5 seconds
+    - name: Patch | pause before checking api service
       ansible.builtin.pause:
-        seconds: 5
+        seconds: 10
 
     - name: Patch | check api service is available
       ansible.builtin.wait_for:
