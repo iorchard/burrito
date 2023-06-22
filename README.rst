@@ -7,15 +7,8 @@ Introduction
 Burrito is a security-hardened OpenStack on Kubernetes Platform.
 
 For detailed installation instructions,
-check out the `online installation 
-<https://github.com/iorchard/burrito/blob/main/docs/install.rst>`_ or 
-`offline installation 
-<https://github.com/iorchard/burrito/blob/main/docs/install_offline.rst>`_ 
-guide.
-
-Or you can go to `burrito readthedocs service url 
+go to `burrito readthedocs service url 
 <https://burrito.readthedocs.io/en/latest/>`_.
-
 
 License
 -------
