@@ -188,7 +188,9 @@ cert_manager_affinity:
          values:
          - ""
 preinstall_selinux_state: disabled
-kube_pods_subnet: 10.233.64.0/18
+# for k8s node scalability, set kube_pods_subnet to very large subnet
+# It can hold 2048 nodes.
+kube_pods_subnet: 10.200.0.0/13
 kube_apiserver_enable_admission_plugins:
   - AlwaysPullImages
   - EventRateLimit
