@@ -188,8 +188,9 @@ cert_manager_affinity:
          values:
          - ""
 preinstall_selinux_state: disabled
-# for k8s node scalability, set kube_pods_subnet to very large subnet
-# It can hold 2048 nodes.
+# The default kubespray kube_pods_subnet supports 64 nodes.
+# set kube_pods_subnet to very large subnet to support more nodes.
+# The following setting can support 2048 nodes.
 kube_pods_subnet: 10.200.0.0/13
 kube_apiserver_enable_admission_plugins:
   - AlwaysPullImages
