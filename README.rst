@@ -6,8 +6,7 @@ Introduction
 
 Burrito is a security-hardened OpenStack on Kubernetes Platform.
 
-For detailed installation instructions,
-go to `burrito readthedocs service url 
+Online documentation can be found at
 <https://burrito.readthedocs.io/en/latest/>`_.
 
 License
