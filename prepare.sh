@@ -28,7 +28,7 @@ fi
 
 for CFG in ${CFGFILES[@]};do
   if [ -f "${CFG}" ]; then
-    echo mv ${CFG} ${CFG}.$(date --iso-8601='seconds')
+    mv ${CFG} ${CFG}.$(date --iso-8601='seconds')
   fi
   cp ${CFG}.sample ${CFG}
 done
