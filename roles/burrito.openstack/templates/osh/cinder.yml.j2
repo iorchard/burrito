@@ -157,6 +157,10 @@ conf:
       cafile: /etc/cinder/certs/ca.crt
     key_manager:
       backend: barbican
+    nova:
+      auth_version: v3
+      auth_type: password
+      cafile: /etc/cinder/certs/ca.crt
     oslo_messaging_rabbit:
       ssl: true
       ssl_ca_file: /etc/rabbitmq/certs/ca.crt
