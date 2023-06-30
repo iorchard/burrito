@@ -1,0 +1,149 @@
+---
+- name: preflight checklist
+  hosts: all
+  any_errors_fatal: true
+  tasks:
+    - name: check if ip addresses in inventory hosts are valid.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ hostvars[inventory_hostname]['ip'] }} is not a valid ip address.
+        that:
+          - (hostvars[inventory_hostname]['ip']|ansible.builtin.ipaddr) != False
+
+    - name: check if keepalived_vip address is valid.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ keepalived_vip }} is not a valid ip address.
+        that:
+          - (keepalived_vip|ansible.builtin.ipaddr) != False
+      delegate_to: localhost
+      run_once: true
+
+    - name: check if keepalived_vip_svc address is valid.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ keepalived_vip_svc }} is not a valid ip address.
+        that:
+          - (keepalived_vip_svc|ansible.builtin.ipaddr) != False
+      delegate_to: localhost
+      run_once: true
+      when: keepalived_vip_svc
+
+    - name: check if ip is the mgmt ip address.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ hostvars[inventory_hostname]['ip'] }} is not the management ip address.
+        that:
+          - hostvars[inventory_hostname]['ip'] == hostvars[inventory_hostname]['ansible_'+mgmt_iface_name].ipv4.address
+   
+    - name: check if keepalived_vip is in management network range
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ keepalived_vip }} is not in the management network.
+        that:
+          - ntp_allowed_cidr|ansible.utils.network_in_usable(keepalived_vip)
+      delegate_to: localhost
+      run_once: true
+
+    - name: check if keepalived_vip_svc is in service network range
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ keepalived_vip_svc }} is not in the service network.
+        that:
+          - svc_cidr|ansible.utils.network_in_usable(keepalived_vip_svc)
+      delegate_to: localhost
+      run_once: true
+      when: keepalived_vip_svc
+
+    - name: check overlay ip address is set if overlay_iface_name is not null
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          overlay_iface_name is not null.
+          But ip address is not set up on overlay interface.
+        that:
+          - hostvars[inventory_hostname]['ansible_'+overlay_iface_name].ipv4.address is defined
+      when:
+        - overlay_iface_name
+        - inventory_hostname in groups['k8s_cluster']
+
+    - name: check if ip is not set on provider network interface
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          There should be no IPs on the provider network.
+          But there is an IP address:
+            {% if hostvars[inventory_hostname]['ansible_'+provider_iface_name].ipv4 is defined %}{{ hostvars[inventory_hostname]['ansible_'+provider_iface_name].ipv4.address }}{% endif %}
+        that:
+          - hostvars[inventory_hostname]['ansible_'+provider_iface_name].ipv4 is not defined
+      when:
+        - inventory_hostname in groups['k8s_cluster']
+
+    - name: get time on deployer node
+      ansible.builtin.set_fact:
+        deployer_epoch: "{{ ansible_date_time.epoch }}"
+      delegate_to: localhost
+      run_once: true
+
+    - name: check if time difference crosses the threshold
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          The time difference exceeds the threshold ({{ checklist.clock_deviation_threshold }}s).
+          deployer time: {{ deployer_epoch }}
+          my time: {{ ansible_date_time.epoch }}
+        that:
+          - "{{ (deployer_epoch|int - ansible_date_time.epoch|int)|abs }} < {{ checklist.clock_deviation_threshold }}"
+
+    - name: check if osd block devices exist in osd nodes
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          Cannot find the device: {{ item.data }}
+        that:
+          - ansible_devices.{{ item.data|basename }} is defined
+      loop: "{{ lvm_volumes }}"
+      when: inventory_hostname in groups['osds']
+
+    - name: check if network-node group is not empty
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          There is no hosts in network-node group.
+        that:
+          - groups['network-node']|length != 0
+      delegate_to: localhost
+      run_once: true
+
+    - name: check if overlay interface is up if overlay is enabled.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ overlay_iface_name }} is not up.
+        that:
+          - hostvars[inventory_hostname]['ansible_'+overlay_iface_name].active
+      when: overlay_iface_name
+
+    - name: check if all other interfaces are up
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ item }} is not up.
+        that:
+          - hostvars[inventory_hostname]['ansible_'+item].active
+      loop:
+        - "{{ svc_iface_name }}"
+        - "{{ mgmt_iface_name }}"
+        - "{{ provider_iface_name }}"
+        - "{{ storage_iface_name }}"
+
+    - name: check if all hosts are reachable
+      ansible.builtin.ping:
+        data: pong
+...
