@@ -258,6 +258,14 @@ calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
 
+## etcd patch variables
+# etcd_nice is a nice value from -20(most favorable) to 19(least favorable).
+etcd_nice: -10
+# etcd scheduling class to use: realtime or best-effort(default)
+etcd_ionice_class: best-effort
+# etcd scheduler priority(lower is higher): 0(default) - 7
+etcd_ionice_priority: 0
+
 # Registry deployment
 registry_version: "2.8.2"
 registry_enabled: "{{ offline|ternary(true, false) }}"
