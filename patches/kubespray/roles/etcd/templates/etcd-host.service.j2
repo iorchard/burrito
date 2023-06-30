@@ -1,0 +1,19 @@
+[Unit]
+Description=etcd
+After=network.target
+
+[Service]
+Type=notify
+User=root
+EnvironmentFile=/etc/etcd.env
+ExecStart={{ bin_dir }}/etcd
+NotifyAccess=all
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+Nice={{ etcd_nice }}
+IOSchedulingClass={{ etcd_ionice_class }}
+IOSchedulingPriority={{ etcd_ionice_priority }}
+
+[Install]
+WantedBy=multi-user.target
