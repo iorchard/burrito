@@ -157,6 +157,10 @@ conf:
       cafile: /etc/cinder/certs/ca.crt
     key_manager:
       backend: barbican
+    nova:
+      auth_version: v3
+      auth_type: password
+      cafile: /etc/cinder/certs/ca.crt
     oslo_messaging_rabbit:
       ssl: true
       ssl_ca_file: /etc/rabbitmq/certs/ca.crt
@@ -182,7 +186,6 @@ conf:
 {% if "netapp" in storage_backends %}
 {% for n in netapp %}
     {{ n.name }}:
-      #image_volume_cache_enabled: true
       volume_driver: cinder.volume.drivers.netapp.common.NetAppDriver
       volume_backend_name: {{ n.name }}
       netapp_storage_family: ontap_cluster
@@ -193,6 +196,8 @@ conf:
       netapp_password: "{{ n.password }}"
       nfs_mount_options: "{{ n.nfsMountOptions }}"
       nfs_shares_config: "/etc/cinder/share_{{ n.name }}"
+      nas_secure_file_operation: false
+      nas_secure_file_permissions: false
 {% endfor %}
 {% endif %}
 endpoints:

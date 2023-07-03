@@ -72,6 +72,13 @@ ansible_become_password: "{{ vault_sudo_password }}"
 # it will override the value - refer to run.sh script.
 offline: false
 
+### preflight checklist
+checklist:
+  quiet: false
+  clock_deviation_threshold: 60
+svc_netmask: "{{ hostvars[inventory_hostname]['ansible_' + svc_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + svc_iface_name].ipv4.netmask }}"
+svc_cidr: "{{ svc_netmask | ansible.utils.ipaddr('net') }}"
+
 ### ntp
 mgmt_netmask: "{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.netmask }}"
 ntp_allowed_cidr: "{{ mgmt_netmask | ansible.utils.ipaddr('net') }}"
@@ -250,6 +257,14 @@ podsecuritypolicy_restricted_spec:
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
+
+## etcd patch variables
+# etcd_nice is a nice value from -20(most favorable) to 19(least favorable).
+etcd_nice: -10
+# etcd scheduling class to use: realtime or best-effort(default)
+etcd_ionice_class: best-effort
+# etcd scheduler priority(lower is higher): 0(default) - 7
+etcd_ionice_priority: 0
 
 # Registry deployment
 registry_version: "2.8.2"

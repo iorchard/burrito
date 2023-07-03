@@ -15,6 +15,31 @@ limitations under the License.
 {{- if .Values.manifests.configmap_etc }}
 {{- $envAll := . }}
 
+{{- if empty .Values.conf.cinder.nova.region_name -}}
+{{- $_ := set .Values.conf.cinder.nova "region_name" .Values.endpoints.identity.auth.cinder.region_name -}}
+{{- end -}}
+{{- if empty .Values.conf.cinder.nova.memcached_servers -}}
+{{- $_ := tuple "oslo_cache" "internal" "memcache" . | include "helm-toolkit.endpoints.host_and_port_endpoint_uri_lookup" | set .Values.conf.cinder.nova "memcached_servers" -}}
+{{- end -}}
+{{- if empty .Values.conf.cinder.nova.project_domain_name -}}
+{{- $_ := set .Values.conf.cinder.nova "project_domain_name" .Values.endpoints.identity.auth.cinder.project_domain_name -}}
+{{- end -}}
+{{- if empty .Values.conf.cinder.nova.project_name -}}
+{{- $_ := set .Values.conf.cinder.nova "project_name" .Values.endpoints.identity.auth.cinder.project_name -}}
+{{- end -}}
+{{- if empty .Values.conf.cinder.nova.user_domain_name -}}
+{{- $_ := set .Values.conf.cinder.nova "user_domain_name" .Values.endpoints.identity.auth.cinder.user_domain_name -}}
+{{- end -}}
+{{- if empty .Values.conf.cinder.nova.password -}}
+{{- $_ := set .Values.conf.cinder.nova "password" .Values.endpoints.identity.auth.cinder.password -}}
+{{- end -}}
+{{- if empty .Values.conf.cinder.nova.username -}}
+{{- $_ := set .Values.conf.cinder.nova "username" .Values.endpoints.identity.auth.cinder.username -}}
+{{- end -}}
+{{- if empty .Values.conf.cinder.nova.auth_url -}}
+{{- $_ := tuple "identity" "internal" "api" . | include "helm-toolkit.endpoints.keystone_endpoint_uri_lookup"| set .Values.conf.cinder.nova "auth_url" -}}
+{{- end -}}
+
 {{- if empty .Values.conf.cinder.keystone_authtoken.auth_uri -}}
 {{- $_ := tuple "identity" "internal" "api" . | include "helm-toolkit.endpoints.keystone_endpoint_uri_lookup"| set .Values.conf.cinder.keystone_authtoken "auth_uri" -}}
 {{- end -}}

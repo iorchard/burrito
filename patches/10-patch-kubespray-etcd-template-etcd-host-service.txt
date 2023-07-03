@@ -1,0 +1,12 @@
+--- kubespray/roles/etcd/templates/etcd-host.service.j2	2023-06-07 17:51:18.346140639 +0900
++++ patches/kubespray/roles/etcd/templates/etcd-host.service.j2	2023-06-30 16:09:38.942289492 +0900
+@@ -11,6 +11,9 @@
+ Restart=always
+ RestartSec=10s
+ LimitNOFILE=40000
++Nice={{ etcd_nice }}
++IOSchedulingClass={{ etcd_ionice_class }}
++IOSchedulingPriority={{ etcd_ionice_priority }}
+ 
+ [Install]
+ WantedBy=multi-user.target
