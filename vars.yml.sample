@@ -275,7 +275,12 @@ registry_disk_size: "30Gi"
 registry_service_type: "NodePort"
 registry_service_nodeport: "32680"
 seed_registry_port: "5000"
-containerd_insecure_registries: {}
+containerd_insecure_registries: >-
+  {% if registry_enabled -%}
+  {"local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"}
+  {% else -%}
+  {}
+  {% endif -%}
 
 metallb_protocol: "layer2"
 metallb_config:
