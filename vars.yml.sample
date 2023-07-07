@@ -388,9 +388,10 @@ nova:
 nova_uid: 42424
 nova_gid: 42424
 
-# cinder
-# cinder backup deployment(default): false
+## cinder
+# openstack helm cinder chart manifest
 enable_cinder_backup: false
+enable_cron_volume_usage_audit: false
 cinder_backends: "{% for s in storage_backends %}{% if s == 'ceph' %}rbd1{% endif %}{% if s == 'netapp' %}{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
 cinder:
   enabled_backends: "{{ cinder_backends }}"
