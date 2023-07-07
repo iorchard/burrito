@@ -316,6 +316,7 @@ dependencies:
 {% endif %}
 manifests:
   certificates: true
+  cron_volume_usage_audit: {{ enable_cron_volume_usage_audit }}
   deployment_backup: {{ enable_cinder_backup }}
   job_backup_storage_init: {{ enable_cinder_backup }}
   job_storage_init: {{ ("ceph" in storage_backends)|ternary('true', 'false') }}
