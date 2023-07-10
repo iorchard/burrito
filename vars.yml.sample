@@ -195,10 +195,12 @@ cert_manager_affinity:
          values:
          - ""
 preinstall_selinux_state: disabled
-# The default kubespray kube_pods_subnet supports 64 nodes.
-# set kube_pods_subnet to very large subnet to support more nodes.
-# The following setting can support 2048 nodes.
+
+# ipam settings for kubernetes
 kube_pods_subnet: 10.200.0.0/13
+kube_network_node_prefix: 24
+kubelet_max_pods: 250
+
 kube_apiserver_enable_admission_plugins:
   - AlwaysPullImages
   - EventRateLimit
@@ -253,10 +255,13 @@ podsecuritypolicy_restricted_spec:
         max: 65535
   readOnlyRootFilesystem: false
 
-# calico
+## calico
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
+# To use node.spec.podCIDR, set this to true.
+calico_ipam_host_local: false
+calico_pool_blocksize: "{{ kube_network_node_prefix }}"
 
 ## etcd patch variables
 # etcd_nice is a nice value from -20(most favorable) to 19(least favorable).
