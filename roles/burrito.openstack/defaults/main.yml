@@ -62,7 +62,7 @@ neutron:
   tunnel: ~
   tunnel_compute: ~
 neutron_ml2_plugin: "openvswitch"
-ovs_dvr: true
+ovs_dvr: false
 ovs_provider:
   - name: external
     bridge: br-ex
@@ -79,6 +79,8 @@ nova:
   pvc_size: "100Gi"
 
 ## cinder
+enable_cinder_backup: false
+enable_cron_volume_usage_audit: false
 cinder:
   enabled_backends: ~
   default_volume_type: ~
