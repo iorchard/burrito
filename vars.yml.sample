@@ -390,6 +390,7 @@ nova:
   password: "{{ vault_nova_password }}"
   volume_size: "500Gi"
 
+# nova_compute_sshkey_copy
 nova_uid: 42424
 nova_gid: 42424
 

@@ -196,8 +196,8 @@ conf:
       netapp_password: "{{ n.password }}"
       nfs_mount_options: "{{ n.nfsMountOptions }}"
       nfs_shares_config: "/etc/cinder/share_{{ n.name }}"
-      nas_secure_file_operation: false
-      nas_secure_file_permissions: false
+      nas_secure_file_operations: {{ n.nas_secure_file_operations }}
+      nas_secure_file_permissions: {{ n.nas_secure_file_permissions }}
 {% endfor %}
 {% endif %}
 endpoints:
