@@ -195,10 +195,12 @@ cert_manager_affinity:
          values:
          - ""
 preinstall_selinux_state: disabled
-# The default kubespray kube_pods_subnet supports 64 nodes.
-# set kube_pods_subnet to very large subnet to support more nodes.
-# The following setting can support 2048 nodes.
+
+# ipam settings for kubernetes
 kube_pods_subnet: 10.200.0.0/13
+kube_network_node_prefix: 24
+kubelet_max_pods: 250
+
 kube_apiserver_enable_admission_plugins:
   - AlwaysPullImages
   - EventRateLimit
@@ -253,10 +255,13 @@ podsecuritypolicy_restricted_spec:
         max: 65535
   readOnlyRootFilesystem: false
 
-# calico
+## calico
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
+# To use node.spec.podCIDR, set this to true.
+calico_ipam_host_local: false
+calico_pool_blocksize: "{{ kube_network_node_prefix }}"
 
 ## etcd patch variables
 # etcd_nice is a nice value from -20(most favorable) to 19(least favorable).
@@ -277,8 +282,7 @@ registry_service_nodeport: "32680"
 seed_registry_port: "5000"
 containerd_insecure_registries: >-
   {% if registry_enabled -%}
-  "local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"
-  "seed_registry": "{{ keepalived_vip }}:{{ seed_registry_port }}"
+  {"local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"}
   {% else -%}
   {}
   {% endif -%}
@@ -389,9 +393,10 @@ nova:
 nova_uid: 42424
 nova_gid: 42424
 
-# cinder
-# cinder backup deployment(default): false
+## cinder
+# openstack helm cinder chart manifest
 enable_cinder_backup: false
+enable_cron_volume_usage_audit: false
 cinder_backends: "{% for s in storage_backends %}{% if s == 'ceph' %}rbd1{% endif %}{% if s == 'netapp' %}{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
 cinder:
   enabled_backends: "{{ cinder_backends }}"

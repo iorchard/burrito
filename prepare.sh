@@ -26,15 +26,16 @@ else
   ansible-galaxy install -r ceph-ansible/requirements.yml
 fi
 
-for CFG in ${CFGFILES[@]};do
-  if [ -f "${CFG}" ]; then
-    mv ${CFG} ${CFG}.$(date --iso-8601='seconds')
+for CFG in ${CFGFILES[@]}; do
+  if [ ! -f "${CFG}" ]; then
+    cp ${CFG}.sample ${CFG}
   fi
-  cp ${CFG}.sample ${CFG}
 done
 
-mkdir -p group_vars/all
-cp ceph_vars.yml.tpl group_vars/all/ceph_vars.yml
-cp netapp_vars.yml.tpl group_vars/all/netapp_vars.yml
+if [ ! -d "group_vars" ]; then
+  mkdir -p group_vars/all
+  cp ceph_vars.yml.tpl group_vars/all/ceph_vars.yml
+  cp netapp_vars.yml.tpl group_vars/all/netapp_vars.yml
+fi
 
 ./scripts/patch.sh
