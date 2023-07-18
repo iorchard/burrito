@@ -179,7 +179,7 @@ conf:
       core_plugin: ml2
       global_physnet_mtu: {{ openstack_mtu }}
 {% if overlay_iface_name %}
-      service_plugins: {{ bgp_dragent|ternary('neutron_dynamic_routing.services.bgp.bgp_plugin.BgpPlugin,neutron.services.l3_router.l3_router_plugin.L3RouterPlugin', 'router') }}
+      service_plugins: {{ bgp_dragent|ternary('neutron_dynamic_routing.services.bgp.bgp_plugin.BgpPlugin,neutron.services.l3_router.l3_router_plugin.L3RouterPlugin', 'router,metering,qos') }}
       l3_ha: true
       l3_ha_network_type: vxlan
 {% else %}
@@ -218,7 +218,7 @@ conf:
   plugins:
     ml2_conf:
       ml2:
-        extension_drivers: port_security
+        extension_drivers: port_security,qos
         type_drivers: flat{% if ovs_provider[0].vlan_ranges %},vlan{% endif %}{% if overlay_iface_name %},vxlan{% endif %}
 
         tenant_network_types: {{ overlay_iface_name|ternary('vxlan', []) }}
@@ -257,6 +257,7 @@ conf:
       securitygroup:
         firewall_driver: openvswitch
       agent:
+        extensions: qos
         enable_distributed_routing: {{ ovs_dvr | ternary('True', 'False') }}
         tunnel_types: {{ overlay_iface_name|ternary('vxlan', '') }}
         l2_population: true
@@ -266,6 +267,8 @@ conf:
     DEFAULT:
       interface_driver: {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
       agent_mode: {{ ovs_dvr | ternary('dvr', 'legacy') }}
+    agent:
+      extensions: fip_qos, gateway_ip_qos
 {% endif %}
 {% if bgp_dragent %}
   bgp_dragent:
