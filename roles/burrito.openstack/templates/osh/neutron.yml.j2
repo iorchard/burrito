@@ -268,7 +268,7 @@ conf:
       interface_driver: {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
       agent_mode: {{ ovs_dvr | ternary('dvr', 'legacy') }}
     agent:
-      extensions: fip_qos
+      extensions: fip_qos, gateway_ip_qos
 {% endif %}
 {% if bgp_dragent %}
   bgp_dragent:
