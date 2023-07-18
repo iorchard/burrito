@@ -1,0 +1,9 @@
+---
+- name: Config | change the default MDM password
+  ansible.builtin.command: >-
+    scli --login --username admin --password admin --approve_certificate && \
+    scli --set_password --old_password admin --new_password '{{ mdm_password }}'
+  become: true
+  delegate_to: groups['mdm'][0]
+  run_once: true
+...

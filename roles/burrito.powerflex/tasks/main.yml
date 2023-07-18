@@ -1,0 +1,27 @@
+---
+- name: Main | import common tasks
+  ansible.builtin.import_tasks: "common.yml"
+
+- name: Main | include os specific tasks
+  ansible.builtin.include_tasks: "{{ lookup('first_found', _params) }}"
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "."
+
+- name: Main | include install tasks
+  ansible.builtin.include_tasks: "install.yml"
+
+- name: Main | include config tasks
+  ansible.builtin.include_tasks: "config.yml"
+
+- name: Main | include setup tasks
+  ansible.builtin.include_tasks: "setup.yml"
+...

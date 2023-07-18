@@ -1,0 +1,78 @@
+---
+- name: Install | install primary and secondary MDM
+  ansible.builtin.command: >-
+    dnf -y install {{ package_dir }}/EMC-ScaleIO-mdm-*.x86_64.rpm
+  environment:
+    MDM_ROLE_IS_MANAGER: 1  
+  become: true
+  when:
+    - inventory_hostname == groups['mdm'][0] or inventory_hostname == groups['mdm'][1]
+
+- name: Install | install tiebreaker MDM
+  ansible.builtin.command: >-
+    dnf -y install {{ package_dir }}/EMC-ScaleIO-mdm-*.x86_64.rpm
+  environment:
+    MDM_ROLE_IS_MANAGER: 0
+  become: true
+  when:
+    - inventory_hostname == groups['mdm'][2]
+
+- name: Install | install SDS
+  ansible.builtin.command: >-
+    dnf -y install {{ package_dir }}/EMC-ScaleIO-sds-*.x86_64.rpm
+  become: true
+  when: inventory_hostname in groups['sds']
+
+- name: Install | install LIA
+  ansible.builtin.command: >-
+    dnf -y install {{ package_dir }}/EMC-ScaleIO-lia-*.x86_64.rpm
+  environment:
+    TOKEN: "{{ lia_token }}"
+  become: true
+
+- name: Install | install SDC
+  ansible.builtin.command: >-
+    dnf -y install {{ package_dir }}/EMC-ScaleIO-sdc-*.x86_64.rpm
+  environment:
+    MDM_IP: "{{ mdm_ip|join(',') }}"
+  become: true
+  when: inventory_hostname in groups['sdc']
+
+- name: Install | install pre-requisite packages for gateway service
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ gateway_pkgs }}"
+  when: inventory_hostname in groups['gateway']
+
+- name: Install | install gateway service
+  ansible.builtin.command: >-
+    dnf -y install {{ package_dir }}/EMC-ScaleIO-gateway-*.x86_64.rpm
+  environment:
+    GATEWAY_ADMIN_PASSWORD: "{{ gateway_admin_password }}"
+  become: true
+  when: inventory_hostname in groups['gateway']
+
+- name: Install | install pre-requisite packages for presentation service
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ presentation_pkgs }}"
+  when: inventory_hostname in groups['presentation']
+
+- name: Install | install presentation service
+  ansible.builtin.command: >-
+    dnf -y install {{ package_dir }}/EMC-ScaleIO-mgmt-server--*.x86_64.rpm
+  become: true
+  when: inventory_hostname in groups['presentation']
+...
