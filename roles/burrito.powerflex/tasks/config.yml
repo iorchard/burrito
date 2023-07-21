@@ -1,9 +1,65 @@
 ---
-- name: Config | change the default MDM password
-  ansible.builtin.command: >-
-    scli --login --username admin --password admin --approve_certificate && \
-    scli --set_password --old_password admin --new_password '{{ mdm_password }}'
+- name: Config | get system id
+  ansible.builtin.shell: >-
+    /opt/emc/scaleio/sdc/bin/drv_cfg --query_mdms|grep MDM-ID|cut -d' ' -f2
+  register: systemid
   become: true
-  delegate_to: groups['mdm'][0]
+  delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
+
+- name: Config | reconfigure gatewayUser.properties
+  ansible.builtin.lineinfile:
+    path: "{{ gateway_user_properties_file }}"
+    regexp: "{{ item.from }}"
+    line: "{{ item.to }}"
+    state: present
+  loop:
+    - { from: "^mdm.ip.addresses", to: "mdm.ip.addresses={{mdm_ip_addresses|join(';')}}" }
+    - { from: "^system.id", to: "system.id={{ systemid.stdout }}" }
+    - { from: "^security.bypass_certificate", to: "security.bypass_certificate=true" }
+  become: true
+  changed_when: true
+  when: inventory_hostname in groups['gateway']
+  notify:
+    - systemctl restart gateway service
+
+- name: Config | reconfigure catalina.properties
+  ansible.builtin.lineinfile:
+    path: "{{ catalina_properties_file }}"
+    regexp: "{{ item.from }}"
+    line: "{{ item.to }}"
+    state: present
+  loop:
+    - { from: "^http.port", to: "http.port={{ gateway_http_port }}" }
+    - { from: "^ssl.port", to: "ssl.port={{ gateway_ssl_port }}" }
+  become: true
+  when: inventory_hostname in groups['gateway']
+  changed_when: true
+  notify:
+    - systemctl restart gateway service
+
+- name: Config | reconfigure lia conf.txt
+  ansible.builtin.lineinfile:
+    path: "{{ lia_conf_file }}"
+    line: "lia_port={{ lia_port }}"
+    state: present
+  become: true
+  changed_when: true
+  notify:
+    - systemctl restart lia service
+
+- name: Config | reconfigure presentation service
+  ansible.builtin.lineinfile:
+    path: "{{ presentation_conf_file }}"
+    line: "MGMT_SERVER_OPTIONS='https.port={{ presentation_port }}'"
+    state: present
+    create: true
+  become: true
+  when: inventory_hostname in groups['presentation']
+  changed_when: true
+  notify:
+    - systemctl restart presentation service
+
+- name: Config | flush handlers
+  ansible.builtin.meta: flush_handlers
 ...

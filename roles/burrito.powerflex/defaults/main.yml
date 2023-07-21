@@ -1,34 +1,35 @@
 ---
-# type: string
-packages_dir: "{{ ansible_env.HOME }}/powerflex_rpms"
-# type: string
+pkg_url_base: "file://{{ ansible_env.HOME }}/powerflex_rpms"
+pkg_url:
+  lia: "{{ pkg_url_base }}/EMC-ScaleIO-lia-3.6-700.103.el8.x86_64.rpm"
+  mdm: "{{ pkg_url_base }}/EMC-ScaleIO-mdm-3.6-700.103.el8.x86_64.rpm"
+  sds: "{{ pkg_url_base }}/EMC-ScaleIO-sds-3.6-700.103.el8.x86_64.rpm"
+  sdc: "{{ pkg_url_base }}/EMC-ScaleIO-sdc-3.6-700.103.el8.x86_64.rpm"
+  gateway: "{{ pkg_url_base }}/EMC-ScaleIO-gateway-3.6-700.103.x86_64.rpm"
+  presentation: "{{ pkg_url_base }}/EMC-ScaleIO-mgmt-server-3.6-700.101.noarch.rpm"
 lia_token: ~
-# type: list of string 
 mdm_ip: []
-# type: string
 gateway_admin_password: ~
-# type: int
-gateway_port: 443
-# type: string
 mdm_password: ~
+scaleio_dir: "/opt/emc/scaleio"
+gateway_user_properties_file: "{{ scaleio_dir }}/gateway/webapps/ROOT/WEB-INF/classes/gatewayUser.properties"
+mdm_ip_addresses: >-
+  [
+    "{{ hostvars[groups['mdm'][0]]['ansible_'+mgmt_iface_name].ipv4.address }}",
+    "{{ hostvars[groups['mdm'][1]]['ansible_'+mgmt_iface_name].ipv4.address }}",
+  {% for siface in storage_iface_names %}
+    "{{ hostvars[groups['mdm'][0]]['ansible_'+siface].ipv4.address }}",
+    "{{ hostvars[groups['mdm'][1]]['ansible_'+siface].ipv4.address }}",
+  {% endfor %}
+  ]
 
-pod:
-  replicas: 1
+catalina_properties_file: "{{ scaleio_dir }}/gateway/conf/catalina.properties"
+gateway_http_port: 80
+gateway_ssl_port: 443
 
-template_files:
-  - {dest: "{{ artifacts_dir }}/00-csi-configmap.yml"}
-  - {dest: "{{ artifacts_dir }}/03-csi-rbd-secret.yml"}
-  - {dest: "{{ artifacts_dir }}/06-csi-rbdplugin-provisioner.yaml"}
-  - {dest: "{{ artifacts_dir }}/07-csi-rbdplugin.yaml"}
-  - {dest: "{{ artifacts_dir }}/08-csi-rbd-sc.yml"}
+lia_conf_file: "{{ scaleio_dir }}/lia/cfg/conf.txt"
+lia_port: 9099
 
-# container image versions
-cephcsi_version: "v3.7.2"
-csi_attacher_version: "v4.0.0"
-csi_node_driver_registrar_version: "v2.5.1"
-csi_provisioner_version: "v3.3.0"
-csi_resizer_version: "v1.6.0"
-csi_snapshooter_version: "v6.1.0"
-# wait timeout for registry in seconds (default: 300s = 5m)
-registry_ready_timeout: 300
+presentation_conf_file: "/etc/mgmt-server/.config/mgmt-server"
+presentation_port: 8443
 ...

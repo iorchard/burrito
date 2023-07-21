@@ -1,0 +1,20 @@
+---
+- name: systemctl restart gateway service
+  ansible.builtin.service:
+    name: "scaleio-gateway.service"
+    state: "restarted"
+    enabled: true
+  become: true
+- name: systemctl restart lia service
+  ansible.builtin.service:
+    name: "lia.service"
+    state: "restarted"
+    enabled: true
+  become: true
+- name: systemctl restart presentation service
+  ansible.builtin.service:
+    name: "mgmt-server.service"
+    state: "restarted"
+    enabled: true
+  become: true
+...

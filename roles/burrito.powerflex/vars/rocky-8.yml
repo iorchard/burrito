@@ -1,13 +1,10 @@
 ---
 packages: []
 
-gateway_pkgs:
+gateway_prerequisite_pkgs:
   - binutils
   - java-11-openjdk-headless
 
-presentation_pkgs:
+presentation_prerequisite_pkgs:
   - java-11-openjdk-headless
-
-#systemd_service_name:
-#  - haproxy.service
 ...

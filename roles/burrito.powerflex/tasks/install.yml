@@ -1,7 +1,7 @@
 ---
 - name: Install | install primary and secondary MDM
   ansible.builtin.command: >-
-    dnf -y install {{ package_dir }}/EMC-ScaleIO-mdm-*.x86_64.rpm
+    dnf -y install {{ pkg_url.mdm }}
   environment:
     MDM_ROLE_IS_MANAGER: 1  
   become: true
@@ -10,7 +10,7 @@
 
 - name: Install | install tiebreaker MDM
   ansible.builtin.command: >-
-    dnf -y install {{ package_dir }}/EMC-ScaleIO-mdm-*.x86_64.rpm
+    dnf -y install {{ pkg_url.mdm }}
   environment:
     MDM_ROLE_IS_MANAGER: 0
   become: true
@@ -19,20 +19,20 @@
 
 - name: Install | install SDS
   ansible.builtin.command: >-
-    dnf -y install {{ package_dir }}/EMC-ScaleIO-sds-*.x86_64.rpm
+    dnf -y install {{ pkg_url.sds }}
   become: true
   when: inventory_hostname in groups['sds']
 
 - name: Install | install LIA
   ansible.builtin.command: >-
-    dnf -y install {{ package_dir }}/EMC-ScaleIO-lia-*.x86_64.rpm
+    dnf -y install {{ pkg_url.lia }}
   environment:
     TOKEN: "{{ lia_token }}"
   become: true
 
 - name: Install | install SDC
   ansible.builtin.command: >-
-    dnf -y install {{ package_dir }}/EMC-ScaleIO-sdc-*.x86_64.rpm
+    dnf -y install {{ pkg_url.sdc }}
   environment:
     MDM_IP: "{{ mdm_ip|join(',') }}"
   become: true
@@ -47,12 +47,12 @@
   retries: 3
   delay: 3
   become: true
-  loop: "{{ gateway_pkgs }}"
+  loop: "{{ gateway_prerequisite_pkgs }}"
   when: inventory_hostname in groups['gateway']
 
 - name: Install | install gateway service
   ansible.builtin.command: >-
-    dnf -y install {{ package_dir }}/EMC-ScaleIO-gateway-*.x86_64.rpm
+    dnf -y install {{ pkg_url.gateway }}
   environment:
     GATEWAY_ADMIN_PASSWORD: "{{ gateway_admin_password }}"
   become: true
@@ -67,12 +67,12 @@
   retries: 3
   delay: 3
   become: true
-  loop: "{{ presentation_pkgs }}"
+  loop: "{{ presentation_prerequisite_pkgs }}"
   when: inventory_hostname in groups['presentation']
 
 - name: Install | install presentation service
   ansible.builtin.command: >-
-    dnf -y install {{ package_dir }}/EMC-ScaleIO-mgmt-server--*.x86_64.rpm
+    dnf -y install {{ pkg_url.presentation }}
   become: true
   when: inventory_hostname in groups['presentation']
 ...
