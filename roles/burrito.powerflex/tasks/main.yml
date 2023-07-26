@@ -22,10 +22,12 @@
 #- name: Main | include cluster tasks
 #  ansible.builtin.include_tasks: "clsuter.yml"
 
-- name: Main | include config tasks
-  ansible.builtin.include_tasks: "config.yml"
+#- name: Main | include config tasks
+#  ansible.builtin.include_tasks: "config.yml"
 
 #- name: Main | include setup tasks
 #  ansible.builtin.include_tasks: "setup.yml"
-#  tags: setup
+
+- name: Main | include csi tasks
+  ansible.builtin.include_tasks: "csi.yml"
 ...

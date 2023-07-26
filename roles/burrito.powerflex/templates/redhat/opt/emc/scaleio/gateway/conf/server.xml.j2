@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Server port="-1" shutdown="SHUTDOWN">
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener"/>
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener"/>
+    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener"/>
+    <GlobalNamingResources>
+        <Resource name="UserDatabase" auth="Container"
+                  type="org.apache.catalina.UserDatabase"
+                  description="User database that can be updated and saved"
+                  factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+                  pathname="conf/tomcat-users.xml"/>
+    </GlobalNamingResources>
+    <Service name="Catalina">
+        <Connector
+                address="{{ gateway_bind_ip }}"
+                port="${http.port}"
+                protocol="HTTP/1.1"
+                connectionTimeout="20000"
+                redirectPort="${ssl.port}"
+                compression="force"
+                compressableMimeType="application/json,application/octet-stream"
+               server="ScaleIO Gateway"
+                />
+        <Connector
+                address="{{ gateway_bind_ip }}"
+                port="${ssl.port}"
+                protocol="org.apache.coyote.http11.Http11NioProtocol"
+                SSLEnabled="true"
+                acceptCount="100"
+                maxThreads="150"
+                maxHttpHeaderSize="16384"
+                scheme="https"
+                secure="true"
+                clientAuth="${client.auth}"
+                sslProtocol="TLS"
+                sslEnabledProtocols="TLSv1.2"
+                keystoreFile="${keystore.file}"
+                keystorePass="${keystore.password}"
+                truststoreFile="${truststore.file}"
+                truststorePass="${truststore.password}"
+                trustManagerClassName="${trust.manager.class.name}"
+                compression="force"
+                compressableMimeType="application/json,application/octet-stream"
+                ciphers="TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA"
+                server="ScaleIO Gateway">
+            <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" overheadDataThreshold="0"/>
+        </Connector>
+        <Engine name="Catalina" defaultHost="localhost">
+            <Realm className="org.apache.catalina.realm.LockOutRealm">
+                <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+                       resourceName="UserDatabase"/>
+            </Realm>
+            <Host name="localhost" appBase="webapps"
+                  unpackWARs="true" autoDeploy="false">
+                <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"
+                       prefix="localhost_access_log" suffix=".txt" maxDays="14"
+                       pattern="%h %l %u %t &quot;%r&quot; %s %b" />
+
+            </Host>
+        </Engine>
+    </Service>
+</Server>
