@@ -127,23 +127,23 @@ openstack_config: true
 kube_pool:
   name: "kube"
   application: "rbd"
-  target_size_ratio: 0.2
+  target_size_ratio: 0
 openstack_glance_pool:
   name: "images"
   application: "rbd"
-  target_size_ratio: 0.3
+  target_size_ratio: 0
 openstack_cinder_pool:
   name: "volumes"
   application: "rbd"
-  target_size_ratio: "{{ enable_cinder_backup | ternary(0.3, 0.4) }}"
+  target_size_ratio: 0
 openstack_cinder_backup_pool:
   name: "backups"
   application: "rbd"
-  target_size_ratio: 0.1
+  target_size_ratio: 0
 openstack_nova_vms_pool:
   name: "vms"
   application: "rbd"
-  target_size_ratio: 0.1
+  target_size_ratio: 0
 
 openstack_basic_pools:
   - "{{ kube_pool }}"

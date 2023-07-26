@@ -1,0 +1,16 @@
+---
+- name: Check | flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Check | wait until ntp is synced for the first control node
+  ansible.builtin.command: >-
+    chronyc waitsync {{ max_tries }} {{ max_corrections }} {{ max_skew }} {{ max_interval }}
+  when:
+    - ntp_servers|length != 0
+    - inventory_hostname == groups['kube_control_plane'][0]
+
+- name: Check | wait until ntp is synced for all other nodes
+  ansible.builtin.command: >-
+    chronyc waitsync {{ max_tries }} {{ max_corrections }} {{ max_skew }} {{ max_interval }}
+  when: inventory_hostname != groups['kube_control_plane'][0]
+...

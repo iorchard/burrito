@@ -19,7 +19,6 @@
     mode: "0644"
   become: true
   loop: "{{ service_conf }}"
-  changed_when: true
   notify:
     - systemctl restart service
   when: inventory_hostname in groups['kube_control_plane']
@@ -33,7 +32,6 @@
     mode: "0644"
   become: true
   loop: "{{ service_conf }}"
-  changed_when: true
   notify:
     - systemctl restart service
   when: inventory_hostname not in groups['kube_control_plane']

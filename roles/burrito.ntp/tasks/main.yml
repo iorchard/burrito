@@ -15,4 +15,7 @@
         - "{{ ansible_os_family | lower }}.yml"
       paths:
         - "."
+
+- name: Main | import check tasks
+  ansible.builtin.import_tasks: "check.yml"
 ...
