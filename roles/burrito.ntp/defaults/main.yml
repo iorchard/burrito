@@ -6,4 +6,10 @@ ntp_servers:
   - 0.pool.ntp.org
   - 1.pool.ntp.org
   - 2.pool.ntp.org
+
+# check.yml
+max_tries: 30
+max_interval: 10
+max_corrections: 0.01
+max_skew: 0.0
 ...
