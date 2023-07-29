@@ -409,21 +409,37 @@ pod:
     nova_novncproxy:
       nova_novncproxy:
         volumeMounts:
-        - name: vnc-client-secret
-          mountPath: /etc/pki/nova-novncproxy
-          readOnly: true
+          - name: vnc-client-secret
+            mountPath: /etc/pki/nova-novncproxy
+            readOnly: true
         volumes:
-        - name: vnc-client-secret
-          secret:
-            secretName: vnc-client-secret
-            items:
-            - key: ca_crt
-              path: ca-cert.pem
-            - key: client_crt
-              path: client-cert.pem
-            - key: client_key
-              path: client-key.pem
+          - name: vnc-client-secret
+            secret:
+              secretName: vnc-client-secret
+              items:
+                - key: ca_crt
+                  path: ca-cert.pem
+                - key: client_crt
+                  path: client-cert.pem
+                - key: client_key
+                  path: client-key.pem
+{% if "powerflex" in storage_backends %}
+    nova_compute:
+      nova_compute:
+        volumeMounts:
+          - name: dev
+            mountPath: /dev
+          - name: nova-pfx
+            mountPath: /opt/emc/scaleio/openstack
+        volumes:
+          - name: dev
+            hostPath:
+              path: /dev
+          - name: nova-pfx
+            hostPath:
+              path: /opt/emc/scaleio/openstack
+{% endif %}
 manifests:
   certificates: true
-  pvc_instances: {{ 'true' if storage_backends[0] == 'netapp' else 'false' }}
+  pvc_instances: {{ nova.pvc_instances }}
 ...

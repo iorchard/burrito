@@ -50,7 +50,7 @@ glance:
   nginx:
     proxy_body_size: "102400M"
     proxy_read_timeout: "1800"
-  pvc_size: "100Gi"
+  volume_size: "100Gi"
 
 ## placement
 placement:
@@ -71,12 +71,17 @@ ovs_provider:
 bgp_dragent: false
 
 ## nova
+nova_pvc_instances:
+  ceph: false
+  netapp: true
+  powerflex: false
 nova:
   vncserver_proxyclient_interface: ~
   hypervisor_host_interface: ~
   libvirt_live_migration_interface: ~
   password: ~
-  pvc_size: "100Gi"
+  volume_size: "100Gi"
+  pvc_instances: false
 
 ## cinder
 enable_cinder_backup: false

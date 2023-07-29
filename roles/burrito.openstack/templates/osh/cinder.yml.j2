@@ -34,6 +34,51 @@ pod:
               - SYS_ADMIN
           readOnlyRootFilesystem: false
 {% endif %}
+{% if "powerflex" in storage_backends %}
+    cinder_volume:
+      container:
+        cinder_volume:
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+          readOnlyRootFilesystem: false
+  mounts:
+    cinder_volume:
+      cinder_volume:
+        volumeMounts:
+          - name: run
+            mountPath: /run
+          - name: dev
+            mountPath: /dev
+          - name: libmodules
+            mountPath: /lib/modules
+            readOnly: true
+          - name: sys
+            mountPath: /sys
+          - name: cinder-pfx
+            mountPath: /opt/emc/scaleio/openstack
+          - name: cinder-tmp
+            mountPath: /var/lib/cinder/tmp
+        volumes:
+          - name: run
+            hostPath:
+              path: /run
+          - name: dev
+            hostPath:
+              path: /dev
+          - name: libmodules
+            hostPath:
+              path: /lib/modules
+          - name: sys
+            hostPath:
+              path: /sys
+          - name: cinder-pfx
+            hostPath:
+              path: /opt/emc/scaleio/openstack
+          - name: cinder-tmp
+            emptyDir: {}
+{% endif %}
   replicas:
     api: {{ pod.replicas }}
     backup: {{ pod.replicas }}
@@ -66,6 +111,7 @@ network:
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: "https"
 conf:
+  enable_powerflex: {{ ("powerflex" in storage_backends)|ternary('true', 'false') }}
   db_acl:
     enabled: true
   software:
@@ -134,7 +180,7 @@ conf:
       glance_ca_certificates_file: /etc/cinder/certs/ca.crt
       debug: true
       enable_force_upload: true
-      allow_direct_url_schemes: cinder
+      allowed_direct_url_schemes: cinder
       cinder_internal_tenant_project_id: internal_cinder
       cinder_internal_tenant_user_id: internal_cinder
       enabled_backends: "{{ cinder.enabled_backends }}"
@@ -180,6 +226,7 @@ conf:
       rbd_pool: "volumes"
       rbd_secret_uuid: "{{ ceph_secret_uuid }}"
       rbd_exclusive_cinder_pool: true
+      image_volume_cache_enabled: True
 {% else %}
     rbd1: null
 {% endif %}
@@ -199,6 +246,19 @@ conf:
       nas_secure_file_operations: {{ n.nas_secure_file_operations }}
       nas_secure_file_permissions: {{ n.nas_secure_file_permissions }}
 {% endfor %}
+{% endif %}
+{% if "powerflex" in storage_backends %}
+    powerflex:
+      volume_driver: cinder.volume.drivers.dell_emc.powerflex.driver.PowerFlexDriver
+      volume_backend_name: powerflex
+      san_ip: "{{ keepalived_vip }}"
+      powerflex_storage_pools: "{{ protection_domain_name }}:{{ storage_pool_name }}"
+      san_login: admin
+      san_password: "{{ gateway_admin_password }}"
+      powerflex_rest_server_port: {{ gateway_ssl_port }}
+      image_volume_cache_enabled: True
+      image_upload_use_cinder_backend: True
+      image_upload_use_internal_tenant: True
 {% endif %}
 endpoints:
   oslo_db:
