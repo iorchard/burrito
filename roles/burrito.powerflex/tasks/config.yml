@@ -92,4 +92,25 @@
   when: inventory_hostname in groups['kube_control_plane']
   notify:
     - systemctl restart haproxy service
+
+- name: Config | create openstack directory in scaleio directory
+  ansible.builtin.file:
+    path: "{{ scaleio_dir }}/openstack"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Config | add openstack connector.conf
+  ansible.builtin.blockinfile:
+    path: /opt/emc/scaleio/openstack/connector.conf
+    block: |
+      [powerflex]
+      san_password = {{ gateway_admin_password }}
+    owner: root
+    group: root
+    mode: "0644"
+    create: true
+  become: true
 ...
