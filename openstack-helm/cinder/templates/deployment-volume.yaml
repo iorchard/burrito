@@ -60,6 +60,10 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
 {{- end }}
+{{- if .Values.conf.enable_powerflex }}
+      hostPID: true
+      hostIPC: true
+{{- end }}
 {{- if .Values.conf.enable_iscsi }}
       hostIPC: true
 {{- end }}
