@@ -70,9 +70,6 @@
   notify:
     - systemctl restart presentation service
 
-- name: Config | flush handlers
-  ansible.builtin.meta: flush_handlers
-
 - name: Config | add powerflex gateway section in haproxy.cfg
   ansible.builtin.blockinfile:
     path: "/etc/haproxy/haproxy.cfg"
@@ -92,6 +89,9 @@
   when: inventory_hostname in groups['kube_control_plane']
   notify:
     - systemctl restart haproxy service
+
+- name: Config | flush handlers
+  ansible.builtin.meta: flush_handlers
 
 - name: Config | create openstack directory in scaleio directory
   ansible.builtin.file:
