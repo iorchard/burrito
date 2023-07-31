@@ -3,6 +3,11 @@
   hosts: all
   any_errors_fatal: true
   tasks:
+    - name: touch /etc/resolv.conf on every node
+      ansible.builtin.file:
+        path: /etc/resolv.conf
+        state: touch
+      become: true
     - name: check if ip addresses in inventory hosts are valid.
       ansible.builtin.assert:
         quiet: "{{ checklist.quiet }}"
