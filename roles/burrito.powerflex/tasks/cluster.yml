@@ -59,7 +59,7 @@
 
 - name: Cluster | get the secondary MDM id
   ansible.builtin.shell: >-
-    scli --query_cluster|grep 'Manager'|cut -d',' -f2|cut -d' ' -f3
+    scli --query_cluster|grep {{ groups['mdm'][1] }}|cut -d',' -f2|cut -d' ' -f3
   register: secondary_mdm_res
   delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
@@ -68,7 +68,7 @@
   
 - name: Cluster | get the tiebreaker id
   ansible.builtin.shell: >-
-    scli --query_cluster |grep 'Tie-Breaker'|cut -d',' -f2|cut -d' ' -f3
+    scli --query_cluster |grep {{ groups['mdm'][2] }}|cut -d',' -f2|cut -d' ' -f3
   register: tiebreaker_res
   delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
