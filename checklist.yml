@@ -128,9 +128,11 @@
           {{ overlay_iface_name }} is not up.
         that:
           - hostvars[inventory_hostname]['ansible_'+overlay_iface_name].active
-      when: overlay_iface_name
+      when:
+        - overlay_iface_name
+        - inventory_hostname in groups['k8s_cluster']
 
-    - name: check if all other interfaces are up
+    - name: check if all other interfaces are up on k8s nodes
       ansible.builtin.assert:
         quiet: "{{ checklist.quiet }}"
         fail_msg: >-
@@ -142,6 +144,17 @@
         - "{{ mgmt_iface_name }}"
         - "{{ provider_iface_name }}"
         - "{{ storage_iface_name }}"
+      when:
+        - overlay_iface_name
+        - inventory_hostname in groups['k8s_cluster']
+
+    - name: check storage ip address is set
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          IP address is not set up on storage interface.
+        that:
+          - hostvars[inventory_hostname]['ansible_'+storage_iface_name].ipv4.address is defined
 
     - name: check if all hosts are reachable
       ansible.builtin.ping:
