@@ -10,8 +10,8 @@ pkgs:
 
 gateway_prerequisite_pkgs:
   - binutils
-  - java-11-openjdk-headless
+  - java-1.8.0-openjdk-headless
 
 presentation_prerequisite_pkgs:
-  - java-11-openjdk-headless
+  - java-1.8.0-openjdk-headless
 ...
