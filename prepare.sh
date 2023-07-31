@@ -24,6 +24,7 @@ else
   python -m pip install wheel
   python -m pip install -r requirements.txt
   ansible-galaxy install -r ceph-ansible/requirements.yml
+  ansible-galaxy install -r requirements.yml
 fi
 
 for CFG in ${CFGFILES[@]}; do
