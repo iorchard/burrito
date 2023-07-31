@@ -32,6 +32,7 @@ conf:
     keystone_authtoken:
       service_token_roles_required: true
       cafile: /etc/glance/certs/ca.crt
+
 {% if "rbd" in glance.enabled_backends %}
     rbd:
       rbd_store_replication: {{ ceph_pool_default_size }}
@@ -41,23 +42,23 @@ conf:
       rbd_store_chunk_size: 8
       rbd_thin_provisioning: true
 {% endif %}
+
+{% if "filesystem" in glance.enabled_backends %}
+    filesystem:
+      filesystem_store_datadir: /var/lib/glance/images
+{% endif %}
+
 {% if "cinder" in glance.enabled_backends %}
     cinder:
       cinder_catalog_info: "volumev3::internalURL"
-      #cinder_store_auth_address: "https://keystone-api.openstack.svc.cluster.local:5000/v3"
-      #cinder_ca_certificates_file: /etc/glance/certs/ca.crt
-      #cinder_store_user_name: cinder
-      #cinder_store_password: "{{ cinder.password }}"
-      #cinder_store_project_name: service
 {% endif %}
+
     glance_store:
-      #stores: "{{ glance.stores }}"
-      #default_store: "{{ glance.default_store }}"
       default_backend: "{{ glance.default_backend }}"
       https_ca_certificates_file: /etc/glance/certs/ca.crt
       swift_store_cacert: /etc/glance/certs/ca.crt
 
-{% if "ceph" in storage_backends %}
+{% if "rbd" in glance.enabled_backends %}
       # This is duplicate but it is needed by glance helm chart
       # glance-storage-init get the info from glance_store section.
       rbd_store_replication: {{ ceph_pool_default_size }}
