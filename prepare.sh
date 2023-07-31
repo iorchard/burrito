@@ -36,6 +36,7 @@ if [ ! -d "group_vars" ]; then
   mkdir -p group_vars/all
   cp ceph_vars.yml.tpl group_vars/all/ceph_vars.yml
   cp netapp_vars.yml.tpl group_vars/all/netapp_vars.yml
+  cp powerflex_vars.yml.tpl group_vars/all/powerflex_vars.yml
 fi
 
 ./scripts/patch.sh
