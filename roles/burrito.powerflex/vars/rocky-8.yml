@@ -1,5 +1,12 @@
 ---
 packages: []
+pkgs:
+  lia: "{{ pkg_base }}/EMC-ScaleIO-lia-*.rpm"
+  mdm: "{{ pkg_base }}/EMC-ScaleIO-mdm-*.rpm"
+  sds: "{{ pkg_base }}/EMC-ScaleIO-sds-*.rpm"
+  sdc: "{{ pkg_base }}/EMC-ScaleIO-sdc-*.rpm"
+  gateway: "{{ pkg_base }}/EMC-ScaleIO-gateway-*.rpm"
+  presentation: "{{ pkg_base }}/EMC-ScaleIO-mgmt-server-*.rpm"
 
 gateway_prerequisite_pkgs:
   - binutils

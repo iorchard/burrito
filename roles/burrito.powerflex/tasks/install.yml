@@ -1,7 +1,17 @@
 ---
+- name: Install | create powerflex package directory
+  ansible.builtin.file:
+    path: "{{ pkg_base }}"
+    state: directory
+
+- name: Install | extract powerflex package tarball
+  ansible.builtin.unarchive:
+    src: "{{ pkg_tarball }}"
+    dest: "{{ pkg_base }}"
+
 - name: Install | install primary and secondary MDM
-  ansible.builtin.command: >-
-    dnf -y install {{ pkg_url.mdm }}
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.mdm }}
   environment:
     MDM_ROLE_IS_MANAGER: 1  
   become: true
@@ -9,8 +19,8 @@
     - inventory_hostname == groups['mdm'][0] or inventory_hostname == groups['mdm'][1]
 
 - name: Install | install tiebreaker MDM
-  ansible.builtin.command: >-
-    dnf -y install {{ pkg_url.mdm }}
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.mdm }}
   environment:
     MDM_ROLE_IS_MANAGER: 0
   become: true
@@ -18,21 +28,21 @@
     - inventory_hostname == groups['mdm'][2]
 
 - name: Install | install SDS
-  ansible.builtin.command: >-
-    dnf -y install {{ pkg_url.sds }}
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.sds }}
   become: true
   when: inventory_hostname in groups['sds']
 
 - name: Install | install LIA
-  ansible.builtin.command: >-
-    dnf -y install {{ pkg_url.lia }}
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.lia }}
   environment:
     TOKEN: "{{ lia_token }}"
   become: true
 
 - name: Install | install SDC
-  ansible.builtin.command: >-
-    dnf -y install {{ pkg_url.sdc }}
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.sdc }}
   environment:
     MDM_IP: "{{ mdm_ip|join(',') }}"
   become: true
@@ -51,8 +61,8 @@
   when: inventory_hostname in groups['gateway']
 
 - name: Install | install gateway service
-  ansible.builtin.command: >-
-    dnf -y install {{ pkg_url.gateway }}
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.gateway }}
   environment:
     GATEWAY_ADMIN_PASSWORD: "{{ gateway_admin_password }}"
   become: true
@@ -71,8 +81,13 @@
   when: inventory_hostname in groups['presentation']
 
 - name: Install | install presentation service
-  ansible.builtin.command: >-
-    dnf -y install {{ pkg_url.presentation }}
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.presentation }}
   become: true
   when: inventory_hostname in groups['presentation']
+
+- name: Install | clean up powerflex package directory
+  ansible.builtin.file:
+    path: "{{ pkg_base }}"
+    state: absent
 ...
