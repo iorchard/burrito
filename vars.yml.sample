@@ -45,11 +45,13 @@ metallb_ip_range: "192.168.20.95-192.168.20.98"
 # storage backends: ceph and(or) netapp
 # If there are multiple backends, the first one is the default backend.
 storage_backends:
-  - netapp
   - ceph
+  - netapp
+  - powerflex
 
 # ceph: set ceph configuration in group_vars/all/ceph_vars.yml
 # netapp: set netapp configuration in group_vars/all/netapp_vars.yml
+# powerflex: set powerflex configuration in group_vars/all/powerflex_vars.yml
 
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
@@ -326,7 +328,7 @@ registry_ready_timeout: 300
 ceph_public_network: "{{ public_network }}"
 ceph_cluster_network: "{{ cluster_network }}"
 
-# storageclass_name is used by ingress, mariadb, rabbitmq, glance, nova
+# storageclass_name is used by ingress, mariadb, rabbitmq, glance, nova, btx
 # Default: the first one of storage_backends
 storageclass_name: "{{ storage_backends[0] }}"
 
@@ -350,9 +352,18 @@ keystone:
   password: "{{ vault_keystone_password }}"
 
 # glance
+glance_store_types:
+  ceph: 'rbd'
+  netapp: 'filesystem'
+  powerflex: 'cinder'
+glance_storage:
+  ceph: 'rbd'
+  netapp: 'pvc'
+  powerflex: 'cinder'
 glance:
-  stores: "{{ storage_backends|map('extract', {'ceph': 'rbd', 'netapp': 'file'})|list|first }}"
-  default_store: "{{ storage_backends|map('extract', {'ceph': 'rbd', 'netapp': 'file'})|list|unique|first }}"
+  storage: "{{ storage_backends|map('extract', glance_storage)|list|first }}"
+  enabled_backends: "{{ storage_backends|map('extract', glance_store_types)|unique }}"
+  default_backend: "{{ storage_backends|map('extract', glance_store_types)|unique|first }}"
   password: "{{ vault_glance_password }}"
   nginx:
     proxy_body_size: "102400M"
@@ -383,12 +394,17 @@ lb_iface_mappings:
   - "external:{{ provider_iface_name }}"
 
 # nova
+nova_pvc_instances:
+  ceph: false
+  netapp: true
+  powerflex: false
 nova:
   vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
   hypervisor_host_interface: "{{ mgmt_iface_name }}"
   libvirt_live_migration_interface: "{{ mgmt_iface_name }}"
   password: "{{ vault_nova_password }}"
   volume_size: "500Gi"
+  pvc_instances: "{{ storage_backends|map('extract', nova_pvc_instances)|list|first }}"
 
 # nova_compute_sshkey_copy
 nova_uid: 42424
@@ -398,10 +414,13 @@ nova_gid: 42424
 # openstack helm cinder chart manifest
 enable_cinder_backup: false
 enable_cron_volume_usage_audit: false
-cinder_backends: "{% for s in storage_backends %}{% if s == 'ceph' %}rbd1{% endif %}{% if s == 'netapp' %}{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
+cinder_backends_map:
+  ceph: 'rbd1'
+  netapp: "{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}"
+  powerflex: 'powerflex'
 cinder:
-  enabled_backends: "{{ cinder_backends }}"
-  default_volume_type: "{{ cinder_backends|split(',')|first }}"
+  enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
+  default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first }}"
   password: "{{ vault_cinder_password }}"
 
 # horizon
