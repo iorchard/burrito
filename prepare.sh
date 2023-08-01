@@ -14,7 +14,8 @@ if [ x"$OPT" = x"offline" ]; then
   pip install --no-index --find-links /mnt/pypi \
                --requirement requirements.txt
   pushd /mnt/ansible_collections
-    ansible-galaxy install --force -r requirements.yml
+    ansible-galaxy install --force -r ceph-ansible_req.yml
+    ansible-galaxy install --force -r pfx_req.yml
   popd
 else
   sudo dnf -y install git python3 python39 python3-cryptography epel-release
@@ -24,7 +25,7 @@ else
   python -m pip install wheel
   python -m pip install -r requirements.txt
   ansible-galaxy install -r ceph-ansible/requirements.yml
-  ansible-galaxy install -r requirements.yml
+  ansible-galaxy install -r pfx_requirements.yml
 fi
 
 for CFG in ${CFGFILES[@]}; do
