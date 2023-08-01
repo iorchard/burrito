@@ -8,6 +8,7 @@
         path: /etc/resolv.conf
         state: touch
       become: true
+
     - name: check if ip addresses in inventory hosts are valid.
       ansible.builtin.assert:
         quiet: "{{ checklist.quiet }}"
@@ -149,9 +150,7 @@
         - "{{ mgmt_iface_name }}"
         - "{{ provider_iface_name }}"
         - "{{ storage_iface_name }}"
-      when:
-        - overlay_iface_name
-        - inventory_hostname in groups['k8s_cluster']
+      when: inventory_hostname in groups['k8s_cluster']
 
     - name: check storage ip address is set
       ansible.builtin.assert:
