@@ -8,6 +8,7 @@
     LOCAL_REGISTRY: "{{ containerd_insecure_registries['local_registry'] }}"
     SEED_REGISTRY: "{{ containerd_insecure_registries['seed_registry'] }}"
     OFFLINE: "{{ offline | ternary(true, false) }}"
+    INCLUDE_PFX: "{{ ('powerflex' in storage_backends)|ternary(true, false) }}"
 
   tasks:
     - name: Registry | get registry pod name

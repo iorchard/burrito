@@ -4,7 +4,8 @@ echo "local registry: ${LOCAL_REGISTRY}"
 echo "seed registry: ${SEED_REGISTRY}"
 echo "offline: ${OFFLINE}"
 
-for src in $(cat images.txt); do
+IMAGES=$(cat images.txt $([ "${INCLUDE_PFX}" = 1 ] && echo -n pfx_images.txt || :))
+for src in ${IMAGES}; do
   if [ "${OFFLINE}" = "1" ]; then
     registry=${src%%/*}
     src=${src/${registry}/${SEED_REGISTRY}}
