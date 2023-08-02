@@ -1,0 +1,21 @@
+---
+- name: Genesis Registry | apply patch to vxflexos-node daemonset
+  kubernetes.core.k8s_json_patch:
+    kind: DaemonSet
+    namespace: vxflexos
+    name: vxflexos-node
+    patch: "{{ vxflexos_daemonset_patch_list }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Genesis Registry | apply patch to vxflexos-controller deployment
+  kubernetes.core.k8s_json_patch:
+    kind: Deployment
+    namespace: vxflexos
+    name: vxflexos-controller
+    patch: "{{ vxflexos_deploy_patch_list }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+...

@@ -3,20 +3,33 @@ genesis_registry:
   root_dir: "/var/lib/registry"
   secret: "{{ lookup('community.general.random_string', length=12, base64=True) }}"
   conf: "/etc/genesis_registry.conf"
-  images:
+  common:
     - "library/registry:{{ registry_version }}"
     - "kube-apiserver:{{ kube_version }}"
     - "kube-controller-manager:{{ kube_version }}"
     - "kube-proxy:{{ kube_version }}"
     - "kube-scheduler:{{ kube_version }}"
-    - "cephcsi/cephcsi:{{ cephcsi_version }}"
     - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
     - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
     - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
     - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
-    - "sig-storage/csi-snapshotter:{{ csi_snapshooter_version }}"
+    - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
+  ceph:
+    - "cephcsi/cephcsi:{{ cephcsi_version }}"
+  netapp:
+    - "netapp/trident:{{ trident_version }}"
+    - "netapp/trident-autosupport:{{ trident_version[:5] }}"
+  powerflex:
+    - "dellemc/csi-volumegroup-snapshotter:{{ pfx_csi_volumegroup_snapshotter_version }}"
+    - "dellemc/csi-vxflexos:{{ pfx_version }}"
+    - "dellemc/csm-authorization-sidecar:{{ pfx_csm_authorization_sidecar_version }}"
+    - "dellemc/dell-csi-replicator:{{ pfx_dell_csi_replicator_version }}"
+    - "dellemc/podmon:{{ pfx_podmon_version }}"
+    - "dellemc/sdc:{{ pfx_sdc_version }}"
+    - "k8s-staging-sig-storage/csi-external-health-monitor-controller:{{ pfx_csi_external_health_monitor_controller_version }}"
   addr: "{{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}"
 
+genesis_images: "{{ genesis_registry.common + genesis_registry[storage_backends[0]] }}"
 keepalived_vip: ~
 balance: roundrobin
 inter: 2s
@@ -55,4 +68,52 @@ provisioner: |
   {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
   {% endfor -%}
 provisioner_patch_list: "{{ provisioner.splitlines()|map('from_yaml')|list }}"
+
+# trident-csi deployment patch variables
+trident_deploy_images:
+  - "netapp/trident:{{ trident_version }}"
+  - "netapp/trident-autosupport:{{ trident_version[:5] }}"
+  - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
+  - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
+  - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
+  - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
+trident_deploy: |
+  {% for v in trident_deploy_images -%}
+  {op: replace, patch: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+trident_deploy_patch_list: "{{ trident_deploy.splitlines()|map('from_yaml')|list }}"
+
+# trident-csi daemonset patch variables
+trident_daemonset_images:
+  - "netapp/trident:{{ trident_version }}"
+  - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
+trident_daemonset: |
+  {% for v in trident_daemonset_images -%}
+  {op: replace, patch: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+trident_daemonset_patch_list: "{{ trident_daemonset.splitlines()|map('from_yaml')|list }}"
+
+# vxflexos deploy patch variables
+vxflexos_deploy_images:
+  - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
+  - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
+  - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
+  - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
+  - "dellemc/csi-vxflexos:{{ pfx_version }}"
+vxflexos_deploy: |
+  {% for v in vxflexos_deploy_images -%}
+  {op: replace, patch: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+vxflexos_deploy_patch_list: "{{ vxflexos_deploy.splitlines()|map('from_yaml')|list }}"
+  
+# vxflexos daemonset patch variables
+vxflexos_daemonset_images:
+  - "dellemc/csi-vxflexos:{{ pfx_version }}"
+  - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
+  - "dellemc/sdc:{{ pfx_sdc_version }}"
+vxflexos_daemonset: |
+  {% for v in vxflexos_daemonset_images -%}
+  {op: replace, patch: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+vxflexos_daemonset_patch_list: "{{ vxflexos_daemonset.splitlines()|map('from_yaml')|list }}"
 ...

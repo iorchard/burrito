@@ -51,27 +51,27 @@
   retries: 5
   delay: 5
 
-- name: Genesis Registry | pull registry image from seed registry
-  ansible.builtin.shell: >-
-    nerdctl pull \
-      {{ containerd_insecure_registries.seed_registry }}/{{ item }}
-  become: true
-  loop: "{{ genesis_registry.images }}"
-
-- name: Genesis Registry | tag registry image for genesis registry
-  ansible.builtin.shell: >-
-    nerdctl tag \
-      {{ containerd_insecure_registries.seed_registry }}/{{ item }} \
-      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
-  become: true
-  loop: "{{ genesis_registry.images }}"
-
-- name: Genesis Registry | push registry image to each genesis registry
-  ansible.builtin.shell: >-
-    nerdctl push \
-      {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
-  become: true
-  loop: "{{ genesis_registry.images }}"
+- name: Genesis Registry | pull, tag, push images
+  block:
+    - name: Genesis Registry | pull images from seed registry
+      ansible.builtin.shell: >-
+        nerdctl pull \
+          {{ containerd_insecure_registries.seed_registry }}/{{ item }}
+      become: true
+      loop: "{{ genesis_images }}"
+    - name: Genesis Registry | tag registry image for genesis registry
+      ansible.builtin.shell: >-
+        nerdctl tag \
+          {{ containerd_insecure_registries.seed_registry }}/{{ item }} \
+          {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
+      become: true
+      loop: "{{ genesis_images }}"
+    - name: Genesis Registry | push registry image to each genesis registry
+      ansible.builtin.shell: >-
+        nerdctl push \
+          {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
+      become: true
+      loop: "{{ genesis_images }}"
 
 - name: Genesis Registry | add genesis registry section in haproxy.cfg
   ansible.builtin.blockinfile:
@@ -198,23 +198,15 @@
   delegate_to: localhost
   run_once: true
 
-- name: Genesis Registry | apply patch to csi-rbdplugin daemonset
-  kubernetes.core.k8s_json_patch:
-    kind: DaemonSet
-    namespace: ceph-csi
-    name: csi-rbdplugin
-    patch: "{{ rbdplugin_patch_list }}"
-  become: true
-  delegate_to: localhost
-  run_once: true
+- name: Genesis Registry | include patch tasks for ceph-csi
+  ansible.builtin.include_tasks: "ceph_patch.yml"
+  when: storage_backends[0] == 'ceph'
 
-- name: Genesis Registry | apply patch to csi-rbdplugin-provisioner deployment
-  kubernetes.core.k8s_json_patch:
-    kind: Deployment
-    namespace: ceph-csi
-    name: csi-rbdplugin-provisioner
-    patch: "{{ provisioner_patch_list }}"
-  become: true
-  delegate_to: localhost
-  run_once: true
+- name: Genesis Registry | include patch tasks for netapp
+  ansible.builtin.include_tasks: "netapp_patch.yml"
+  when: storage_backends[0] == 'netapp'
+
+- name: Genesis Registry | include patch tasks for powerflex
+  ansible.builtin.include_tasks: "powerflex_patch.yml"
+  when: storage_backends[0] == 'powerflex'
 ...
