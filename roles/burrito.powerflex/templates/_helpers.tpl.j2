@@ -4,7 +4,7 @@ Return the appropriate sidecar images based on k8s version
 {{- define "csi-vxflexos.attacherImage" -}}
   {{- if eq .Capabilities.KubeVersion.Major "1" }}
     {{- if and (ge (trimSuffix "+" .Capabilities.KubeVersion.Minor) "21") (le (trimSuffix "+" .Capabilities.KubeVersion.Minor) "26") -}}
-      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-attacher:v4.2.0"{% raw %} -}}
+      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-attacher:{{ csi_attacher_version }}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -12,7 +12,7 @@ Return the appropriate sidecar images based on k8s version
 {{- define "csi-vxflexos.provisionerImage" -}}
   {{- if eq .Capabilities.KubeVersion.Major "1" }}
     {{- if and (ge (trimSuffix "+" .Capabilities.KubeVersion.Minor) "21") (le (trimSuffix "+" .Capabilities.KubeVersion.Minor) "26") -}}
-      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-provisioner:v3.4.0"{% raw %} -}}
+      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-provisioner:{{ csi_provisioner_version }}"{% raw %} -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -20,7 +20,7 @@ Return the appropriate sidecar images based on k8s version
 {{- define "csi-vxflexos.snapshotterImage" -}}
   {{- if eq .Capabilities.KubeVersion.Major "1" }}
     {{- if and (ge (trimSuffix "+" .Capabilities.KubeVersion.Minor) "21") (le (trimSuffix "+" .Capabilities.KubeVersion.Minor) "26") -}}
-      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-snapshotter:v6.2.1"{% raw %} -}}
+      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-snapshotter:{{ csi_snapshooter_version }}"{% raw %} -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -28,7 +28,7 @@ Return the appropriate sidecar images based on k8s version
 {{- define "csi-vxflexos.resizerImage" -}}
   {{- if eq .Capabilities.KubeVersion.Major "1" }}
     {{- if and (ge (trimSuffix "+" .Capabilities.KubeVersion.Minor) "21") (le (trimSuffix "+" .Capabilities.KubeVersion.Minor) "26") -}}
-      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-resizer:v1.7.0"{% raw %} -}}
+      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-resizer:{{ csi_resizer_version }}"{% raw %} -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -36,7 +36,7 @@ Return the appropriate sidecar images based on k8s version
 {{- define "csi-vxflexos.registrarImage" -}}
   {{- if eq .Capabilities.KubeVersion.Major "1" }}
     {{- if and (ge (trimSuffix "+" .Capabilities.KubeVersion.Minor) "21") (le (trimSuffix "+" .Capabilities.KubeVersion.Minor) "26") -}}
-      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-node-driver-registrar:v2.6.3"{% raw %} -}}
+      {{- print{% endraw %} "{{ kube_image_repo }}/sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"{% raw %} -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}
@@ -44,7 +44,7 @@ Return the appropriate sidecar images based on k8s version
 {{- define "csi-vxflexos.healthmonitorImage" -}}
   {{- if eq .Capabilities.KubeVersion.Major "1" }}
     {{- if and (ge (trimSuffix "+" .Capabilities.KubeVersion.Minor) "21") (le (trimSuffix "+" .Capabilities.KubeVersion.Minor) "26") -}}
-      {{- print{% endraw %} "{{ gcr_image_repo }}/k8s-staging-sig-storage/csi-external-health-monitor-controller:v0.8.0"{% raw %} -}}
+      {{- print{% endraw %} "{{ gcr_image_repo }}/k8s-staging-sig-storage/csi-external-health-monitor-controller:{{ pfx_csi_external_health_monitor_controller_version }}"{% raw %} -}}
     {{- end -}}
   {{- end -}}
 {{- end -}}{% endraw %}

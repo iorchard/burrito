@@ -1,16 +1,16 @@
 ---
-version: v2.6.0
+version: {{ pfx_version }}
 
 images:
   driverRepository: {{ docker_image_repo }}/dellemc
-  powerflexSdc: {{ docker_image_repo }}/dellemc/sdc:3.6.0.6
+  powerflexSdc: {{ docker_image_repo }}/dellemc/sdc:{{ pfx_sdc_version }}
 
 logLevel: "info"
 
 # "controller" allows to configure controller specific parameters
 controller:
   replication:
-    image: {{ docker_image_repo }}/dellemc/dell-csi-replicator:v1.4.0
+    image: {{ docker_image_repo }}/dellemc/dell-csi-replicator:{{ pfx_dell_csi_replicator_version }}
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
 
@@ -19,10 +19,10 @@ node:
     node-role.kubernetes.io/control-plane: ""
 
 vgsnapshotter:
-  image: {{ docker_image_repo }}/dellemc/csi-volumegroup-snapshotter:v1.2.0
+  image: {{ docker_image_repo }}/dellemc/csi-volumegroup-snapshotter:{{ pfx_csi-volumegroup-snapshotter_version }}
 
 podmon:
-  image: {{ docker_image_repo }}/dellemc/podmon:v1.5.0
+  image: {{ docker_image_repo }}/dellemc/podmon:{{ pfx_podmon_version }}
 
 authorization:
-  sidecarProxyImage: {{ docker_image_repo }}/dellemc/csm-authorization-sidecar:v1.6.0
+  sidecarProxyImage: {{ docker_image_repo }}/dellemc/csm-authorization-sidecar:{{ pfx_csm_authorization_sidecar_version }}
