@@ -98,7 +98,7 @@ spec:
           mountPath: /certs
           readOnly: true
       - name: driver-registrar
-        image: {{ kube_image_repo }}/sig-storage/csi-node-driver-registrar:v2.5.1
+        image: {{ kube_image_repo }}/sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}
         args:
         - "--v=2"
         - "--csi-address=$(ADDRESS)"
