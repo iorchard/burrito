@@ -5,8 +5,3 @@ docker.io/dellemc/dell-csi-replicator:v1.4.0
 docker.io/dellemc/podmon:v1.5.0
 docker.io/dellemc/sdc:3.6.0.6
 gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller:v0.8.0
-registry.k8s.io/sig-storage/csi-attacher:v4.2.0
-registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.6.3
-registry.k8s.io/sig-storage/csi-provisioner:v3.4.0
-registry.k8s.io/sig-storage/csi-resizer:v1.7.0
-registry.k8s.io/sig-storage/csi-snapshotter:v6.2.1
