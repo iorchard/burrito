@@ -316,13 +316,25 @@ metallb_config:
 ceph_rgw_port: 7480
 
 # burrito.ceph-csi role variables
-cephcsi_version: "v3.7.2"
-csi_attacher_version: "v4.0.0"
-csi_node_driver_registrar_version: "v2.5.1"
-csi_provisioner_version: "v3.3.0"
-csi_resizer_version: "v1.6.0"
-csi_snapshooter_version: "v6.1.0"
+cephcsi_version: "v3.9.0"
+csi_attacher_version: "v4.2.0"
+csi_node_driver_registrar_version: "v2.6.3"
+csi_provisioner_version: "v3.4.0"
+csi_resizer_version: "v1.7.0"
+csi_snapshotter_version: "v6.2.1"
 registry_ready_timeout: 300
+
+# burrito.netapp role variables
+trident_version: "22.10.0"
+
+# burrito.powerflex role variables
+pfx_version: "v2.6.0"
+pfx_sdc_version: "3.6.0.6"
+pfx_dell_csi_replicator_version: "v1.4.0"
+pfx_csi_volumegroup_snapshotter_version: "v1.2.0"
+pfx_podmon_version: "v1.5.0"
+pfx_csm_authorization_sidecar_version: "v1.6.0"
+pfx_csi_external_health_monitor_controller_version: "v0.8.0"
 
 # burrito.openstack role variables
 ceph_public_network: "{{ public_network }}"
