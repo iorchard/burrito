@@ -19,7 +19,7 @@ node:
     node-role.kubernetes.io/control-plane: ""
 
 vgsnapshotter:
-  image: {{ docker_image_repo }}/dellemc/csi-volumegroup-snapshotter:{{ pfx_csi-volumegroup-snapshotter_version }}
+  image: {{ docker_image_repo }}/dellemc/csi-volumegroup-snapshotter:{{ pfx_csi_volumegroup_snapshotter_version }}
 
 podmon:
   image: {{ docker_image_repo }}/dellemc/podmon:{{ pfx_podmon_version }}
