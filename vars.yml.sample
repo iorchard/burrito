@@ -335,6 +335,7 @@ pfx_csi_volumegroup_snapshotter_version: "v1.2.0"
 pfx_podmon_version: "v1.5.0"
 pfx_csm_authorization_sidecar_version: "v1.6.0"
 pfx_csi_external_health_monitor_controller_version: "v0.8.0"
+pfx_snapshot_controller_version: "v6.2.1"
 
 # burrito.openstack role variables
 ceph_public_network: "{{ public_network }}"

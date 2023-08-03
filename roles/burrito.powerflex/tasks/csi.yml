@@ -34,21 +34,6 @@
   delegate_to: localhost
   run_once: true
 
-- name: CSI | create snapshot crds
-  kubernetes.core.k8s:
-    definition: "{{ lookup('kubernetes.core.kustomize', dir=artifacts_dir+'/external-snapshotter/crd') }}"
-  become: true
-  delegate_to: localhost
-  run_once: true
-
-- name: CSI | create snapshot controller
-  kubernetes.core.k8s:
-    namespace: "kube-system"
-    definition: "{{ lookup('kubernetes.core.kustomize', dir=artifacts_dir+'/external-snapshotter/snapshot-controller') }}"
-  become: true
-  delegate_to: localhost
-  run_once: true
-
 - name: CSI | get system id
   dellemc.powerflex.info:
     hostname: "{{ keepalived_vip }}"
@@ -72,6 +57,21 @@
     src: "{{ item.dest | basename }}.j2"
     mode: "0644"
   loop: "{{ template_files }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | create snapshot crds
+  kubernetes.core.k8s:
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=artifacts_dir+'/external-snapshotter/crd') }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | create snapshot controller
+  kubernetes.core.k8s:
+    namespace: "kube-system"
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=artifacts_dir+'/external-snapshotter/snapshot-controller') }}"
+  become: true
   delegate_to: localhost
   run_once: true
 
