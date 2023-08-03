@@ -296,6 +296,7 @@ spec:
             - name: udev-d
               mountPath: /rules.d
         {{- end }}
+      {{- if eq .Values.node.sdc.enabled true }}
       initContainers:
         - name: sdc
           securityContext:
@@ -327,6 +328,7 @@ spec:
               mountPath: /rules.d
             - name: scaleio-path-opt
               mountPath: /host_drv_cfg_path 
+      {{- end }}
       volumes:
         - name: registration-dir
           hostPath:

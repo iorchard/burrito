@@ -121,14 +121,9 @@ vxflexos_daemonset_images:
   containers:
     - {name: 'driver', image: "dellemc/csi-vxflexos:{{ pfx_version }}"}
     - {name: 'registrar', image: "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"}
-  init_containers:
-    - {name: 'sdc', image: "dellemc/sdc:{{ pfx_sdc_version }}"}
 vxflexos_daemonset: |
   {% for v in vxflexos_daemonset_images.containers -%}
   { op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}", value: {image: "{{ containerd_insecure_registries.genesis_registry }}/{{ v.image }}", name: "{{ v.name }}"} }
-  {% endfor -%}
-  {% for v in vxflexos_daemonset_images.init_containers -%}
-  { op: replace, path: "/spec/template/spec/initContainers/{{ loop.index0 }}", value: { image: "{{ containerd_insecure_registries.genesis_registry }}/{{ v.image }}", name: "{{ v.name }}"} }
   {% endfor -%}
 vxflexos_daemonset_patch_list: "{{ vxflexos_daemonset.splitlines()|map('from_yaml')|list }}"
 ...

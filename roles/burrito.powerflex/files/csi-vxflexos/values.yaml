@@ -171,6 +171,16 @@ controller:
 
 # "node" allows to configure node specific parameters
 node:
+  sdc:
+    # Added by Heechul Kim to speed up invoking node daemonset.
+    # There is no need to run SDC since it is already installed on host.
+    # And the sdc image does not support Rocky Linux anyway.
+    # enabled: Enable/Disable SDC initContainer
+    # Allowed values:
+    #   true: enable SDC init container to run
+    #   false: disable SDC init container to run
+    # Default value: false
+    enabled: false
   healthMonitor:
     # enabled: Enable/Disable health monitor of CSI volumes- volume usage, volume condition
     # Allowed values:
