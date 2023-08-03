@@ -43,6 +43,16 @@ k8s_services:
   - {name: "kube-controller-manager", port: 10257}
   - {name: "kube-scheduler", port: 10259}
 
+# kube-proxy daemonset patch variables
+kube_proxy_daemonset_images:
+  containers:
+    - {name: 'kube-proxy', image: "kube-proxy:{{ kube_version }}"}
+kube_proxy_daemonset: |
+  {% for v in kube_proxy_daemonset_images.containers -%}
+  { op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}", value: {image: "{{ containerd_insecure_registries.genesis_registry }}/{{ v.image }}", name: "{{ v.name }}"} }
+  {% endfor -%}
+kube_proxy_daemonset_patch_list: "{{ kube_proxy_daemonset.splitlines()|map('from_yaml')|list }}"
+
 # csi_rbdplugin daemonset patch variables
 csi_rbdplugin_images:
   - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
@@ -79,7 +89,7 @@ trident_deploy_images:
   - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
 trident_deploy: |
   {% for v in trident_deploy_images -%}
-  {op: replace, patch: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
   {% endfor -%}
 trident_deploy_patch_list: "{{ trident_deploy.splitlines()|map('from_yaml')|list }}"
 
@@ -89,7 +99,7 @@ trident_daemonset_images:
   - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
 trident_daemonset: |
   {% for v in trident_daemonset_images -%}
-  {op: replace, patch: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
   {% endfor -%}
 trident_daemonset_patch_list: "{{ trident_daemonset.splitlines()|map('from_yaml')|list }}"
 
@@ -102,18 +112,23 @@ vxflexos_deploy_images:
   - "dellemc/csi-vxflexos:{{ pfx_version }}"
 vxflexos_deploy: |
   {% for v in vxflexos_deploy_images -%}
-  {op: replace, patch: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
   {% endfor -%}
 vxflexos_deploy_patch_list: "{{ vxflexos_deploy.splitlines()|map('from_yaml')|list }}"
   
 # vxflexos daemonset patch variables
 vxflexos_daemonset_images:
-  - "dellemc/csi-vxflexos:{{ pfx_version }}"
-  - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
-  - "dellemc/sdc:{{ pfx_sdc_version }}"
+  containers:
+    - {name: 'driver', image: "dellemc/csi-vxflexos:{{ pfx_version }}"}
+    - {name: 'registrar', image: "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"}
+  init_containers:
+    - {name: 'sdc', image: "dellemc/sdc:{{ pfx_sdc_version }}"}
 vxflexos_daemonset: |
-  {% for v in vxflexos_daemonset_images -%}
-  {op: replace, patch: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% for v in vxflexos_daemonset_images.containers -%}
+  { op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}", value: {image: "{{ containerd_insecure_registries.genesis_registry }}/{{ v.image }}", name: "{{ v.name }}"} }
+  {% endfor -%}
+  {% for v in vxflexos_daemonset_images.init_containers -%}
+  { op: replace, path: "/spec/template/spec/initContainers/{{ loop.index0 }}", value: { image: "{{ containerd_insecure_registries.genesis_registry }}/{{ v.image }}", name: "{{ v.name }}"} }
   {% endfor -%}
 vxflexos_daemonset_patch_list: "{{ vxflexos_daemonset.splitlines()|map('from_yaml')|list }}"
 ...

@@ -14,4 +14,12 @@
     enabled: true
   become: true
   changed_when: false
+
+- name: kubelet restart service
+  service:
+    name: "kubelet.service"
+    state: "restarted"
+    enabled: true
+  become: true
+  changed_when: false
 ...

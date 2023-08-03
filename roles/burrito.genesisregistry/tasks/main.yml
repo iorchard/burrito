@@ -37,7 +37,7 @@
   notify:
     - genesis registry restart service
 
-- name: Genesis Registry | flush handlers
+- name: Genesis Registry | restart genesis registry service
   ansible.builtin.meta: flush_handlers
 
 - name: Genesis Registry | check service is available
@@ -51,27 +51,20 @@
   retries: 5
   delay: 5
 
-- name: Genesis Registry | pull, tag, push images
-  block:
-    - name: Genesis Registry | pull images from seed registry
-      ansible.builtin.shell: >-
-        nerdctl pull \
-          {{ containerd_insecure_registries.seed_registry }}/{{ item }}
-      become: true
-      loop: "{{ genesis_images }}"
-    - name: Genesis Registry | tag registry image for genesis registry
-      ansible.builtin.shell: >-
-        nerdctl tag \
-          {{ containerd_insecure_registries.seed_registry }}/{{ item }} \
-          {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
-      become: true
-      loop: "{{ genesis_images }}"
-    - name: Genesis Registry | push registry image to each genesis registry
-      ansible.builtin.shell: >-
-        nerdctl push \
-          {{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}/{{ item }}
-      become: true
-      loop: "{{ genesis_images }}"
+- name: Genesis Registry | pull images from seed registry
+  ansible.builtin.shell: >-
+    nerdctl pull \
+      {{ containerd_insecure_registries.seed_registry }}/{{ item }}
+  become: true
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ genesis_images }}"
+
+- name: Genesis Registry | tag and push images to genesis registry
+  ansible.builtin.include_tasks: "images.yml"
+  loop: "[{% for h in groups['kube_control_plane'] %}'{{ hostvars[h].ip }}'{% if not loop.last %},{% endif %}{% endfor %}]"
+  loop_control:
+    loop_var: outer_item
 
 - name: Genesis Registry | add genesis registry section in haproxy.cfg
   ansible.builtin.blockinfile:
@@ -98,6 +91,8 @@
           server {{ h }} {{ hostvars[h].ip }}:{{ genesis_registry_port }} check inter {{ inter }} rise {{ rise }} fall {{ fall }} on-marked-down shutdown-sessions
           {% endfor %}
   become: true
+  notify:
+    - haproxy restart service
 
 - name: Genesis Registry | take down offline services
   ansible.builtin.shell: >-
@@ -117,15 +112,11 @@
     replace: "{{ containerd_insecure_registries.genesis_registry }}"
   become: true
   loop: "{{ k8s_services }}"
+  notify:
+    - kubelet restart service
 
 - name: Genesis Registry | restart haproxy and kubelet service
-  ansible.builtin.service:
-    name: "{{ item }}"
-    state: "restarted"
-  become: true
-  loop:
-    - haproxy.service
-    - kubelet.service
+  ansible.builtin.meta: flush_handlers
 
 - name: Genesis Registry | pause before checking kubernetes services
   ansible.builtin.pause:
@@ -153,13 +144,23 @@
 # cannot use kubernetes.core.k8s_json_patch 
 # since kube-proxy patch needs to specify name in addition to image.
 # So I use kubectl patch command.
+#- name: Genesis Registry | apply patch to kube-proxy daemonset
+#  ansible.builtin.command: >-
+#    kubectl patch ds kube-proxy -n kube-system -p \
+#      '{"spec": {"template": {"spec": {"containers": [{"name": "kube-proxy", "image": "{{ containerd_insecure_registries.genesis_registry }}/kube-proxy:{{ kube_version }}"}]}}}}'
+#  become: true
+#  delegate_to: localhost
+#  run_once: true
 - name: Genesis Registry | apply patch to kube-proxy daemonset
-  ansible.builtin.command: >-
-    kubectl patch ds kube-proxy -n kube-system -p \
-      '{"spec": {"template": {"spec": {"containers": [{"name": "kube-proxy", "image": "{{ containerd_insecure_registries.genesis_registry }}/kube-proxy:{{ kube_version }}"}]}}}}'
+  kubernetes.core.k8s_json_patch:
+    kind: DaemonSet
+    namespace: kube-system
+    name: kube-proxy
+    patch: "{{ kube_proxy_daemonset_patch_list }}"
   become: true
   delegate_to: localhost
   run_once: true
+
 
 - name: Genesis Registry | apply patch to registry replicaset
   kubernetes.core.k8s_json_patch:
