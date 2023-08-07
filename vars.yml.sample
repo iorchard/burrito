@@ -393,6 +393,7 @@ nova:
 # nova_compute_sshkey_copy
 nova_uid: 42424
 nova_gid: 42424
+ssh_port: "{{ ansible_port }}"
 
 ## cinder
 # openstack helm cinder chart manifest
