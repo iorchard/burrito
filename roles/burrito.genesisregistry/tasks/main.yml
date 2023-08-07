@@ -142,25 +142,15 @@
   loop: "{{ k8s_services }}"
 
 # cannot use kubernetes.core.k8s_json_patch 
-# since kube-proxy patch needs to specify name in addition to image.
+# since kube-proxy needs to specify name in addition to image.
 # So I use kubectl patch command.
-#- name: Genesis Registry | apply patch to kube-proxy daemonset
-#  ansible.builtin.command: >-
-#    kubectl patch ds kube-proxy -n kube-system -p \
-#      '{"spec": {"template": {"spec": {"containers": [{"name": "kube-proxy", "image": "{{ containerd_insecure_registries.genesis_registry }}/kube-proxy:{{ kube_version }}"}]}}}}'
-#  become: true
-#  delegate_to: localhost
-#  run_once: true
 - name: Genesis Registry | apply patch to kube-proxy daemonset
-  kubernetes.core.k8s_json_patch:
-    kind: DaemonSet
-    namespace: kube-system
-    name: kube-proxy
-    patch: "{{ kube_proxy_daemonset_patch_list }}"
+  ansible.builtin.command: >-
+    kubectl patch ds kube-proxy -n kube-system -p \
+      '{"spec": {"template": {"spec": {"containers": [{"name": "kube-proxy", "image": "{{ containerd_insecure_registries.genesis_registry }}/kube-proxy:{{ kube_version }}"}]}}}}'
   become: true
   delegate_to: localhost
   run_once: true
-
 
 - name: Genesis Registry | apply patch to registry replicaset
   kubernetes.core.k8s_json_patch:
