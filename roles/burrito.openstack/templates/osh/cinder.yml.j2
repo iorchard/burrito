@@ -201,6 +201,8 @@ conf:
       quota_volumes: -1
     keystone_authtoken:
       cafile: /etc/cinder/certs/ca.crt
+      service_token_roles: admin
+      service_token_roles_required: true
     key_manager:
       backend: barbican
     nova:
@@ -212,6 +214,15 @@ conf:
       ssl_ca_file: /etc/rabbitmq/certs/ca.crt
       ssl_cert_file: /etc/rabbitmq/certs/tls.crt
       ssl_key_file: /etc/rabbitmq/certs/tls.key
+    service_user:
+      send_service_user_token: true
+      auth_type: password
+      auth_url: https://keystone-api.openstack.svc.cluster.local:5000/v3
+      project_domain_name: service
+      project_name: service
+      user_domain_name: service
+      username: cinder
+      password: {{ cinder.password }}
   backends:
 {% if "ceph" in storage_backends %}
     rbd1:
