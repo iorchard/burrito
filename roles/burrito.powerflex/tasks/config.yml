@@ -56,6 +56,7 @@
     line: "lia_port={{ lia_port }}"
     state: present
   become: true
+  when: inventory_hostname in groups['powerflex']
   notify:
     - systemctl restart lia service
 
@@ -103,14 +104,13 @@
   become: true
 
 - name: Config | add openstack connector.conf
-  ansible.builtin.blockinfile:
-    path: /opt/emc/scaleio/openstack/connector.conf
-    block: |
-      [powerflex]
-      san_password = {{ gateway_admin_password }}
-    owner: root
-    group: root
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ ansible_os_family|lower }}{{ item.dest + '.j2' }}"
+    owner: "root"
+    group: "root"
     mode: "0644"
-    create: true
   become: true
+  loop:
+    - {dest: "{{ scaleio_dir }}/openstack/connector.conf"}
 ...

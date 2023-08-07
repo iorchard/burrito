@@ -1,6 +1,6 @@
 ---
 - name: deploy powerflex
-  hosts: powerflex
+  hosts: all
   any_errors_fatal: true
   roles:
     - role: burrito.powerflex

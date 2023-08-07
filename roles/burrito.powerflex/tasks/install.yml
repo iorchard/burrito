@@ -15,8 +15,7 @@
   environment:
     MDM_ROLE_IS_MANAGER: 1  
   become: true
-  when:
-    - inventory_hostname == groups['mdm'][0] or inventory_hostname == groups['mdm'][1]
+  when: inventory_hostname == groups['mdm'][0] or inventory_hostname == groups['mdm'][1]
 
 - name: Install | install tiebreaker MDM
   ansible.builtin.shell: >-
@@ -24,8 +23,7 @@
   environment:
     MDM_ROLE_IS_MANAGER: 0
   become: true
-  when:
-    - inventory_hostname == groups['mdm'][2]
+  when: inventory_hostname == groups['mdm'][2]
 
 - name: Install | install SDS
   ansible.builtin.shell: >-
@@ -39,6 +37,7 @@
   environment:
     TOKEN: "{{ lia_token }}"
   become: true
+  when: inventory_hostname in groups['powerflex']
 
 - name: Install | install SDC
   ansible.builtin.shell: >-
