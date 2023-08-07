@@ -160,6 +160,37 @@
         that:
           - hostvars[inventory_hostname]['ansible_'+storage_iface_name].ipv4.address is defined
 
+    - name: check storage ip addresses are set
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          IP address on {{ item }} is not set up.
+        that:
+          - hostvars[inventory_hostname]['ansible_'+item].ipv4.address is defined
+      loop: "{{ storage_iface_names }}"
+      when: "'powerflex' in storage_backends"
+
+    - name: check if powerflex sds devices exist in sds nodes
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          Cannot find the device: {{ item }}
+        that:
+          - ansible_devices.{{ item|basename }} is defined
+      loop: "{{ sds_devices }}"
+      when: inventory_hostname in groups['sds']
+
+    - name: check if powerflex sds device size is more than the minimum
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          SDS device ansible_devices.{{ item }} is too small.
+          It should be more than {{ checklist.sds_device_min_size_in_mb }}MB.
+        that:
+          - "{{ ansible_devices[item].sectors|int*ansible_devices[item].sectorsize|int > checklist.sds_device_min_size_in_mb*1024*1024 }}"
+      loop: "{{ sds_devices|map('regex_replace', '^/dev/', '')|list }}"
+      when: inventory_hostname in groups['sds']
+
     - name: check if all hosts are reachable
       ansible.builtin.ping:
         data: pong

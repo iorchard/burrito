@@ -78,6 +78,7 @@ offline: false
 checklist:
   quiet: false
   clock_deviation_threshold: 60
+  sds_device_min_size_in_mb: 92160
 svc_netmask: "{{ hostvars[inventory_hostname]['ansible_' + svc_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + svc_iface_name].ipv4.netmask }}"
 svc_cidr: "{{ svc_netmask | ansible.utils.ipaddr('net') }}"
 

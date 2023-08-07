@@ -22,6 +22,7 @@ storage[1:3]
 storage[1:3]
 
 [sdc]
+control[1:3]
 compute[1:2]
 
 [gateway]
