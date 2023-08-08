@@ -104,6 +104,11 @@ bootstrap:
 {% endfor %}
 {% endfor %}
 {% endif %}
+{% if "powerflex" in storage_backends %}
+    powerflex:
+      volume_backend_name: powerflex
+      access_type: "private"
+{% endif %}
 
 network:
   api:
