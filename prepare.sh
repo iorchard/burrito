@@ -14,8 +14,8 @@ if [ x"$OPT" = x"offline" ]; then
   pip install --no-index --find-links /mnt/pypi \
                --requirement requirements.txt
   pushd /mnt/ansible_collections
-    ansible-galaxy install --force -r ceph-ansible_req.yml
-    ansible-galaxy install --force -r pfx_req.yml
+    [ -f ceph-ansible_req.yml ] && ansible-galaxy install --force -r ceph-ansible_req.yml || :
+    [ -f pfx_req.yml ] && ansible-galaxy install --force -r pfx_req.yml || :
   popd
 else
   sudo dnf -y install git python3 python39 python3-cryptography epel-release
