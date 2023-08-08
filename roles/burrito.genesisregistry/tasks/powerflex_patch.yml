@@ -19,4 +19,14 @@
   become: true
   delegate_to: localhost
   run_once: true
+
+- name: Genesis Registry | apply patch to snapshot-controller deployment
+  kubernetes.core.k8s_json_patch:
+    kind: Deployment
+    namespace: kube-system
+    name: snapshot-controller
+    patch: "{{ snapshot_controller_deploy_patch_list }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
 ...

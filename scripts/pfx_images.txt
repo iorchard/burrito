@@ -1,8 +1,2 @@
-docker.io/dellemc/csi-volumegroup-snapshotter:v1.2.0
 docker.io/dellemc/csi-vxflexos:v2.6.0
-docker.io/dellemc/csm-authorization-sidecar:v1.6.0
-docker.io/dellemc/dell-csi-replicator:v1.4.0
-docker.io/dellemc/podmon:v1.5.0
-docker.io/dellemc/sdc:3.6.0.6
-gcr.io/k8s-staging-sig-storage/csi-external-health-monitor-controller:v0.8.0
 registry.k8s.io/sig-storage/snapshot-controller:v6.2.1

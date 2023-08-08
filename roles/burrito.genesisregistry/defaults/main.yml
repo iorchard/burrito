@@ -20,13 +20,8 @@ genesis_registry:
     - "netapp/trident:{{ trident_version }}"
     - "netapp/trident-autosupport:{{ trident_version[:5] }}"
   powerflex:
-    - "dellemc/csi-volumegroup-snapshotter:{{ pfx_csi_volumegroup_snapshotter_version }}"
     - "dellemc/csi-vxflexos:{{ pfx_version }}"
-    - "dellemc/csm-authorization-sidecar:{{ pfx_csm_authorization_sidecar_version }}"
-    - "dellemc/dell-csi-replicator:{{ pfx_dell_csi_replicator_version }}"
-    - "dellemc/podmon:{{ pfx_podmon_version }}"
-    - "dellemc/sdc:{{ pfx_sdc_version }}"
-    - "k8s-staging-sig-storage/csi-external-health-monitor-controller:{{ pfx_csi_external_health_monitor_controller_version }}"
+    - "sig-storage/snapshot-controller:{{ pfx_snapshot_controller_version }}"
   addr: "{{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}"
 
 genesis_images: "{{ genesis_registry.common + genesis_registry[storage_backends[0]] }}"
@@ -116,14 +111,12 @@ vxflexos_deploy: |
   {% endfor -%}
 vxflexos_deploy_patch_list: "{{ vxflexos_deploy.splitlines()|map('from_yaml')|list }}"
   
-# vxflexos daemonset patch variables
-vxflexos_daemonset_images:
-  containers:
-    - {name: 'driver', image: "dellemc/csi-vxflexos:{{ pfx_version }}"}
-    - {name: 'registrar', image: "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"}
-vxflexos_daemonset: |
-  {% for v in vxflexos_daemonset_images.containers -%}
-  { op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}", value: {image: "{{ containerd_insecure_registries.genesis_registry }}/{{ v.image }}", name: "{{ v.name }}"} }
+# snapshot-controller patch variables
+snapshot_controller_deploy_images:
+  - "sig-storage/snapshot-controller:{{ pfx_snapshot_controller_version }}"
+snapshot_controller_deploy: |
+  {% for v in snapshot_controller_deploy_images -%}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
   {% endfor -%}
-vxflexos_daemonset_patch_list: "{{ vxflexos_daemonset.splitlines()|map('from_yaml')|list }}"
+snapshot_controller_patch_list: "{{ snapshot_controller_deploy.splitlines()|map('from_yaml')|list }}"
 ...
