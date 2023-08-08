@@ -178,7 +178,9 @@
         that:
           - ansible_devices.{{ item|basename }} is defined
       loop: "{{ sds_devices }}"
-      when: inventory_hostname in groups['sds']
+      when:
+        - "'sds' in groups"
+        - inventory_hostname in groups['sds']
 
     - name: check if powerflex sds device size is more than the minimum
       ansible.builtin.assert:
@@ -189,7 +191,9 @@
         that:
           - "{{ ansible_devices[item].sectors|int*ansible_devices[item].sectorsize|int > checklist.sds_device_min_size_in_mb*1024*1024 }}"
       loop: "{{ sds_devices|map('regex_replace', '^/dev/', '')|list }}"
-      when: inventory_hostname in groups['sds']
+      when:
+        - "'sds' in groups"
+        - inventory_hostname in groups['sds']
 
     - name: check if all hosts are reachable
       ansible.builtin.ping:
