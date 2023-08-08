@@ -43,8 +43,8 @@ conf:
       rbd_thin_provisioning: true
 {% endif %}
 
-{% if "filesystem" in glance.enabled_backends %}
-    filesystem:
+{% if "file" in glance.enabled_backends %}
+    file:
       filesystem_store_datadir: /var/lib/glance/images
 {% endif %}
 

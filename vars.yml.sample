@@ -362,7 +362,7 @@ keystone:
 # glance
 glance_store_types:
   ceph: 'rbd'
-  netapp: 'filesystem'
+  netapp: 'file'
   powerflex: 'cinder'
 glance_storage:
   ceph: 'rbd'
