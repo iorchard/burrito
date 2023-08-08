@@ -17,6 +17,14 @@
   delegate_to: localhost
   run_once: true
 
+- name: OpenStack | make sure to set up compute node label
+  ansible.builtin.command: >-
+    kubectl label nodes --overwrite {{ item }} openstack-compute-node=enabled
+  become: true
+  loop: "{{ groups['compute-node'] }}"
+  delegate_to: localhost
+  run_once: true
+
 - name: OpenStack | create openstack artifacts directory
   ansible.builtin.file:
     path: "{{ os_artifacts_dir }}"

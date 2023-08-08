@@ -3,20 +3,28 @@ genesis_registry:
   root_dir: "/var/lib/registry"
   secret: "{{ lookup('community.general.random_string', length=12, base64=True) }}"
   conf: "/etc/genesis_registry.conf"
-  images:
+  common:
     - "library/registry:{{ registry_version }}"
     - "kube-apiserver:{{ kube_version }}"
     - "kube-controller-manager:{{ kube_version }}"
     - "kube-proxy:{{ kube_version }}"
     - "kube-scheduler:{{ kube_version }}"
-    - "cephcsi/cephcsi:{{ cephcsi_version }}"
     - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
     - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
     - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
     - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
-    - "sig-storage/csi-snapshotter:{{ csi_snapshooter_version }}"
+    - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
+  ceph:
+    - "cephcsi/cephcsi:{{ cephcsi_version }}"
+  netapp:
+    - "netapp/trident:{{ trident_version }}"
+    - "netapp/trident-autosupport:{{ trident_version[:5] }}"
+  powerflex:
+    - "dellemc/csi-vxflexos:{{ pfx_version }}"
+    - "sig-storage/snapshot-controller:{{ pfx_snapshot_controller_version }}"
   addr: "{{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}"
 
+genesis_images: "{{ genesis_registry.common + genesis_registry[storage_backends[0]] }}"
 keepalived_vip: ~
 balance: roundrobin
 inter: 2s
@@ -44,7 +52,7 @@ rbdplugin_patch_list: "{{ rbdplugins.splitlines()|map('from_yaml')|list }}"
 # csi_rbdplugin_provisioner deployment patch variables
 csi_rbdplugin_provisioner_images:
   - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
-  - "sig-storage/csi-snapshotter:{{ csi_snapshooter_version }}"
+  - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
   - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
   - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
   - "cephcsi/cephcsi:{{ cephcsi_version }}"
@@ -55,4 +63,50 @@ provisioner: |
   {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
   {% endfor -%}
 provisioner_patch_list: "{{ provisioner.splitlines()|map('from_yaml')|list }}"
+
+# trident-csi deployment patch variables
+trident_deploy_images:
+  - "netapp/trident:{{ trident_version }}"
+  - "netapp/trident-autosupport:{{ trident_version[:5] }}"
+  - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
+  - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
+  - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
+  - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
+trident_deploy: |
+  {% for v in trident_deploy_images -%}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+trident_deploy_patch_list: "{{ trident_deploy.splitlines()|map('from_yaml')|list }}"
+
+# trident-csi daemonset patch variables
+trident_daemonset_images:
+  - "netapp/trident:{{ trident_version }}"
+  - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
+trident_daemonset: |
+  {% for v in trident_daemonset_images -%}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+trident_daemonset_patch_list: "{{ trident_daemonset.splitlines()|map('from_yaml')|list }}"
+
+# vxflexos deploy patch variables
+vxflexos_deploy_images:
+  - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
+  - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
+  - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
+  - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
+  - "dellemc/csi-vxflexos:{{ pfx_version }}"
+vxflexos_deploy: |
+  {% for v in vxflexos_deploy_images -%}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+vxflexos_deploy_patch_list: "{{ vxflexos_deploy.splitlines()|map('from_yaml')|list }}"
+  
+# snapshot-controller patch variables
+snapshot_controller_deploy_images:
+  - "sig-storage/snapshot-controller:{{ pfx_snapshot_controller_version }}"
+snapshot_controller_deploy: |
+  {% for v in snapshot_controller_deploy_images -%}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+snapshot_controller_deploy_patch_list: "{{ snapshot_controller_deploy.splitlines()|map('from_yaml')|list }}"
 ...

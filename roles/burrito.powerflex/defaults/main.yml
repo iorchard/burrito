@@ -1,0 +1,57 @@
+---
+pkg_tarball: "/mnt/powerflex_pkgs.tar.gz"
+pkg_base: "{{ ansible_env.HOME }}/powerflex_pkgs"
+lia_token: ~
+mdm_ip: []
+gateway_admin_password: ~
+mdm_password: ~
+scaleio_dir: "/opt/emc/scaleio"
+gateway_user_properties_file: "{{ scaleio_dir }}/gateway/webapps/ROOT/WEB-INF/classes/gatewayUser.properties"
+mdm_ip_addresses: >-
+  [
+  {% for vip in mdm_ip %}
+    "{{ vip }}",
+  {% endfor %}
+    "{{ hostvars[groups['mdm'][0]]['ansible_'+mgmt_iface_name].ipv4.address }}",
+    "{{ hostvars[groups['mdm'][1]]['ansible_'+mgmt_iface_name].ipv4.address }}",
+  {% for siface in storage_iface_names %}
+    "{{ hostvars[groups['mdm'][0]]['ansible_'+siface].ipv4.address }}",
+    "{{ hostvars[groups['mdm'][1]]['ansible_'+siface].ipv4.address }}",
+  {% endfor %}
+  ]
+
+catalina_properties_file: "{{ scaleio_dir }}/gateway/conf/catalina.properties"
+gateway_http_port: 80
+gateway_ssl_port: 443
+server_xml_file: "{{ scaleio_dir }}/gateway/conf/server.xml"
+gateway_bind_ip: "{{ hostvars[inventory_hostname]['ansible_'+mgmt_iface_name].ipv4.address }}"
+
+lia_conf_file: "{{ scaleio_dir }}/lia/cfg/conf.txt"
+lia_port: 9099
+
+presentation_conf_file: "/etc/mgmt-server/.config/mgmt-server"
+presentation_port: 8443
+
+keepalived_vip: ~
+balance: source
+inter: 2s
+rise: 2
+fall: 3
+
+validate_certs: false
+protection_domain_name: "burrito_domain"
+storage_pool_name: "burrito_sp"
+# media_type: SSD or HDD
+media_type: "SSD"
+# spare_percentage: ROUND(1/(number of sds)*100)
+spare_percentage: "{{ (1/(groups['sds']|length)*100)|round(0, 'ceil')|int }}"
+
+# vxflexos
+artifacts_dir: "{{ ansible_env.HOME }}/vxflexos-artifacts"
+template_files:
+  - {dest: "{{ artifacts_dir }}/external-snapshotter/snapshot-controller/setup-snapshot-controller.yaml"}
+  - {dest: "{{ artifacts_dir }}/vxflexos-config.yml"}
+  - {dest: "{{ artifacts_dir }}/vxflexos-values.yml"}
+  - {dest: "{{ artifacts_dir }}/csi-vxflexos/templates/_helpers.tpl"}
+  - {dest: "{{ artifacts_dir }}/vxflexos-storageclass.yml"}
+...

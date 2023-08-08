@@ -1,0 +1,32 @@
+---
+# cannot use kubernetes.core.k8s_json_patch
+# since kube-proxy needs to specify name in addition to image.
+# So I use kubectl patch command.
+- name: Genesis Registry | apply patch to vxflexos-node daemonset
+  ansible.builtin.command: >-
+    kubectl patch ds vxflexos-node -n vxflexos -p \
+      '{"spec": {"template": {"spec": {"containers": [{"name": "driver", "image": "{{ containerd_insecure_registries.genesis_registry }}/dellemc/csi-vxflexos:{{ pfx_version }}"},{"name": "registrar", "image": "{{ containerd_insecure_registries.genesis_registry }}/sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"}]}}}}'
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Genesis Registry | apply patch to vxflexos-controller deployment
+  kubernetes.core.k8s_json_patch:
+    kind: Deployment
+    namespace: vxflexos
+    name: vxflexos-controller
+    patch: "{{ vxflexos_deploy_patch_list }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Genesis Registry | apply patch to snapshot-controller deployment
+  kubernetes.core.k8s_json_patch:
+    kind: Deployment
+    namespace: kube-system
+    name: snapshot-controller
+    patch: "{{ snapshot_controller_deploy_patch_list }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+...

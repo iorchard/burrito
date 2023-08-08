@@ -1,0 +1,92 @@
+---
+- name: Install | create powerflex package directory
+  ansible.builtin.file:
+    path: "{{ pkg_base }}"
+    state: directory
+
+- name: Install | extract powerflex package tarball
+  ansible.builtin.unarchive:
+    src: "{{ pkg_tarball }}"
+    dest: "{{ pkg_base }}"
+
+- name: Install | install primary and secondary MDM
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.mdm }}
+  environment:
+    MDM_ROLE_IS_MANAGER: 1  
+  become: true
+  when: inventory_hostname == groups['mdm'][0] or inventory_hostname == groups['mdm'][1]
+
+- name: Install | install tiebreaker MDM
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.mdm }}
+  environment:
+    MDM_ROLE_IS_MANAGER: 0
+  become: true
+  when: inventory_hostname == groups['mdm'][2]
+
+- name: Install | install SDS
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.sds }}
+  become: true
+  when: inventory_hostname in groups['sds']
+
+- name: Install | install LIA
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.lia }}
+  environment:
+    TOKEN: "{{ lia_token }}"
+  become: true
+  when: inventory_hostname in groups['powerflex']
+
+- name: Install | install SDC
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.sdc }}
+  environment:
+    MDM_IP: "{{ mdm_ip|join(',') }}"
+  become: true
+  when: inventory_hostname in groups['sdc']
+
+- name: Install | install pre-requisite packages for gateway service
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ gateway_prerequisite_pkgs }}"
+  when: inventory_hostname in groups['gateway']
+
+- name: Install | install gateway service
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.gateway }}
+  environment:
+    GATEWAY_ADMIN_PASSWORD: "{{ gateway_admin_password }}"
+  become: true
+  when: inventory_hostname in groups['gateway']
+
+- name: Install | install pre-requisite packages for presentation service
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ presentation_prerequisite_pkgs }}"
+  when: inventory_hostname in groups['presentation']
+
+- name: Install | install presentation service
+  ansible.builtin.shell: >-
+    dnf -y install {{ pkgs.presentation }}
+  become: true
+  when: inventory_hostname in groups['presentation']
+
+- name: Install | clean up powerflex package directory
+  ansible.builtin.file:
+    path: "{{ pkg_base }}"
+    state: absent
+...

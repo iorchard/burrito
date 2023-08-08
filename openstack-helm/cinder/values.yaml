@@ -450,6 +450,7 @@ ceph_client:
       global: null
       osd: null
 conf:
+  enable_powerflex: false
   db_acl:
     enabled: true
   paste:

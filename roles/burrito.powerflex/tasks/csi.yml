@@ -1,0 +1,115 @@
+---
+- name: CSI | create vxflexos namespace
+  kubernetes.core.k8s:
+    name: vxflexos
+    api_version: v1
+    kind: Namespace
+    state: present
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | delete vxflexos artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: absent
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | create vxflexos artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: directory
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | copy static files
+  ansible.builtin.copy:
+    dest: "{{ artifacts_dir }}/"
+    src: "{{ item }}"
+    mode: "0644"
+    directory_mode: "0755"
+  loop:
+    - "files/"
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | get system id
+  dellemc.powerflex.info:
+    hostname: "{{ keepalived_vip }}"
+    port: "{{ gateway_ssl_port }}"
+    username: "admin"
+    password: "{{ gateway_admin_password }}"
+    validate_certs: "{{ validate_certs }}"
+  register: pfx_info
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | set facts for system id
+  ansible.builtin.set_fact:
+    systemid: "{{ pfx_info.Array_Details[0].id }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | templating manifest files
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.dest | basename }}.j2"
+    mode: "0644"
+  loop: "{{ template_files }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | create snapshot crds
+  kubernetes.core.k8s:
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=artifacts_dir+'/external-snapshotter/crd') }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | create snapshot controller
+  kubernetes.core.k8s:
+    namespace: "kube-system"
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=artifacts_dir+'/external-snapshotter/snapshot-controller') }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | create vxflexos-config secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: Opaque
+      metadata:
+        name: vxflexos-config
+        namespace: vxflexos
+      data:
+        config: "{{ lookup('file',  artifacts_dir+'/vxflexos-config.yml') | b64encode }}"
+        MDM: "{{ mdm_ip | join(',') | b64encode }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | deploy csi-vxflexos chart
+  kubernetes.core.helm:
+    release_name: "vxflexos"
+    chart_ref: "{{ artifacts_dir }}/csi-vxflexos"
+    release_namespace: vxflexos
+    timeout: "10m0s"
+    values_files:
+      - "{{ artifacts_dir }}/vxflexos-values.yml"
+    wait: true
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | create vxflexos storageclass
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ artifacts_dir }}/vxflexos-storageclass.yml"
+  become: true
+  delegate_to: localhost
+  run_once: true
+...

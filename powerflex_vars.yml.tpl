@@ -1,0 +1,30 @@
+---
+# MDM VIPs on storage networks
+mdm_ip: 
+  - "192.168.24.40"
+  - "192.168.25.40"
+storage_iface_names:
+  - eth4
+  - eth5
+sds_devices:
+  - /dev/sdb
+  - /dev/sdc
+  - /dev/sdd
+
+#
+# Do Not Edit below
+#
+gateway_admin_password: "{{ vault_pfx_admin_password }}"
+mdm_password: "{{ vault_pfx_admin_password }}"
+lia_token: "{{ vault_pfx_lia_token }}"
+protection_domain_name: "burrito_domain"
+storage_pool_name: "burrito_sp"
+# default gateway http port is 80. change it to 8999.
+gateway_http_port: 8999
+# default gateway ssl port is 443. change it to 7443
+gateway_ssl_port: 7443
+# default lia port is 9099. change it to 9090
+lia_port: 9090
+# default presentation port is 8443. change it to 9443
+presentation_port: 9443
+...

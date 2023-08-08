@@ -1,0 +1,84 @@
+control1 ip=192.168.21.101 ansible_connection=local ansible_python_interpreter=/usr/bin/python3
+control2 ip=192.168.21.102
+control3 ip=192.168.21.103
+compute1 ip=192.168.21.104
+compute2 ip=192.168.21.105
+storage1 ip=192.168.21.106
+storage2 ip=192.168.21.107
+storage3 ip=192.168.21.108
+
+# ceph nodes
+[mons]
+[mgrs]
+[osds]
+[rgws]
+[clients]
+
+# powerflex nodes
+[mdm]
+storage[1:3]
+
+[sds]
+storage[1:3]
+
+[sdc]
+control[1:3]
+compute[1:2]
+
+[gateway]
+storage[1:2]
+
+[presentation]
+storage3
+
+# kubernetes nodes
+[kube_control_plane]
+control[1:3]
+
+[kube_node]
+control[1:3]
+compute[1:2]
+
+# openstack nodes
+[controller-node]
+control[1:3]
+
+[network-node]
+control[1:3]
+
+[compute-node]
+compute[1:2]
+
+###################################################
+## Do not touch below if you are not an expert!!! #
+###################################################
+[ceph:children]
+mons
+mgrs
+osds
+rgws
+clients
+
+[powerflex:children]
+mdm
+sds
+sdc
+gateway
+presentation
+
+[etcd:children]
+kube_control_plane
+
+[k8s_cluster:children]
+kube_control_plane
+kube_node
+
+[controller-node:vars]
+node_labels={"openstack-control-plane":"enabled"}
+
+[network-node:vars]
+node_labels={"openstack-network-plane":"enabled", "openstack-network-dvr":"enabled", "linuxbridge":"enabled", "openvswitch":"enabled"}
+
+[compute-node:vars]
+node_labels={"openstack-compute-node":"enabled", "openstack-network-dvr":"enabled", "linuxbridge":"enabled", "openvswitch":"enabled"}
+

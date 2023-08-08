@@ -74,7 +74,7 @@ spec:
             - name: socket-dir
               mountPath: /csi
         - name: csi-snapshotter
-          image: {{ kube_image_repo }}/sig-storage/csi-snapshotter:{{ csi_snapshooter_version }}
+          image: {{ kube_image_repo }}/sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}
           args:
             - "--csi-address=$(ADDRESS)"
             - "--v=1"

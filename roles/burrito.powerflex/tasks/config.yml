@@ -1,0 +1,116 @@
+---
+- name: Config | get system id
+  ansible.builtin.shell: >-
+    /opt/emc/scaleio/sdc/bin/drv_cfg --query_mdms|grep MDM-ID|cut -d' ' -f2
+  register: systemid
+  become: true
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+
+- name: Config | reconfigure gatewayUser.properties
+  ansible.builtin.lineinfile:
+    path: "{{ gateway_user_properties_file }}"
+    regexp: "{{ item.from }}"
+    line: "{{ item.to }}"
+    state: present
+  loop:
+    - { from: "^mdm.ip.addresses", to: "mdm.ip.addresses={{mdm_ip_addresses|join(';')}}" }
+    - { from: "^system.id", to: "system.id={{ systemid.stdout }}" }
+    - { from: "^security.bypass_certificate", to: "security.bypass_certificate_check=true" }
+  become: true
+  when: inventory_hostname in groups['gateway']
+  notify:
+    - systemctl restart gateway service
+
+- name: Config | reconfigure gateway server.xml
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ ansible_os_family|lower }}{{ item.dest + '.j2' }}"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+  become: true
+  when: inventory_hostname in groups['gateway']
+  loop:
+    - {dest: "{{ server_xml_file }}"}
+  notify:
+    - systemctl restart gateway service
+
+- name: Config | reconfigure catalina.properties
+  ansible.builtin.lineinfile:
+    path: "{{ catalina_properties_file }}"
+    regexp: "{{ item.from }}"
+    line: "{{ item.to }}"
+    state: present
+  loop:
+    - { from: "^http.port", to: "http.port={{ gateway_http_port }}" }
+    - { from: "^ssl.port", to: "ssl.port={{ gateway_ssl_port }}" }
+  become: true
+  when: inventory_hostname in groups['gateway']
+  notify:
+    - systemctl restart gateway service
+
+- name: Config | reconfigure lia conf.txt
+  ansible.builtin.lineinfile:
+    path: "{{ lia_conf_file }}"
+    line: "lia_port={{ lia_port }}"
+    state: present
+  become: true
+  when: inventory_hostname in groups['powerflex']
+  notify:
+    - systemctl restart lia service
+
+- name: Config | reconfigure presentation service
+  ansible.builtin.lineinfile:
+    path: "{{ presentation_conf_file }}"
+    line: "MGMT_SERVER_OPTIONS='https.port={{ presentation_port }}'"
+    state: present
+    create: true
+  become: true
+  when: inventory_hostname in groups['presentation']
+  notify:
+    - systemctl restart presentation service
+
+- name: Config | add powerflex gateway section in haproxy.cfg
+  ansible.builtin.blockinfile:
+    path: "/etc/haproxy/haproxy.cfg"
+    mode: "0600"
+    insertafter: EOF
+    marker: "# {mark} POWERFLEX GATEWAY BLOCK"
+    block: >-
+      listen powerflex_gateway
+          bind {{ keepalived_vip }}:{{ gateway_ssl_port }}
+          balance {{ balance }}
+          mode tcp
+          option tcplog
+          {% for h in groups['gateway'] %}
+          server {{ h }} {{ hostvars[h].ip }}:{{ gateway_ssl_port }} check inter {{ inter }} rise {{ rise }} fall {{ fall }} on-marked-down shutdown-sessions
+          {% endfor %}
+  become: true
+  when: inventory_hostname in groups['kube_control_plane']
+  notify:
+    - systemctl restart haproxy service
+
+- name: Config | flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Config | create openstack directory in scaleio directory
+  ansible.builtin.file:
+    path: "{{ scaleio_dir }}/openstack"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Config | add openstack connector.conf
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ ansible_os_family|lower }}{{ item.dest + '.j2' }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  loop:
+    - {dest: "{{ scaleio_dir }}/openstack/connector.conf"}
+...

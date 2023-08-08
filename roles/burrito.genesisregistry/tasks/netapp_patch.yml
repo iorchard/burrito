@@ -1,0 +1,21 @@
+---
+- name: Genesis Registry | apply patch to trident-csi daemonset
+  kubernetes.core.k8s_json_patch:
+    kind: DaemonSet
+    namespace: trident
+    name: trident-csi
+    patch: "{{ trident_daemonset_patch_list }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Genesis Registry | apply patch to trident-csi deployment
+  kubernetes.core.k8s_json_patch:
+    kind: Deployment
+    namespace: trident
+    name: trident-csi
+    patch: "{{ trident_deploy_patch_list }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+...

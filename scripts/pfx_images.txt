@@ -1,0 +1,2 @@
+docker.io/dellemc/csi-vxflexos:v2.6.0
+registry.k8s.io/sig-storage/snapshot-controller:v6.2.1

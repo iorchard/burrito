@@ -1,0 +1,17 @@
+---
+version: {{ pfx_version }}
+
+images:
+  driverRepository: {{ docker_image_repo }}/dellemc
+
+logLevel: "info"
+
+# "controller" allows to configure controller specific parameters
+controller:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+node:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+...

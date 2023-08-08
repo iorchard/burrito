@@ -1,0 +1,9 @@
+---
+- name: deploy powerflex
+  hosts: all
+  any_errors_fatal: true
+  roles:
+    - role: burrito.powerflex
+      when: '"powerflex" in storage_backends'
+      tags: ['powerflex']
+...

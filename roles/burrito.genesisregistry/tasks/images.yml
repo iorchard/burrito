@@ -1,0 +1,20 @@
+---
+- name: Genesis Registry | tag registry image for genesis registry
+  ansible.builtin.shell: >-
+    nerdctl tag \
+      {{ containerd_insecure_registries.seed_registry }}/{{ item }} \
+      {{ outer_item }}:{{ genesis_registry_port }}/{{ item }}
+  become: true
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ genesis_images }}"
+
+- name: Genesis Registry | push registry image to each genesis registry
+  ansible.builtin.shell: >-
+    nerdctl push \
+      {{ outer_item }}:{{ genesis_registry_port }}/{{ item }}
+  become: true
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ genesis_images }}"
+...

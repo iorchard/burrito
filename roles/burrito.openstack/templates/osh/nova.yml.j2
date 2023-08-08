@@ -167,6 +167,7 @@ conf:
       cafile: /etc/nova/certs/ca.crt
     keystone_authtoken:
       cafile: /etc/nova/certs/ca.crt
+      service_token_roles: admin
       service_token_roles_required: true
     cinder:
       cafile: /etc/nova/certs/ca.crt
@@ -201,6 +202,15 @@ conf:
       enabled_vgpu_types: 
     notifications:
       bdms_in_notifications: true
+    service_user:
+      send_service_user_token: true
+      auth_type: password
+      auth_url: https://keystone-api.openstack.svc.cluster.local:5000/v3
+      project_domain_name: service
+      project_name: service
+      user_domain_name: service
+      username: nova
+      password: {{ nova.password }}
     vnc:
       auth_schemes: vencrypt
       vencrypt_client_key: /etc/pki/nova-novncproxy/client-key.pem
@@ -409,21 +419,37 @@ pod:
     nova_novncproxy:
       nova_novncproxy:
         volumeMounts:
-        - name: vnc-client-secret
-          mountPath: /etc/pki/nova-novncproxy
-          readOnly: true
+          - name: vnc-client-secret
+            mountPath: /etc/pki/nova-novncproxy
+            readOnly: true
         volumes:
-        - name: vnc-client-secret
-          secret:
-            secretName: vnc-client-secret
-            items:
-            - key: ca_crt
-              path: ca-cert.pem
-            - key: client_crt
-              path: client-cert.pem
-            - key: client_key
-              path: client-key.pem
+          - name: vnc-client-secret
+            secret:
+              secretName: vnc-client-secret
+              items:
+                - key: ca_crt
+                  path: ca-cert.pem
+                - key: client_crt
+                  path: client-cert.pem
+                - key: client_key
+                  path: client-key.pem
+{% if "powerflex" in storage_backends %}
+    nova_compute:
+      nova_compute:
+        volumeMounts:
+          - name: dev
+            mountPath: /dev
+          - name: nova-pfx
+            mountPath: /opt/emc/scaleio/openstack
+        volumes:
+          - name: dev
+            hostPath:
+              path: /dev
+          - name: nova-pfx
+            hostPath:
+              path: /opt/emc/scaleio/openstack
+{% endif %}
 manifests:
   certificates: true
-  pvc_instances: {{ 'true' if storage_backends[0] == 'netapp' else 'false' }}
+  pvc_instances: {{ nova.pvc_instances }}
 ...
