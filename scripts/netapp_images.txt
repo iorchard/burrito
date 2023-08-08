@@ -1,0 +1,2 @@
+docker.io/netapp/trident:22.10.0
+docker.io/netapp/trident-autosupport:22.10
