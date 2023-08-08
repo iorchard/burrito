@@ -118,5 +118,5 @@ snapshot_controller_deploy: |
   {% for v in snapshot_controller_deploy_images -%}
   {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
   {% endfor -%}
-snapshot_controller_patch_list: "{{ snapshot_controller_deploy.splitlines()|map('from_yaml')|list }}"
+snapshot_controller_deploy_patch_list: "{{ snapshot_controller_deploy.splitlines()|map('from_yaml')|list }}"
 ...
