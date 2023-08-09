@@ -3,11 +3,13 @@
   ansible.builtin.file:
     path: "{{ pkg_base }}"
     state: directory
+  when: inventory_hostname in groups['powerflex']
 
 - name: Install | extract powerflex package tarball
   ansible.builtin.unarchive:
     src: "{{ pkg_tarball }}"
     dest: "{{ pkg_base }}"
+  when: inventory_hostname in groups['powerflex']
 
 - name: Install | install primary and secondary MDM
   ansible.builtin.shell: >-
@@ -89,4 +91,5 @@
   ansible.builtin.file:
     path: "{{ pkg_base }}"
     state: absent
+  when: inventory_hostname in groups['powerflex']
 ...
