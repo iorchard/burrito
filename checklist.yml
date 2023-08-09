@@ -168,7 +168,9 @@
         that:
           - hostvars[inventory_hostname]['ansible_'+item].ipv4.address is defined
       loop: "{{ storage_iface_names }}"
-      when: "'powerflex' in storage_backends"
+      when:
+        - "'powerflex' in storage_backends"
+        - inventory_hostname in groups['powerflex']
 
     - name: check if powerflex sds devices exist in sds nodes
       ansible.builtin.assert:
