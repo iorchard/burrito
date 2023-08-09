@@ -8,6 +8,7 @@ logLevel: "info"
 
 # "controller" allows to configure controller specific parameters
 controller:
+  controllerCount: {{ pod.replicas }}
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
 
