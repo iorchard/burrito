@@ -2,10 +2,8 @@
 # MDM VIPs on storage networks
 mdm_ip: 
   - "192.168.24.40"
-  - "192.168.25.40"
 storage_iface_names:
   - eth4
-  - eth5
 sds_devices:
   - /dev/sdb
   - /dev/sdc
