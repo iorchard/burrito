@@ -195,6 +195,13 @@ conf:
       ssl_ca_file: /etc/rabbitmq/certs/ca.crt
       ssl_cert_file: /etc/rabbitmq/certs/tls.crt
       ssl_key_file: /etc/rabbitmq/certs/tls.key
+      rabbit_retry_interval: {{ rabbit_retry_interval }}
+      rabbit_retry_backoff: {{ rabbit_retry_backoff }}
+      rabbit_interval_max: {{ rabbit_interval_max }}
+      rabbit_ha_queues: false
+      rabbit_quorum_queue: {{ rabbit_quorum_queue }}
+      heartbeat_timeout_threshold: {{ heartbeat_timeout_threshold }}
+      heartbeat_rate: {{ heartbeat_rate }}
     quotas:
       quota_network: -1
       quota_subnet: -1
@@ -287,6 +294,7 @@ conf:
       nova_metadata_port: 8443
       auth_ca_cert: /etc/ssl/certs/openstack-helm.crt
       nova_metadata_protocol: https
+  rabbitmq: null
 
 endpoints:
   oslo_db:
