@@ -7,10 +7,10 @@
   become: true
   changed_when: false
 
-- name: haproxy restart service
+- name: haproxy reload service
   service:
     name: "haproxy.service"
-    state: "restarted"
+    state: "reloaded"
     enabled: true
   become: true
   changed_when: false

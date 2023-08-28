@@ -92,7 +92,7 @@
           {% endfor %}
   become: true
   notify:
-    - haproxy restart service
+    - haproxy reload service
 
 - name: Genesis Registry | take down offline services
   ansible.builtin.shell: >-

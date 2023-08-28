@@ -89,7 +89,7 @@
   become: true
   when: inventory_hostname in groups['kube_control_plane']
   notify:
-    - systemctl restart haproxy service
+    - systemctl reload haproxy service
 
 - name: Config | flush handlers
   ansible.builtin.meta: flush_handlers
