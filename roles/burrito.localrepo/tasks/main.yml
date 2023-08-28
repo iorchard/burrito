@@ -137,5 +137,5 @@
   become: true
   when: inventory_hostname in groups['kube_control_plane']
   notify:
-    - systemctl restart service
+    - haproxy reload service
 ...

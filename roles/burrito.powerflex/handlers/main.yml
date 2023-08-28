@@ -17,10 +17,10 @@
     state: "restarted"
     enabled: true
   become: true
-- name: systemctl restart haproxy service
+- name: systemctl reload haproxy service
   ansible.builtin.service:
     name: "haproxy.service"
-    state: "restarted"
+    state: "reloaded"
     enabled: true
   become: true
 ...
