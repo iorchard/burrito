@@ -7,7 +7,9 @@ rsyslog_conf:
   - {dest: "/etc/rsyslog.d/haproxy.conf"}
 
 service_conf:
-    - {dest: "{{ haproxy_conf_dir }}/haproxy.cfg", src: "{{ force_active_standby | ternary('{{ haproxy_conf_dir }}/haproxy.cfg_active_standby', '{{ haproxy_conf_dir }}/haproxy.cfg') }}", owner: "root", group: "{{ service_name }}", mode: "0640"}
+    - {dest: "{{ haproxy_conf_dir }}/haproxy.cfg", src: "{{ haproxy_conf_dir }}/haproxy.cfg", owner: "root", group: "{{ service_name }}", mode: "0640"}
+    - {dest: "{{ haproxy_conf_dir }}/conf.d/ceph.cfg", src: "{{ haproxy_conf_dir }}/conf.d/ceph.cfg", owner: "root", group: "{{ service_name }}", mode: "0640"}
+    - {dest: "{{ haproxy_conf_dir }}/conf.d/kube-apiserver.cfg", src: "{{ haproxy_conf_dir }}/conf.d/kube-apiserver.cfg", owner: "root", group: "{{ service_name }}", mode: "0640"}
 
 systemd_service_name:
   - rsyslog.service
