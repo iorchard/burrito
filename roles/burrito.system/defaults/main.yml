@@ -8,6 +8,7 @@ openstack_fqdn:
   - metadata.openstack.svc.cluster.local 
   - cinder.openstack.svc.cluster.local
   - barbican.openstack.svc.cluster.local
+  - "{{ apiserver_loadbalancer_domain_name }}"
 os_admin_password: ~
 
 tls_tmp_dir: "/tmp/kubeconfig"
