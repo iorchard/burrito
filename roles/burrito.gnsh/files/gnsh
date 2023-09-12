@@ -1,0 +1,40 @@
+#!/bin/bash
+export KUBECONFIG=/etc/kubernetes/kubelet.conf
+
+LABEL_JSON="/var/lib/kubelet/labels.json"
+
+stop_gnsh() {
+  echo "Show the node status."
+  kubectl get node ${HOSTNAME}
+  sleep 5
+
+  echo "Let's drain my node ${HOSTNAME}"
+  kubectl drain ${HOSTNAME} \
+    --delete-emptydir-data=true \
+    --grace-period=120 \
+    --ignore-daemonsets=true \
+    --timeout=300s
+  sleep 5
+
+  echo "Graceful Node Shutdown Helper (GNSH) completed a drain process."
+}
+
+start_gnsh() {
+  echo "Uncordon my node ${HOSTNAME}."
+  kubectl uncordon ${HOSTNAME} || true
+}
+
+case "$1" in
+  start)
+    start_gnsh
+    ;;
+  stop)
+    stop_gnsh
+    ;;
+  *)
+    echo "Usage) $0 {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0

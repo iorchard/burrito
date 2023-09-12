@@ -1,0 +1,9 @@
+---
+- name: gnsh start service
+  ansible.builtin.service:
+    name: "{{ systemd_service_name }}"
+    state: "started"
+    enabled: true
+  become: true
+  changed_when: false
+...

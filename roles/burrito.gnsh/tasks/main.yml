@@ -1,0 +1,41 @@
+---
+- name: GNSH | get the info in system:node clusterrole
+  kubernetes.core.k8s_info:
+    api_version: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    name: "system:node"
+  register: system_node_cr
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: GNSH | patch system:node clusterrole
+  kubernetes.core.k8s_json_patch:
+    kind: ClusterRole
+    name: "system:node"
+    patch: "{{ system_node_clsuterrole_patch_list }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+  when: system_node_cr.resources[0].rules[0].apiGroups[0] != "apps"
+
+- name: GNSH | copy kubectl to compute nodes
+  ansible.builtin.copy:
+    dest: "/usr/bin/kubectl"
+    src: "/usr/bin/kubectl"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+  become: true
+  when: inventory_hostname != groups['kube_control_plane']
+
+- name: GNSH | copy gnsh service and script
+  ansible.builtin.copy:
+    dest: "{{ item.dest }}"
+    src: "{{ item.dest|basename }}"
+    mode: "{{ item.mode }}"
+  loop: "{{ template_files }}"
+  become: true
+  notify:
+    - gnsh start service
+...

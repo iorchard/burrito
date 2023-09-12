@@ -1,0 +1,14 @@
+[Unit]
+Description=Graceful Node Shutdown Helper
+After=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/gnsh start
+ExecStop=/usr/bin/gnsh stop
+TimeoutStopSec=300
+StandardOutput=syslog+console
+
+[Install]
+WantedBy=multi-user.target
