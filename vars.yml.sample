@@ -41,6 +41,14 @@ metallb_enabled: false
 # Only one IP: 192.168.20.95/32
 metallb_ip_range: "192.168.20.95-192.168.20.98"
 
+### HA tuning
+# ha levels: moderato, allegro, and vivace
+# moderato: default update and response for liveness and failover
+# allegro: faster update and response for liveness and failover
+# vivace: fastest update and response for liveness and failover
+ha_level: "moderato"
+k8s_ha_level: "moderato"
+
 ### storage
 # storage backends: ceph and(or) netapp
 # If there are multiple backends, the first one is the default backend.
@@ -56,6 +64,79 @@ storage_backends:
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
 ###################################################
+ha:
+  moderato:
+    interval: 5
+    timeout: 3
+    rise: 1
+    fall: 2
+  allegro:
+    interval: 4
+    timeout: 3
+    rise: 1
+    fall: 2
+  vivace:
+    interval: 3
+    timeout: 3
+    rise: 1
+    fall: 2
+# keepalived HA parameters
+vrrp_script_interval: "{{ ha[ha_level].interval }}"
+vrrp_script_timeout: "{{ ha[ha_level].timeout }}"
+vrrp_script_rise: "{{ ha[ha_level].rise }}"
+vrrp_script_fall: "{{ ha[ha_level].fall }}"
+# haproxy HA parameters
+inter: "{{ ha[ha_level].interval }}s"
+rise: "{{ ha[ha_level].rise }}"
+fall: "{{ ha[ha_level].fall }}"
+
+k8s_ha:
+  moderato:
+    node_status_update_frequency: "10s"
+    node_monitor_period: "5s"
+    node_monitor_grace_period: "40s"
+    not_ready_toleration_seconds: 300
+    unreachable_toleration_seconds: 300
+    kubelet_shutdown_grace_period: "300s"
+    kubelet_shutdown_grace_period_critical_pods: "120s"
+  allegro:
+    node_status_update_frequency: "10s"
+    node_monitor_period: "5s"
+    node_monitor_grace_period: "50s"
+    not_ready_toleration_seconds: 60
+    unreachable_toleration_seconds: 60
+    kubelet_shutdown_grace_period: "300s"
+    kubelet_shutdown_grace_period_critical_pods: "120s"
+  vivace:
+    node_status_update_frequency: "6s"
+    node_monitor_period: "3s"
+    node_monitor_grace_period: "30s"
+    not_ready_toleration_seconds: 30
+    unreachable_toleration_seconds: 30
+    kubelet_shutdown_grace_period: "300s"
+    kubelet_shutdown_grace_period_critical_pods: "120s"
+
+# kubespray HA parameters
+kubelet_status_update_frequency: "{{ k8s_ha[k8s_ha_level].node_status_update_frequency }}"
+kube_controller_node_monitor_period: "{{ k8s_ha[k8s_ha_level].node_monitor_period }}"
+kube_controller_node_monitor_grace_period: "{{ k8s_ha[k8s_ha_level].node_monitor_grace_period }}"
+kube_apiserver_pod_eviction_not_ready_timeout_seconds: "{{ k8s_ha[k8s_ha_level].not_ready_toleration_seconds }}"
+kube_apiserver_pod_eviction_unreachable_timeout_seconds: "{{ k8s_ha[k8s_ha_level].unreachable_toleration_seconds }}"
+kubelet_shutdown_grace_period: "{{ k8s_ha[k8s_ha_level].kubelet_shutdown_grace_period }}"
+kubelet_shutdown_grace_period_critical_pods: "{{ k8s_ha[k8s_ha_level].kubelet_shutdown_grace_period_critical_pods }}"
+
+# use haproxy as external loadbalancer for kube-apiserver
+apiserver_loadbalancer_domain_name: "lb-apiserver.kubernetes.local"
+kube_apiserver_bind_address: "{{ ip }}"
+kube_apiserver_port: 6443
+loadbalancer_apiserver:
+  address: "{{ keepalived_vip }}"
+  port: "{{ kube_apiserver_port }}"
+
+# deploy_ssh_key: (boolean) create ssh keypair and copy it to other nodes.
+# default: true
+deploy_ssh_key: true
+
 ### MTU setting
 calico_mtu: 1500
 openstack_mtu: 1500
@@ -167,9 +248,12 @@ openstack_keys:
 copy_admin_key: true
 
 ### kubespray
-# default pod replicas == # of controllers
+# pod.replicas is for pods for HA
+# quorum.replicas is for pods for quorum like mariadb, rabbitmq.
 pod:
-  replicas: "{{ groups['controller-node']|length }}"
+  replicas: "{{ (groups['controller-node']|length<2)|ternary(1, 2) }}"
+  quorum_replicas: "{{ (groups['controller-node']|length<3) |ternary(1, 3) }}"
+
 upstream_dns_servers:
   - 8.8.8.8
 kube_image_repo: "registry.k8s.io"
@@ -213,14 +297,9 @@ kube_apiserver_enable_admission_plugins:
 kube_apiserver_admission_control_config_file: true
 kube_apiserver_admission_event_rate_limits:
   limit1:
-    type: Namespace
-    qps: 500
-    burst: 5000
-    cache_size: 2000
-  limit2:
-    type: User
-    qps: 500
-    burst: 5000
+    type: Server
+    qps: 5000
+    burst: 20000
 kube_encrypt_secret_data: true
 podsecuritypolicy_restricted_spec:
   privileged: false
