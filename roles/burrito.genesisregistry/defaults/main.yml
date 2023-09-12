@@ -1,4 +1,8 @@
 ---
+haproxy_conf_dir: "/etc/haproxy"
+service_conf:
+  - {dest: "{{ haproxy_conf_dir }}/conf.d/registry.cfg", owner: "root", group: "haproxy", mode: "0640"}
+
 genesis_registry:
   root_dir: "/var/lib/registry"
   secret: "{{ lookup('community.general.random_string', length=12, base64=True) }}"
