@@ -21,7 +21,7 @@ conf:
         keyfile: "/etc/rabbitmq/certs/tls.key"
 pod:
   replicas:
-    server: {{ pod.replicas }}
+    server: {{ pod.quorum_replicas }}
 volume:
   size: {{ rabbitmq.volume_size }}
   class_name: {{ storageclass_name }}
