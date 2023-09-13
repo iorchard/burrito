@@ -12,10 +12,4 @@ system_node_clsuterrole_patch_list:
       apiGroups: ["apps"]
       resources: ["deployments", "daemonsets", "statefulsets"]
       verbs: ["get", "list"]
-  - op: add
-    path: /rules/1
-    value:
-      apiGroups: [""]
-      resources: ["nodes"]
-      verbs: ["delete"]
 ...
