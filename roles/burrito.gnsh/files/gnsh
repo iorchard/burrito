@@ -1,8 +1,6 @@
 #!/bin/bash
 export KUBECONFIG=/etc/kubernetes/kubelet.conf
 
-LABEL_JSON="/var/lib/kubelet/labels.json"
-
 stop_gnsh() {
   echo "Show the node status."
   kubectl get node ${HOSTNAME}
