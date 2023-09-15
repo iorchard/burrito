@@ -9,7 +9,7 @@ images:
 
 pod:
   replicas:
-    server: {{ pod.replicas }}
+    server: {{ pod.quorum_replicas }}
     ingress: {{ pod.replicas }}
   security_context:
     server:

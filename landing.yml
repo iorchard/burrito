@@ -10,4 +10,10 @@
   any_errors_fatal: true
   roles:
     - {role: burrito.localrepo, tags: ['localrepo', 'burrito']}
+
+- name: deploy Graceful Node Shutdown Helper (GNSH)
+  hosts: k8s_cluster
+  any_errors_fatal: true
+  roles:
+    - {role: burrito.gnsh, tags: ['gnsh', 'burrito']}
 ...

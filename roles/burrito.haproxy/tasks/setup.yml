@@ -6,6 +6,7 @@
     state: present
     reload: true
     sysctl_set: true
+    sysctl_file: /etc/sysctl.d/00-haproxy-sysctl.conf
   become: true
   loop:
     - net.ipv4.ip_nonlocal_bind

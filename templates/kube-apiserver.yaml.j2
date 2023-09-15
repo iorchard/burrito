@@ -10,6 +10,7 @@ metadata:
   name: kube-apiserver
   namespace: kube-system
 spec:
+  terminationGracePeriodSeconds: 300
   containers:
   - command:
     - kube-apiserver
@@ -19,10 +20,10 @@ spec:
     - --anonymous-auth=false
     - --apiserver-count={{ groups['kube_control_plane'] | length }}
     - --authorization-mode=Node,RBAC
-    - --bind-address=0.0.0.0
+    - --bind-address={{ ip }}
     - --client-ca-file=/etc/kubernetes/ssl/ca.crt
-    - --default-not-ready-toleration-seconds=300
-    - --default-unreachable-toleration-seconds=300
+    - --default-not-ready-toleration-seconds={{ kube_apiserver_pod_eviction_not_ready_timeout_seconds }}
+    - --default-unreachable-toleration-seconds={{ kube_apiserver_pod_eviction_unreachable_timeout_seconds }}
     - --enable-admission-plugins=AlwaysPullImages,EventRateLimit,NodeRestriction,PodSecurityPolicy
     - --enable-aggregator-routing=False
     - --enable-bootstrap-token-auth=true

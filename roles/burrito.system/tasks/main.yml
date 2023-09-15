@@ -104,7 +104,7 @@
   ansible.builtin.command: >-
     kubectl config set-cluster kubernetes --embed-certs=true \
       --certificate-authority={{ tls_ca.crt }} \
-      --server=https://127.0.0.1:6443
+      --server=https://{{ apiserver_loadbalancer_domain_name }}:6443
   when: inventory_hostname in groups['kube_control_plane']
 
 - name: Kubeconfig | set a user entry

@@ -1,4 +1,8 @@
 ---
+haproxy_conf_dir: "/etc/haproxy"
+service_conf:
+  - {dest: "{{ haproxy_conf_dir }}/conf.d/localrepo.cfg", owner: "root", group: "haproxy", mode: "0640"}
+
 artifacts_dir: "{{ ansible_env.HOME }}/burrito-artifacts"
 local_repo_port: 8001
 storageclass_name: ~

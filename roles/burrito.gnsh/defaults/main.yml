@@ -1,0 +1,15 @@
+---
+template_files:
+  - {dest: "/etc/systemd/system/gnsh.service", mode: "0644"}
+  - {dest: "/usr/bin/gnsh", mode: "0750"}
+
+systemd_service_name: "gnsh.service"
+
+system_node_clsuterrole_patch_list:
+  - op: add
+    path: /rules/0
+    value:
+      apiGroups: ["apps"]
+      resources: ["deployments", "daemonsets", "statefulsets"]
+      verbs: ["get", "list"]
+...
