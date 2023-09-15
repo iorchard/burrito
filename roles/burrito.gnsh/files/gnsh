@@ -12,7 +12,7 @@ stop_gnsh() {
     --grace-period=120 \
     --ignore-daemonsets=true \
     --timeout=300s
-  sleep 5
+  sleep 20
 
   echo "Graceful Node Shutdown Helper (GNSH) completed a drain process."
 }
