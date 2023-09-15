@@ -1,9 +1,4 @@
 ---
-### common
-# deploy_ssh_key: (boolean) create ssh keypair and copy it to other nodes.
-# default: false
-deploy_ssh_key: false
-
 ### define network interface names
 # set overlay_iface_name to null if you do not want to set up overlay network.
 # then, only provider network will be set up.
@@ -43,9 +38,9 @@ metallb_ip_range: "192.168.20.95-192.168.20.98"
 
 ### HA tuning
 # ha levels: moderato, allegro, and vivace
-# moderato: default update and response for liveness and failover
-# allegro: faster update and response for liveness and failover
-# vivace: fastest update and response for liveness and failover
+# moderato: default liveness update and failover response
+# allegro: faster liveness update and failover response
+# vivace: fastest liveness update and failover response
 ha_level: "moderato"
 k8s_ha_level: "moderato"
 
@@ -102,7 +97,7 @@ k8s_ha:
   allegro:
     node_status_update_frequency: "10s"
     node_monitor_period: "5s"
-    node_monitor_grace_period: "50s"
+    node_monitor_grace_period: "40s"
     not_ready_toleration_seconds: 60
     unreachable_toleration_seconds: 60
     kubelet_shutdown_grace_period: "300s"
