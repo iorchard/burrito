@@ -136,9 +136,9 @@
   delegate_to: localhost
   run_once: true
 
-- name: Genesis Registry | apply patch to registry replicaset
+- name: Genesis Registry | apply patch to registry
   kubernetes.core.k8s_json_patch:
-    kind: ReplicaSet
+    kind: Deployment
     namespace: "{{ registry_namespace }}"
     name: registry
     patch:
