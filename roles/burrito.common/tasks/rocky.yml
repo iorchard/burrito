@@ -81,17 +81,4 @@
   delay: 3
   become: true
   when: not offline
-
-- name: Rocky Linux | Set rsyslog configuration
-  ansible.builtin.copy:
-    src: "{{ ansible_os_family | lower }}{{ item.dest }}"
-    dest: "{{ item.dest }}"
-    owner: "root"
-    group: "root"
-    mode: "0644"
-  become: true
-  changed_when: true
-  loop: "{{ os_service_conf }}"
-  notify:
-    - systemctl restart service
 ...
