@@ -277,6 +277,7 @@ cert_manager_affinity:
          values:
          - ""
 preinstall_selinux_state: disabled
+sysctl_file_path: "/etc/sysctl.d/10-k8s.conf"
 
 # ipam settings for kubernetes
 kube_pods_subnet: 10.200.0.0/13
