@@ -425,7 +425,7 @@ mariadb:
 
 # rabbitmq
 rabbitmq:
-  volume_size: "768Mi"
+  volume_size: "10Gi"
   password: "{{ vault_rabbitmq_openstack_password }}"
 
 # keystone
