@@ -66,7 +66,7 @@
   loop_control:
     loop_var: outer_item
 
-- name: Genesis Registry | templatig registry haproxy config
+- name: Genesis Registry | templating registry haproxy config
   ansible.builtin.template:
     dest: "{{ item.dest }}"
     src: "{{ ansible_os_family | lower }}{{ item.dest + '.j2' }}"
