@@ -85,6 +85,10 @@
     current_pathname: "{{ item.1 }}"
     media_type: "{{ media_type }}"
     state: present
+  register: pfx_result
+  until: pfx_result is not failed
+  retries: 3
+  delay: 3
   delegate_to: localhost
   run_once: true
   loop: "{{ groups['sds'] | product(sds_devices) | list }}"

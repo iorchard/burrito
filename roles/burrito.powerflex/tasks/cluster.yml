@@ -22,6 +22,9 @@
   register: res
   delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
+  until: res.rc in [0, 7]
+  retries: 3
+  delay: 3
   failed_when: res.rc not in [0, 7]
   changed_when: res.rc == 0
   no_log: true
