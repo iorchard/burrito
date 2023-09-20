@@ -1,4 +1,8 @@
 ---
+haproxy_conf_dir: "/etc/haproxy"
+service_conf:
+  - {dest: "{{ haproxy_conf_dir }}/conf.d/powerflex.cfg", owner: "root", group: "haproxy", mode: "0640"}
+
 pkg_tarball: "/mnt/powerflex_pkgs.tar.gz"
 pkg_base: "{{ ansible_env.HOME }}/powerflex_pkgs"
 lia_token: ~
