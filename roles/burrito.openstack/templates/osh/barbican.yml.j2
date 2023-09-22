@@ -13,6 +13,10 @@ images:
     barbican_api: "{{ docker_image_repo }}/jijisa/barbican:yoga-ubuntu_focal"
     rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.11-management"
 
+pod:
+  replicas:
+    api: {{ pod.replicas }}
+
 conf:
   db_acl:
     enabled: true
