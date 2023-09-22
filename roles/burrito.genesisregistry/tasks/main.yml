@@ -149,6 +149,10 @@
   delegate_to: localhost
   run_once: true
 
+- name: Genesis Registry | pause before going to csi patch
+  ansible.builtin.pause:
+    seconds: 10
+
 - name: Genesis Registry | include patch tasks for ceph-csi
   ansible.builtin.include_tasks: "ceph_patch.yml"
   when: storage_backends[0] == 'ceph'
