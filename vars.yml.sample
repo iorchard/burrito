@@ -243,13 +243,14 @@ openstack_keys:
 copy_admin_key: true
 
 ### kubespray
-# pod.replicas is for pods for HA
-# quorum.replicas is for pods for quorum like mariadb, rabbitmq.
+# add secure tls cipher to kube-apiserver
 tls_cipher_suites:
   - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
   - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
 
+# pod.replicas is for pods for HA
+# quorum.replicas is for pods for quorum like mariadb, rabbitmq.
 pod:
   replicas: "{{ (groups['controller-node']|length<2)|ternary(1, 2) }}"
   quorum_replicas: "{{ (groups['controller-node']|length<3) |ternary(1, 3) }}"
