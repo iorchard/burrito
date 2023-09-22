@@ -57,6 +57,7 @@ spec:
     - --storage-backend=etcd3
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.crt
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver.key
+    - --tls-cipher-suites=TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
     image: {{ kube_image_repo }}/kube-apiserver:{{ kube_version }}
     imagePullPolicy: IfNotPresent
     livenessProbe:
