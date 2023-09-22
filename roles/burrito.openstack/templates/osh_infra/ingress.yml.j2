@@ -19,7 +19,7 @@ monitoring:
       scrape: false
 pod:
   replicas:
-    ingress: {{ pod.replicas }}
+    ingress: {{ groups['controller-node']|length }}
     error_page: 1
 endpoints:
   ingress:
