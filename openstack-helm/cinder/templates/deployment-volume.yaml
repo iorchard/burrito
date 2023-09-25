@@ -40,13 +40,8 @@ metadata:
   labels:
 {{ tuple $envAll "cinder" "volume" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
 spec:
-{{- if eq .Values.deployment.type "Deployment" }}
   replicas: {{ .Values.pod.replicas.volume }}
-{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | indent 2 }}
-{{- end }}
 {{- if eq .Values.deployment.type "StatefulSet" }}
-  replicas: {{ .Values.pod.replicas.volume }}
-{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_statefulset" | indent 2 }}
   serviceName: cinder-volume
 {{- end }}
   selector:
@@ -405,6 +400,7 @@ spec:
 {{ if $mounts_cinder_volume.volumes }}{{ toYaml $mounts_cinder_volume.volumes | indent 8 }}{{ end }}
 {{- end }}
 {{- if eq .Values.deployment.type "StatefulSet" }}
+{{- if or (eq .Values.deployment.type "StatefulSet") (eq .Values.cinder_conversion_volume.access_modes "ReadWriteMany") }}
   volumeClaimTemplates:
   - metadata:
       name: cinder-conversion-vol

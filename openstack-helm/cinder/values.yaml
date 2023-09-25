@@ -16,8 +16,8 @@
 # name: value
 
 ---
+# The deployment type consists of three options: deployment, daemonset, and statefulset.
 deployment:
-  mode: namespace
   type: Deployment
 
 storage: ceph

@@ -19,7 +19,11 @@ images:
     dep_check: "{{ quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0"
 
 deployment:
+{% if "netapp" in storage_backends %}
+  type: Deployment
+{% else %}
   type: StatefulSet
+{% endif %}
 
 pod:
   security_context:
@@ -89,7 +93,11 @@ pod:
     volume: {{ pod.replicas }}
 
 cinder_conversion_volume:
+{% if "netapp" in storage_backends %}
+  access_modes: "ReadWriteMany"
+{% else %}
   access_modes: "ReadWriteOnce"
+{% endif %}
   class_name: "{{ storageclass_name }}"
   size: "{{ cinder_volume_size }}"
 
@@ -412,4 +420,5 @@ manifests:
   deployment_backup: {{ enable_cinder_backup }}
   job_backup_storage_init: {{ enable_cinder_backup }}
   job_storage_init: {{ ("ceph" in storage_backends)|ternary('true', 'false') }}
+  pvc_cinder_conversion: true
 ...

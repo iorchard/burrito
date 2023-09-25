@@ -16,7 +16,12 @@ images:
     rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.11-management"
 
 deployment:
+{% if "netapp" in storage_backends %}
+  type: Deployment
+{% else %}
   type: StatefulSet
+{% endif %}
+
 
 conf:
 {% if 'ceph' in storage_backends %}
@@ -149,7 +154,11 @@ volume:
   size: "{{ glance.volume_size }}"
 
 client_tmp_pvc_volume:
+{% if "netapp" in storage_backends %}
+  access_modes: "ReadWriteMany"
+{% else %}
   access_modes: "ReadWriteOnce"
+{% endif %}
   class_name: "{{ storageclass_name }}"
   size: "{{ client_temp_size }}"
 

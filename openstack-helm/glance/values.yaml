@@ -17,6 +17,7 @@
 
 # radosgw, rbd, swift or pvc
 ---
+# The deployment type consists of three options: deployment, daemonset, and statefulset.
 deployment:
   mode: namespace
   type: Deployment
