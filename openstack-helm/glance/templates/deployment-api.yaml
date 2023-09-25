@@ -21,8 +21,16 @@ limitations under the License.
 {{- $serviceAccountName := "glance-api" }}
 {{ tuple $envAll "api" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
 ---
+{{- if eq .Values.deployment.type "Deployment" }}
 apiVersion: apps/v1
 kind: Deployment
+{{- else if eq .Values.deployment.type "DaemonSet" }}
+apiVersion: apps/v1
+kind: DaemonSet
+{{- else if eq .Values.deployment.type "StatefulSet" }}
+apiVersion: apps/v1
+kind: StatefulSet
+{{- end }}
 metadata:
   name: glance-api
   annotations:
@@ -30,11 +38,23 @@ metadata:
   labels:
 {{ tuple $envAll "glance" "api" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
 spec:
-  replicas: {{ .Values.pod.replicas.api }}
+{{- if eq .Values.deployment.type "Deployment" }}
+  replicas: {{ .Values.pod.replicas.volume }}
+{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | indent 2 }}
+{{- end }}
+{{- if eq .Values.deployment.type "StatefulSet" }}
+  replicas: {{ .Values.pod.replicas.volume }}
+{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_statefulset" | indent 2 }}
+  serviceName: glance-api
+{{- end }}
   selector:
     matchLabels:
 {{ tuple $envAll "glance" "api" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 6 }}
+{{- if eq .Values.deployment.type "Deployment" }}
 {{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | indent 2 }}
+{{- else if eq .Values.deployment.type "StatefulSet" }}
+{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_statefulset" | indent 2 }}
+{{- end }}
   template:
     metadata:
       labels:
@@ -132,6 +152,11 @@ spec:
                   - /tmp/nginx.sh
                   - stop
           volumeMounts:
+           {{- if eq .Values.deployment.type "StatefulSet" }}
+            - name: client-tmp-pvc
+              mountPath: /var/cache/nginx/client_temp
+              readOnly: false
+           {{- end }}
             - name: glance-bin
               mountPath: /tmp/nginx.sh
               subPath: nginx.sh
@@ -366,3 +391,15 @@ spec:
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_messaging.auth.admin.secret.tls.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{ if $mounts_glance_api.volumes }}{{ toYaml $mounts_glance_api.volumes | indent 8 }}{{ end }}
 {{- end }}
+{{- if eq .Values.deployment.type "StatefulSet" }}
+  volumeClaimTemplates:
+  - metadata:
+      name: client-tmp-pvc
+    spec:
+      accessModes: ["{{ .Values.client_tmp_pvc_volume.access_modes }}"]
+      resources:
+        requests:
+            storage: {{ .Values.client_tmp_pvc_volume.size }}
+      storageClassName: {{ .Values.client_tmp_pvc_volume.class_name }}
+{{- end }}
+

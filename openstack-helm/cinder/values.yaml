@@ -16,6 +16,10 @@
 # name: value
 
 ---
+deployment:
+  mode: namespace
+  type: Deployment
+
 storage: ceph
 
 labels:

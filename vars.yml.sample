@@ -458,6 +458,7 @@ glance:
     proxy_body_size: "102400M"
     proxy_read_timeout: "3600"
   volume_size: "500Gi"
+client_temp_size: "200Gi"
 
 # placement
 placement:
@@ -512,6 +513,7 @@ cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first }}"
   password: "{{ vault_cinder_password }}"
+cinder_volume_size: "100Gi"
 
 # horizon
 horizon:

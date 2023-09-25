@@ -17,6 +17,10 @@
 
 # radosgw, rbd, swift or pvc
 ---
+deployment:
+  mode: namespace
+  type: Deployment
+
 storage: swift
 
 labels:

@@ -15,6 +15,9 @@ images:
     dep_check: {{ quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0
     rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.11-management"
 
+deployment:
+  type: StatefulSet
+
 conf:
 {% if 'ceph' in storage_backends %}
   software:
@@ -144,6 +147,11 @@ storage: "{{ glance.storage }}"
 volume:
   class_name: "{{ storageclass_name }}"
   size: "{{ glance.volume_size }}"
+
+client_tmp_pvc_volume:
+  access_modes: "ReadWriteOnce"
+  class_name: "{{ storageclass_name }}"
+  size: "{{ client_temp_size }}"
 
 bootstrap:
   enabled: false

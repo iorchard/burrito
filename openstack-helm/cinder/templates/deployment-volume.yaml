@@ -23,8 +23,16 @@ limitations under the License.
 {{- $serviceAccountName := "cinder-volume" }}
 {{ tuple $envAll "volume" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
 ---
+{{- if eq .Values.deployment.type "Deployment" }}
 apiVersion: apps/v1
 kind: Deployment
+{{- else if eq .Values.deployment.type "DaemonSet" }}
+apiVersion: apps/v1
+kind: DaemonSet
+{{- else if eq .Values.deployment.type "StatefulSet" }}
+apiVersion: apps/v1
+kind: StatefulSet
+{{- end }}
 metadata:
   name: cinder-volume
   annotations:
@@ -32,11 +40,23 @@ metadata:
   labels:
 {{ tuple $envAll "cinder" "volume" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
 spec:
+{{- if eq .Values.deployment.type "Deployment" }}
   replicas: {{ .Values.pod.replicas.volume }}
+{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | indent 2 }}
+{{- end }}
+{{- if eq .Values.deployment.type "StatefulSet" }}
+  replicas: {{ .Values.pod.replicas.volume }}
+{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_statefulset" | indent 2 }}
+  serviceName: cinder-volume
+{{- end }}
   selector:
     matchLabels:
 {{ tuple $envAll "cinder" "volume" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 6 }}
+{{- if eq .Values.deployment.type "Deployment" }}
 {{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | indent 2 }}
+{{- else if eq .Values.deployment.type "StatefulSet" }}
+{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_statefulset" | indent 2 }}
+{{- end }}
   template:
     metadata:
       labels:
@@ -68,6 +88,20 @@ spec:
       hostIPC: true
 {{- end }}
       initContainers:
+{{- if eq .Values.deployment.type "StatefulSet" }}
+        - name: cinder-conversion-ownership
+{{ tuple $envAll "cinder_volume" | include "helm-toolkit.snippets.image" | indent 10 }}
+          securityContext:
+            runAsUser: 0
+          command:
+            - chown
+            - -R
+            - "cinder:"
+            - "/var/lib/cinder/conversion"
+          volumeMounts:
+            - name: cinder-conversion-vol
+              mountPath: /var/lib/cinder/conversion
+{{- end }}
 {{ tuple $envAll "volume" $mounts_cinder_volume_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
         {{- range $name := rest (splitList "," (include "cinder.utils.ceph_backend_list" $envAll)) }}
           {{- $backend := index $envAll.Values.conf.backends $name }}
@@ -169,8 +203,13 @@ spec:
               readOnly: true
             - name: pod-shared
               mountPath: /tmp/pod-shared
+            {{- if .Values.manifests.pvc_cinder_conversion }}
+            - name: cinder-conversion-vol
+              mountPath: /var/lib/cinder/conversion
+            {{- else }}
             - name: cinder-conversion
               mountPath: /var/lib/cinder/conversion
+            {{- end }}
             - name: cinder-etc
               mountPath: /etc/cinder/cinder.conf
               subPath: cinder.conf
@@ -302,8 +341,14 @@ spec:
             defaultMode: 0444
         - name: pod-shared
           emptyDir: {}
+      {{- if .Values.manifests.pvc_cinder_conversion }}
+        - name: cinder-conversion-vol
+          persistentVolumeClaim:
+            claimName: cinder-conversion-vol
+      {{- else }}
         - name: cinder-conversion
           emptyDir: {}
+      {{- end }}
         {{- if eq "true" (include "cinder.utils.has_ceph_backend" $envAll) }}
         - name: etcceph
           emptyDir: {}
@@ -358,4 +403,15 @@ spec:
 {{- dict "enabled" (or .Values.manifests.certificates .Values.tls.identity) "name" .Values.secrets.tls.volumev3.api.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_messaging.auth.admin.secret.tls.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{ if $mounts_cinder_volume.volumes }}{{ toYaml $mounts_cinder_volume.volumes | indent 8 }}{{ end }}
+{{- end }}
+{{- if eq .Values.deployment.type "StatefulSet" }}
+  volumeClaimTemplates:
+  - metadata:
+      name: cinder-conversion-vol
+    spec:
+      accessModes: ["{{ .Values.cinder_conversion_volume.access_modes }}"]
+      resources:
+        requests:
+          storage: {{ .Values.cinder_conversion_volume.size }}
+      storageClassName: {{ .Values.cinder_conversion_volume.class_name }}
 {{- end }}
