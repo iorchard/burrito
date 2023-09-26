@@ -399,7 +399,6 @@ spec:
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_messaging.auth.admin.secret.tls.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{ if $mounts_cinder_volume.volumes }}{{ toYaml $mounts_cinder_volume.volumes | indent 8 }}{{ end }}
 {{- end }}
-{{- if eq .Values.deployment.type "StatefulSet" }}
 {{- if or (eq .Values.deployment.type "StatefulSet") (eq .Values.cinder_conversion_volume.access_modes "ReadWriteMany") }}
   volumeClaimTemplates:
   - metadata:
