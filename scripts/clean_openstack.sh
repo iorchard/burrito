@@ -46,6 +46,6 @@ sudo kubectl delete pods --all -n openstack ${KUBECTL_PARAM}
 
 # Remove btx block in bashrc
 source ~/.envs/burrito/bin/activate && \
-  ansible kube_control_plane -m ansible.builtin.blockinfile \
+  ansible -i hosts --vault-password-file .vaultpass \
+    kube_control_plane -m ansible.builtin.blockinfile \
     -a "path=/home/$USER/.bashrc marker='# {mark} BTX ENV BLOCK' state=absent"
-
