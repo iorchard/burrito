@@ -420,6 +420,11 @@ ceph_cluster_network: "{{ cluster_network }}"
 # storageclass_name is used by ingress, mariadb, rabbitmq, glance, nova, btx
 # Default: the first one of storage_backends
 storageclass_name: "{{ storage_backends[0] }}"
+# PVC access modes
+pvc_access_modes_map:
+  ceph: 'ReadWriteOnce'
+  netapp: 'ReadWriteMany'
+  powerflex: 'ReadWriteOnce'
 
 # ingress
 ingress:
@@ -449,6 +454,10 @@ glance_storage:
   ceph: 'rbd'
   netapp: 'pvc'
   powerflex: 'cinder'
+glance_nginx_deploy_types:
+  ceph: 'StatefulSet'
+  netapp: 'Deployment'
+  powerflex: 'StatefulSet'
 glance:
   storage: "{{ storage_backends|map('extract', glance_storage)|list|first }}"
   enabled_backends: "{{ storage_backends|map('extract', glance_store_types)|unique }}"
@@ -458,6 +467,11 @@ glance:
     proxy_body_size: "102400M"
     proxy_read_timeout: "3600"
   volume_size: "500Gi"
+  nginx_deploy:
+    type: "{{ storage_backends|map('extract', glance_nginx_deploy_types)|first }}"
+    class_name: "{{ storageclass_name }}"
+    access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
+    size: "100Gi"
 
 # placement
 placement:
@@ -508,10 +522,19 @@ cinder_backends_map:
   ceph: 'rbd1'
   netapp: "{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}"
   powerflex: 'powerflex'
+cinder_vol_deploy_type_map:
+  ceph: 'StatefulSet'
+  netapp: 'Deployment'
+  powerflex: 'Statefulset'
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first }}"
   password: "{{ vault_cinder_password }}"
+  volume_deploy:
+    type: "{{ storage_backends|map('extract', cinder_vol_deploy_type_map)|first }}"
+    class_name: "{{ storageclass_name }}"
+    access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
+    size: "100Gi"
 
 # horizon
 horizon:

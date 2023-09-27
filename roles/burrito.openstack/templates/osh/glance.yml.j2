@@ -15,6 +15,14 @@ images:
     dep_check: {{ quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0
     rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.11-management"
 
+nginx_deployment:
+  type: {{ glance.nginx_deploy.type }}
+  pvc:
+    enabled: true
+    class_name: {{ glance.nginx_deploy.class_name }}
+    access_modes: {{ glance.nginx_deploy.access_modes }}
+    size: {{ glance.nginx_deploy.size }}
+
 conf:
 {% if 'ceph' in storage_backends %}
   software:

@@ -15,8 +15,17 @@
 # Declare name/value pairs to be passed into your templates.
 # name: value
 
-# radosgw, rbd, swift or pvc
 ---
+# glance nginx deployment types: Deployment(default), StatefulSet
+nginx_deployment:
+  type: Deployment
+  pvc:
+    enabled: false
+    class_name: default
+    access_modes: "ReadWriteOnce"
+    size: 100Gi
+
+# radosgw, rbd, swift or pvc
 storage: swift
 
 labels:
