@@ -24,7 +24,7 @@ limitations under the License.
 {{ tuple $envAll "volume" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: {{ .Values.volume_deployment.type }}
 metadata:
   name: cinder-volume
   annotations:
@@ -36,7 +36,13 @@ spec:
   selector:
     matchLabels:
 {{ tuple $envAll "cinder" "volume" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 6 }}
+{{- if eq .Values.volume_deployment.type "Deployment" }}
 {{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | indent 2 }}
+{{- else if eq .Values.volume_deployment.type "StatefulSet" }}
+{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_statefulset" | indent 2 }}
+  podManagementPolicy: Parallel
+  serviceName: cinder-volume
+{{- end }}
   template:
     metadata:
       labels:
@@ -68,6 +74,20 @@ spec:
       hostIPC: true
 {{- end }}
       initContainers:
+{{- if eq .Values.volume_deployment.type "StatefulSet" }}
+        - name: cinder-conversion-ownership
+{{ tuple $envAll "cinder_volume" | include "helm-toolkit.snippets.image" | indent 10 }}
+          securityContext:
+            runAsUser: 0
+          command:
+            - chown
+            - -R
+            - "cinder:"
+            - "/var/lib/cinder/conversion"
+          volumeMounts:
+            - name: cinder-conversion-vol
+              mountPath: /var/lib/cinder/conversion
+{{- end }}
 {{ tuple $envAll "volume" $mounts_cinder_volume_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
         {{- range $name := rest (splitList "," (include "cinder.utils.ceph_backend_list" $envAll)) }}
           {{- $backend := index $envAll.Values.conf.backends $name }}
@@ -169,7 +189,11 @@ spec:
               readOnly: true
             - name: pod-shared
               mountPath: /tmp/pod-shared
+            {{- if .Values.volume_deployment.pvc.enabled }}
+            - name: cinder-conversion-vol
+            {{- else }}
             - name: cinder-conversion
+            {{- end }}
               mountPath: /var/lib/cinder/conversion
             - name: cinder-etc
               mountPath: /etc/cinder/cinder.conf
@@ -302,8 +326,14 @@ spec:
             defaultMode: 0444
         - name: pod-shared
           emptyDir: {}
+        {{- if .Values.volume_deployment.pvc.enabled }}
+        - name: cinder-conversion-vol
+          persistentVolumeClaim:
+            claimName: cinder-conversion-vol
+        {{- else }}
         - name: cinder-conversion
           emptyDir: {}
+        {{- end }}
         {{- if eq "true" (include "cinder.utils.has_ceph_backend" $envAll) }}
         - name: etcceph
           emptyDir: {}
@@ -358,4 +388,15 @@ spec:
 {{- dict "enabled" (or .Values.manifests.certificates .Values.tls.identity) "name" .Values.secrets.tls.volumev3.api.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_messaging.auth.admin.secret.tls.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{ if $mounts_cinder_volume.volumes }}{{ toYaml $mounts_cinder_volume.volumes | indent 8 }}{{ end }}
+{{- end }}
+{{- if .Values.volume_deployment.pvc.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: cinder-conversion-vol
+    spec:
+      accessModes: ["{{ .Values.volume_deployment.pvc.access_modes }}"]
+      resources:
+        requests:
+          storage: {{ .Values.volume_deployment.pvc.size }}
+      storageClassName: {{ .Values.volume_deployment.pvc.class_name }}
 {{- end }}

@@ -16,6 +16,15 @@
 # name: value
 
 ---
+# cinder volume deployment types: Deployment(default), StatefulSet
+volume_deployment:
+  type: Deployment
+  pvc:
+    enabled: false
+    class_name: default
+    access_modes: "ReadWriteOnce"
+    size: 100Gi
+
 storage: ceph
 
 labels:
@@ -254,6 +263,8 @@ pod:
         rolling_update:
           max_unavailable: 1
           max_surge: 3
+      statefulsets:
+        pod_replacement_strategy: RollingUpdate
     disruption_budget:
       api:
         min_available: 0

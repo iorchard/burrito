@@ -22,7 +22,7 @@ limitations under the License.
 {{ tuple $envAll "api" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: {{ .Values.nginx_deployment.type }}
 metadata:
   name: glance-api
   annotations:
@@ -34,7 +34,13 @@ spec:
   selector:
     matchLabels:
 {{ tuple $envAll "glance" "api" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 6 }}
+{{- if eq .Values.nginx_deployment.type "Deployment" }}
 {{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_deployment" | indent 2 }}
+{{- else if eq .Values.nginx_deployment.type "StatefulSet" }}
+{{ tuple $envAll | include "helm-toolkit.snippets.kubernetes_upgrades_statefulset" | indent 2 }}
+  podManagementPolicy: Parallel
+  serviceName: glance-api
+{{- end }}
   template:
     metadata:
       labels:
@@ -132,6 +138,10 @@ spec:
                   - /tmp/nginx.sh
                   - stop
           volumeMounts:
+            {{- if .Values.nginx_deployment.pvc.enabled }}
+            - name: nginx-client-tmp-pvc
+              mountPath: /var/cache/nginx/client_temp
+            {{- end }}
             - name: glance-bin
               mountPath: /tmp/nginx.sh
               subPath: nginx.sh
@@ -365,4 +375,15 @@ spec:
 {{- dict "enabled" (or .Values.manifests.certificates .Values.tls.identity) "name" $envAll.Values.secrets.tls.image.api.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_messaging.auth.admin.secret.tls.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{ if $mounts_glance_api.volumes }}{{ toYaml $mounts_glance_api.volumes | indent 8 }}{{ end }}
+{{- end }}
+{{- if .Values.nginx_deployment.pvc.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: nginx-client-tmp-pvc
+    spec:
+      accessModes: ["{{ .Values.nginx_deployment.pvc.access_modes }}"]
+      resources:
+        requests:
+          storage: {{ .Values.nginx_deployment.pvc.size }}
+      storageClassName: {{ .Values.nginx_deployment.pvc.class_name }}
 {{- end }}
