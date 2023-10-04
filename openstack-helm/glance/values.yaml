@@ -1066,6 +1066,7 @@ manifests:
   pdb_api: true
   pod_rally_test: true
   pvc_images: true
+  pvc_nginx_client_tmp: false
   network_policy: false
   secret_db: true
   secret_ingress_tls: true

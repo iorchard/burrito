@@ -462,6 +462,10 @@ glance_nginx_deploy_types:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'StatefulSet'
+glance_pvc_nginx_client_tmp:
+  ceph: false
+  netapp: true
+  powerflex: false
 glance:
   storage: "{{ storage_backends|map('extract', glance_storage)|list|first }}"
   enabled_backends: "{{ storage_backends|map('extract', glance_store_types)|unique }}"
@@ -476,6 +480,7 @@ glance:
     class_name: "{{ storageclass_name }}"
     access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
     size: "100Gi"
+  pvc_nginx_client_tmp: "{{ storage_backends|map('extract', glance_pvc_nginx_client_tmp)|list|first }}"
 
 # placement
 placement:
@@ -530,6 +535,10 @@ cinder_vol_deploy_type_map:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'Statefulset'
+cinder_pvc_conversion:
+  ceph: false
+  netapp: true
+  powerflex: false
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first }}"
@@ -539,6 +548,7 @@ cinder:
     class_name: "{{ storageclass_name }}"
     access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
     size: "100Gi"
+  pvc_conversion: "{{ storage_backends|map('extract', cinder_pvc_conversion)|list|first }}"
 
 # horizon
 horizon:
