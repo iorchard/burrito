@@ -14,3 +14,9 @@ pushd ${CURRENT_DIR}/../
   ansible-playbook --extra-vars=@vars.yml ${OFFLINE_VARS} \
     -b kubespray/reset.yml
 popd
+
+echo "Remove localrepo, registry haproxy conf files."
+ansible --become kube_control_plane -m ansible.builtin.file \
+  -a "path=/etc/haproxy/conf.d/localrepo.cfg state=absent"
+ansible --become kube_control_plane -m ansible.builtin.file \
+  -a "path=/etc/haproxy/conf.d/registry.cfg state=absent"
