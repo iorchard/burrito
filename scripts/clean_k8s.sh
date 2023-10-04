@@ -20,3 +20,5 @@ ansible --become kube_control_plane -m ansible.builtin.file \
   -a "path=/etc/haproxy/conf.d/localrepo.cfg state=absent"
 ansible --become kube_control_plane -m ansible.builtin.file \
   -a "path=/etc/haproxy/conf.d/registry.cfg state=absent"
+ansible --become kube_control_plane -m ansible.builtin.service \
+  -a "name=haproxy.service state=reloaded"
