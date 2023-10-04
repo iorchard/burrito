@@ -389,7 +389,7 @@ spec:
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_messaging.auth.admin.secret.tls.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{ if $mounts_cinder_volume.volumes }}{{ toYaml $mounts_cinder_volume.volumes | indent 8 }}{{ end }}
 {{- end }}
-{{- if .Values.volume_deployment.pvc.enabled }}
+{{- if eq .Values.volume_deployment.type "StatefulSet" }}
   volumeClaimTemplates:
   - metadata:
       name: cinder-conversion-vol

@@ -36,7 +36,8 @@ conf:
       bind_host: 127.0.0.1
       debug: true
       show_image_direct_url: true
-      enabled_backends: "{{ glance.enabled_backends | zip(glance.enabled_backends) | map('join', ':')|join(',') }}"
+      #enabled_backends: "{{ glance.enabled_backends | zip(glance.enabled_backends) | map('join', ':')|join(',') }}"
+      enabled_backends: "{{ glance.enabled_backends | zip(glance.enabled_backends) | map('join', ':')|first }}"
     keystone_authtoken:
       service_token_roles_required: true
       cafile: /etc/glance/certs/ca.crt
@@ -256,4 +257,5 @@ pod:
 manifests:
   pod_rally_test: false
   certificates: true
+  pvc_nginx_client_tmp: {{ glance.pvc_nginx_client_tmp }}
 ...

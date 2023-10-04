@@ -1563,7 +1563,8 @@ manifests:
   job_storage_init: true
   pdb_api: true
   pod_rally_test: true
-  pvc_backup: true
+  pvc_backup: false
+  pvc_conversion: false
   network_policy: false
   secret_db: true
   secret_ingress_tls: true

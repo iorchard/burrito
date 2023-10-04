@@ -330,15 +330,20 @@ spec:
           secret:
             secretName: glance-etc
             defaultMode: 0444
-{{- if eq .Values.storage "pvc" }}
+        {{- if .Values.nginx_deployment.pvc.enabled }}
+        - name: nginx-client-tmp-pvc
+          persistentVolumeClaim:
+            claimName: nginx-client-tmp-pvc
+        {{- end }}
+        {{- if eq .Values.storage "pvc" }}
         - name: glance-images
           persistentVolumeClaim:
             claimName: glance-images
-{{ else }}
+        {{- else }}
         - name: glance-images
           emptyDir: {}
-{{- end }}
-{{- if eq .Values.storage "rbd" }}
+        {{- end }}
+        {{- if eq .Values.storage "rbd" }}
         - name: etcceph
           emptyDir: {}
         - name: ceph-etc
@@ -348,8 +353,8 @@ spec:
         - name: ceph-keyring
           secret:
             secretName: {{ .Values.secrets.rbd | quote }}
-{{- end }}
-{{- if eq .Values.storage "cinder" }}
+        {{- end }}
+        {{- if eq .Values.storage "cinder" }}
         - name: host-rootfs
           hostPath:
             path: /
@@ -370,13 +375,13 @@ spec:
         - name: sys
           hostPath:
             path: /sys
-{{- end }}
+        {{- end }}
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_db.auth.admin.secret.tls.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{- dict "enabled" (or .Values.manifests.certificates .Values.tls.identity) "name" $envAll.Values.secrets.tls.image.api.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_messaging.auth.admin.secret.tls.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{ if $mounts_glance_api.volumes }}{{ toYaml $mounts_glance_api.volumes | indent 8 }}{{ end }}
 {{- end }}
-{{- if .Values.nginx_deployment.pvc.enabled }}
+{{- if eq .Values.nginx_deployment.type "StatefulSet" }}
   volumeClaimTemplates:
   - metadata:
       name: nginx-client-tmp-pvc
