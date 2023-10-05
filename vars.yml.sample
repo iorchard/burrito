@@ -534,7 +534,7 @@ cinder_backends_map:
 cinder_vol_deploy_type_map:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
-  powerflex: 'Statefulset'
+  powerflex: 'StatefulSet'
 cinder_pvc_conversion:
   ceph: false
   netapp: true
