@@ -367,8 +367,10 @@ conf:
       datadir=/var/lib/mysql
       basedir=/usr
       ignore-db-dirs=lost+found
-      # add ed25519 plugin
-      plugin_load_add = auth_ed25519
+      # add ed25519 plugin for security
+      plugin_load_add=auth_ed25519
+      # disble local infile for security
+      local-infile=0
 
       [client-server]
       !includedir /etc/mysql/conf.d/
