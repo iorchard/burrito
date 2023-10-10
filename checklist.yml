@@ -63,9 +63,9 @@
           {{ keepalived_vip_svc }} is not in the service network.
         that:
           - svc_cidr|ansible.utils.network_in_usable(keepalived_vip_svc)
-      delegate_to: localhost
-      run_once: true
-      when: keepalived_vip_svc
+      when:
+        - keepalived_vip_svc
+        - inventory_hostname == groups['kube_control_plane'][0]
 
     - name: check overlay ip address is set if overlay_iface_name is not null
       ansible.builtin.assert:
@@ -160,7 +160,7 @@
         that:
           - hostvars[inventory_hostname]['ansible_'+storage_iface_name].ipv4.address is defined
 
-    - name: check storage ip addresses are set
+    - name: check storage ip addresses are set for powerflex storage
       ansible.builtin.assert:
         quiet: "{{ checklist.quiet }}"
         fail_msg: >-
