@@ -6,7 +6,7 @@ netapp:
     svm: "svm01"
     username: "admin"
     password: "<netapp_admin_password>"
-    nfsMountOptions: "nfsvers=4,lookupcache=pos"
+    nfsMountOptions: "lookupcache=pos"
     nas_secure_file_operations: false
     nas_secure_file_permissions: false
     shares:
