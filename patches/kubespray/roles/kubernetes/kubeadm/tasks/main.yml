@@ -1,6 +1,7 @@
 ---
 - name: Set kubeadm_discovery_address
   set_fact:
+    # noqa: jinja[spacing]
     kubeadm_discovery_address: >-
       {%- if "127.0.0.1" in kube_apiserver_endpoint or "localhost" in kube_apiserver_endpoint -%}
       {{ first_kube_control_plane_address }}:{{ kube_apiserver_port }}
@@ -77,14 +78,14 @@
     mode: 0640
   when: not is_kube_master
 
-- name: kubeadm | Create directory to store kubeadm patches
+- name: Kubeadm | Create directory to store kubeadm patches
   file:
     path: "{{ kubeadm_patches.dest_dir }}"
     state: directory
     mode: 0640
   when: kubeadm_patches is defined and kubeadm_patches.enabled
 
-- name: kubeadm | Copy kubeadm patches from inventory files
+- name: Kubeadm | Copy kubeadm patches from inventory files
   copy:
     src: "{{ kubeadm_patches.source_dir }}/"
     dest: "{{ kubeadm_patches.dest_dir }}"
@@ -177,7 +178,7 @@
   args:
     executable: /bin/bash
   run_once: true
-  delegate_to: "{{ groups['kube_control_plane']|first }}"
+  delegate_to: "{{ groups['kube_control_plane'] | first }}"
   delegate_facts: false
   when:
     - kubeadm_config_api_fqdn is not defined
@@ -197,7 +198,7 @@
 - name: Restart all kube-proxy pods to ensure that they load the new configmap
   command: "{{ kubectl }} delete pod -n kube-system -l k8s-app=kube-proxy --force --grace-period=0"
   run_once: true
-  delegate_to: "{{ groups['kube_control_plane']|first }}"
+  delegate_to: "{{ groups['kube_control_plane'] | first }}"
   delegate_facts: false
   when:
     - kubeadm_config_api_fqdn is not defined
