@@ -8,6 +8,17 @@
     kube_dir: "/etc/kubernetes"
     apiserver_yaml: "{{ kube_dir }}/manifests/kube-apiserver.yaml"
     backup: "{{ kube_dir }}/kube-apiserver.yaml.{{ ansible_date_time.iso8601 }}"
+    apiserver_regexp:
+      - {match: '^(\s+- --anonymous-auth=).*$', replace: '\1false'}
+      - {match: '^(\s+- --default-not-ready-toleration-seconds=).*$', replace: '\g<1>{{ kube_apiserver_pod_eviction_not_ready_timeout_seconds }}'}
+      - {match: '^(\s+- --default-unreachable-toleration-seconds=).*$', replace: '\g<1>{{ kube_apiserver_pod_eviction_unreachable_timeout_seconds }}'}
+    apiserver_dasel:
+      - {delete: "spec.containers.index(0).livenessProbe.httpGet",
+         put: "spec.containers.index(0).livenessProbe.tcpSocket.port"}
+      - {delete: "spec.containers.index(0).readinessProbe.httpGet",
+         put: "spec.containers.index(0).readinessProbe.tcpSocket.port"}
+      - {delete: "spec.containers.index(0).startupProbe.httpGet",
+         put: "spec.containers.index(0).startupProbe.tcpSocket.port"}
 
   tasks:
     - name: Kubernetes Patch | read kube-apiserver yaml
@@ -17,35 +28,52 @@
       become: true
       tags: k8spatch
 
-    - name: Patch | backup kube-apiserver yaml
+    - name: Kubernetes Patch | backup kube-apiserver yaml
       ansible.builtin.copy:
         content: "{{ apiserver_yaml_str.content | b64decode }}"
         dest: "{{ backup }}"
       become: true
       tags: k8spatch
 
-    - name: Patch | patch kube-apiserver
-      ansible.builtin.template:
-        dest: "{{ apiserver_yaml }}"
-        src: "kube-apiserver.yaml.j2"
-        owner: "root"
-        group: "root"
-        mode: "0600"
+    - name: Kubernetes Patch | Get dasel binary
+      ansible.builtin.get_url:
+        url: "{{ dasel_download_url }}"
+        dest: "{{ bin_dir }}/dasel"
+        mode: "0755"
+        owner: root
+        group: root
       become: true
-      tags: k8spatch
 
-    - name: Patch | restart kubelet service
+    - name: Kubernetes Patch | patch kube-apiserver Part 1
+      ansible.builtin.replace:
+        path: "{{ apiserver_yaml }}"
+        regexp: "{{ item.match }}"
+        replace: "{{ item.replace }}"
+      become: true
+      loop: "{{ apiserver_regexp }}"
+
+    - name: Kubernetes Patch | patch kube-apiserver Part 2
+      ansible.builtin.shell: >-
+        dasel delete -f {{ apiserver_yaml }} '{{ item.delete }}' && \
+        dasel put -t int -v {{ kube_apiserver_port }} -f {{ apiserver_yaml }} '{{ item.put }}'
+      become: true
+      loop: "{{ apiserver_dasel }}"
+      register: result
+      failed_when: result.rc not in [0, 1]
+
+    - name: Kubernetes Patch | restart kubelet service
       ansible.builtin.service:
         name: "kubelet.service"
         state: "restarted"
       become: true
       tags: k8spatch
 
-    - name: Patch | pause before checking api service
+    - name: Kubernetes Patch | pause before checking api service
       ansible.builtin.pause:
         seconds: 10
+      tags: k8spatch
 
-    - name: Patch | check api service is available
+    - name: Kubernetes Patch | check api service is available
       ansible.builtin.wait_for:
         host: "{{ ip }}"
         port: 6443
