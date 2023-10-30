@@ -1,10 +1,15 @@
 ---
 - name: ceph-csi | create ceph-csi namespace
   kubernetes.core.k8s:
-    name: ceph-csi
-    api_version: v1
-    kind: Namespace
     state: present
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: ceph-csi
+        labels:
+          kubernetes.io/metadata.name: ceph-csi
+          pod-security.kubernetes.io/enforce: privileged
   become: true
 
 - name: ceph-csi | delete ceph-csi artifacts directory
