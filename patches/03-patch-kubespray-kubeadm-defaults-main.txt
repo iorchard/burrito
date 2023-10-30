@@ -1,11 +1,12 @@
---- kubespray/roles/kubernetes/kubeadm/defaults/main.yml	2023-06-05 14:14:43.508000000 +0900
-+++ patches/kubespray/roles/kubernetes/kubeadm/defaults/main.yml	2023-06-05 15:42:09.970406897 +0900
-@@ -1,4 +1,8 @@
+--- kubespray/roles/kubernetes/kubeadm/defaults/main.yml	2023-09-18 18:10:45.088000000 +0900
++++ patches/kubespray/roles/kubernetes/kubeadm/defaults/main.yml	2023-09-18 18:42:03.431000000 +0900
+@@ -1,4 +1,9 @@
  ---
 +# discovery_type: token(default) or file
 +discovery_type: token
 +discovery_file: "/tmp/discovery.yml"
 +admin_conf: "/etc/kubernetes/admin.conf"
++
  # discovery_timeout modifies the discovery timeout
  # This value must be smaller than kubeadm_join_timeout
  discovery_timeout: 60s

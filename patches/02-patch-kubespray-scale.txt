@@ -1,6 +1,6 @@
---- kubespray/playbooks/scale.yml	2023-06-05 18:12:58.056172488 +0900
-+++ patches/kubespray/playbooks/scale.yml	2023-06-05 18:11:54.573214468 +0900
-@@ -98,6 +98,12 @@
+--- kubespray/playbooks/scale.yml	2023-09-18 18:10:45.055000000 +0900
++++ patches/kubespray/playbooks/scale.yml	2023-09-18 18:38:47.654000000 +0900
+@@ -99,6 +99,12 @@
    gather_facts: False
    any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
    environment: "{{ proxy_disable_env }}"

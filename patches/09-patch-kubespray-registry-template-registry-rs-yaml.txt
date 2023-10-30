@@ -1,5 +1,5 @@
---- kubespray/roles/kubernetes-apps/registry/templates/registry-rs.yml.j2	2023-09-12 22:23:03.250128680 +0900
-+++ patches/kubespray/roles/kubernetes-apps/registry/templates/registry-rs.yml.j2	2023-09-12 22:22:47.849128680 +0900
+--- kubespray/roles/kubernetes-apps/registry/templates/registry-rs.yml.j2	2023-09-18 18:10:45.084000000 +0900
++++ patches/kubespray/roles/kubernetes-apps/registry/templates/registry-rs.yml.j2	2023-09-18 18:05:19.304000000 +0900
 @@ -1,6 +1,6 @@
  ---
  apiVersion: apps/v1
@@ -12,7 +12,7 @@
          k8s-app: registry
          version: v{{ registry_image_tag }}
      spec:
--      priorityClassName: {% if registry_namespace == 'kube-system' %}system-cluster-critical{% else %}k8s-cluster-critical{% endif %}{{''}}
+-      priorityClassName: {% if registry_namespace == 'kube-system' %}system-cluster-critical{% else %}k8s-cluster-critical{% endif %}{{ '' }}
 +      nodeSelector:
 +        node-role.kubernetes.io/control-plane: ""
        serviceAccountName: registry
