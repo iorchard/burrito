@@ -40,14 +40,6 @@ metadata:
   namespace: {{ $saNamespace }}
 rules:
   - apiGroups:
-    - policy
-    resourceNames:
-    - privileged
-    resources:
-    - podsecuritypolicies
-    verbs:
-    - use
-  - apiGroups:
       - ""
       - extensions
       - batch
