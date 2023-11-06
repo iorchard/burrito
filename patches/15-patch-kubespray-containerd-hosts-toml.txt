@@ -1,0 +1,8 @@
+--- kubespray/roles/container-engine/containerd/templates/hosts.toml.j2	2023-10-30 19:11:25.449000000 +0900
++++ patches/kubespray/roles/container-engine/containerd/templates/hosts.toml.j2	2023-11-06 18:27:55.782953638 +0900
+@@ -1,4 +1,4 @@
+-server = "https://{{ item.prefix }}"
++server = "{{ item.protocol }}://{{ item.prefix }}"
+ {% for mirror in item.mirrors %}
+ [host."{{ mirror.host }}"]
+   capabilities = ["{{ ([ mirror.capabilities ] | flatten ) | join('","') }}"]
