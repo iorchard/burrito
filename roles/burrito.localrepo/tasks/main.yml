@@ -1,14 +1,4 @@
 ---
-- name: Local Repo | create burrito namespace
-  kubernetes.core.k8s:
-    name: burrito
-    api_version: v1
-    kind: Namespace
-    state: present
-  become: true
-  delegate_to: localhost
-  run_once: true
-
 - name: Local Repo | clean up burrito artifacts directory
   ansible.builtin.file:
     path: "{{ artifacts_dir }}"
