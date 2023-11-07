@@ -8,7 +8,27 @@ containerd_insecure_registries:
   "local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"
   "seed_registry": "{{ keepalived_vip }}:{{ seed_registry_port }}"
   "genesis_registry": "{{ keepalived_vip }}:{{ genesis_registry_port }}"
-registry_host: "{{ containerd_insecure_registries.seed_registry }}"
+containerd_registries_mirrors:
+  - prefix: "{{ containerd_insecure_registries.local_registry }}"
+    protocol: "http"
+    mirrors:
+      - host: "http://{{ containerd_insecure_registries.local_registry }}"
+        capabilities: ["pull", "resolve", "push"]
+        skip_verify: true
+  - prefix: "{{ containerd_insecure_registries.seed_registry }}"
+    protocol: "http"
+    mirrors:
+      - host: "http://{{ containerd_insecure_registries.seed_registry }}"
+        capabilities: ["pull", "resolve"]
+        skip_verify: true
+  - prefix: "{{ containerd_insecure_registries.genesis_registry }}"
+    protocol: "http"
+    mirrors:
+      - host: "http://{{ containerd_insecure_registries.genesis_registry }}"
+        capabilities: ["pull", "resolve", "push"]
+        skip_verify: true
+
+registry_host: "{{ keepalived_vip }}:{{ seed_registry_port }}"
 local_repo_port: 8001
 yum_repo: "http://{{ hostvars[groups['kube_control_plane'][0]].ip }}:{{ local_repo_port }}"
 files_repo: "{{ yum_repo }}/files"
@@ -50,4 +70,7 @@ trident_download_url: "{{ files_repo }}/github.com/NetApp/trident/releases/downl
 
 ### dasel binary - used by k8spatch
 dasel_download_url: "{{ files_repo }}/github.com/TomWright/dasel/releases/download/{{ dasel_version }}/dasel_linux_amd64"
+
+### kubelet_csr_approver
+kubelet_csr_approver_repository_url: "{{ files_repo }}/postfinance.github.io/kubelet-csr-approver"
 ...
