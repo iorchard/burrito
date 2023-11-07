@@ -1,6 +1,6 @@
---- kubespray/roles/kubernetes/kubeadm/tasks/main.yml	2023-06-05 14:14:43.509000000 +0900
-+++ patches/kubespray/roles/kubernetes/kubeadm/tasks/main.yml	2023-06-05 15:48:20.997090922 +0900
-@@ -10,6 +10,19 @@
+--- kubespray/roles/kubernetes/kubeadm/tasks/main.yml	2023-09-18 18:10:45.088000000 +0900
++++ patches/kubespray/roles/kubernetes/kubeadm/tasks/main.yml	2023-09-18 18:48:53.480000000 +0900
+@@ -11,6 +11,19 @@
    tags:
      - facts
  
@@ -20,7 +20,7 @@
  - name: Check if kubelet.conf exists
    stat:
      path: "{{ kube_config_dir }}/kubelet.conf"
-@@ -85,7 +98,7 @@
+@@ -86,7 +99,7 @@
    when: not is_kube_master and (not kubelet_conf.stat.exists)
    block:
  
@@ -29,7 +29,7 @@
        command: >-
          timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
          {{ bin_dir }}/kubeadm join
-@@ -94,10 +107,21 @@
+@@ -95,10 +108,21 @@
          --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
        register: kubeadm_join
        changed_when: kubeadm_join is success
@@ -52,7 +52,7 @@
        command: >-
          timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
          {{ bin_dir }}/kubeadm join
-@@ -106,6 +130,17 @@
+@@ -107,6 +131,17 @@
          --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
        register: kubeadm_join
        changed_when: kubeadm_join is success
@@ -70,7 +70,7 @@
  
    always:
  
-@@ -115,6 +150,10 @@
+@@ -116,6 +151,10 @@
          msg: |
            Joined with warnings
            {{ kubeadm_join.stderr_lines }}

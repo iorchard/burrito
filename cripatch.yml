@@ -18,6 +18,7 @@
       ansible.builtin.template:
         src: "cri-base.json.j2"
         dest: "{{ cri_base }}"
+        backup: true
       become: true
 
     - name: Patch | restart containerd service

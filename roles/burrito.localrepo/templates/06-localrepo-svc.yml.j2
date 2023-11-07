@@ -3,7 +3,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: localrepo
-  namespace: burrito
+  namespace: {{ localrepo.namespace }}
 spec:
   selector:
     k8s-app: localrepo

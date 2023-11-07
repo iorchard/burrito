@@ -11,7 +11,7 @@
 
 - name: Genesis Registry | push registry image to each genesis registry
   ansible.builtin.shell: >-
-    nerdctl push \
+    nerdctl push --insecure-registry \
       {{ outer_item }}:{{ genesis_registry_port }}/{{ item }}
   become: true
   delegate_to: localhost

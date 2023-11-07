@@ -28,9 +28,9 @@ metadata:
 spec:
   ports:
     - name: http
-      port: 80
+      port: 8080
     - name: https
-      port: 443
+      port: 8443
   selector:
     app: ingress-api
 {{- if index $envAll.Values.endpoints $backendServiceType }}

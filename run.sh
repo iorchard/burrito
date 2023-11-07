@@ -18,9 +18,9 @@ function USAGE() {
   echo "netapp    - play netapp tasks. (when netapp in storage backend)"
   echo "powerflex - play powerflex tasks. (when powerflex in storage backend)"
   echo "patch     - play kubernetes security patch tasks."
-  echo "registry  - play local registry setup tasks.(offline only)"
+  echo "registry  - play local registry setup tasks."
   echo "burrito   - play openstack installation tasks."
-  echo "landing   - play localrepo/genesis registry setup tasks.(offline only)"
+  echo "landing   - play localrepo/genesis registry setup tasks."
   echo "scale     - play kubernetes node addition tasks."
   echo
   echo "ansible_parameters"
@@ -67,20 +67,13 @@ FLAGS="${FLAGS} $@"
 
 if [[ "${PLAYBOOK}" = "burrito" && -n ${OFFLINE_VARS} ]]; then
   if ! (helm plugin list | grep -q ^diff); then
-  # install helm diff plugin
-  HELM_DIFF_TARBALL="/mnt/files/github.com/databus23/helm-diff/releases/download/v3.6.0/helm-diff-linux-amd64.tgz"
-  HELM_PLUGINS=$(sudo helm env | grep HELM_PLUGINS |cut -d'"' -f2)
-  sudo mkdir -p ${HELM_PLUGINS}
-  sudo tar -C ${HELM_PLUGINS} -xzf ${HELM_DIFF_TARBALL}
+    # install helm diff plugin
+    HELM_DIFF_TARBALL="/mnt/files/github.com/databus23/helm-diff/releases/download/*/helm-diff-linux-amd64.tgz"
+    HELM_PLUGINS=$(sudo helm env | grep HELM_PLUGINS |cut -d'"' -f2)
+    sudo mkdir -p ${HELM_PLUGINS}
+    sudo tar -C ${HELM_PLUGINS} -xzf ${HELM_DIFF_TARBALL}
   fi
   sudo helm plugin list
-fi
-
-if [[ "${PLAYBOOK}" = "landing" && -z ${OFFLINE_VARS} ]]; then
-  echo "Abort: landing playbook is only for offline installation."
-  echo "But offline is not set up."
-  echo
-  exit 1
 fi
 
 . ~/.envs/burrito/bin/activate

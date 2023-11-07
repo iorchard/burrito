@@ -243,16 +243,6 @@ openstack_keys:
 copy_admin_key: true
 
 ### kubespray
-# bind localhost for kube-controller-manager and kube-scheduler
-kube_controller_manager_bind_address: 127.0.0.1
-kube_scheduler_bind_address: 127.0.0.1
-kube_controller_terminated_pod_gc_threshold: 50
-# add secure tls cipher to kube-apiserver
-tls_cipher_suites:
-  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
-
 # pod.replicas is for pods for HA
 # quorum.replicas is for pods for quorum like mariadb, rabbitmq.
 pod:
@@ -268,9 +258,8 @@ docker_image_repo: "docker.io"
 quay_image_repo: "quay.io"
 download_run_once: false
 bin_dir: /usr/bin
-kube_version: v1.24.14
+kube_version: v1.28.3
 kube_proxy_strict_arp: true
-podsecuritypolicy_enabled: true
 kubeconfig_localhost: true
 kubectl_localhost: true
 auto_renew_certificates: true
@@ -294,12 +283,30 @@ kube_pods_subnet: 10.200.0.0/13
 kube_network_node_prefix: 24
 kubelet_max_pods: 250
 
+## kube-apiserver
+authorization_modes: ['Node', 'RBAC']
+kube_apiserver_request_timeout: 120s
+kube_apiserver_service_account_lookup: true
+
+# enable kubernetes audit
+kubernetes_audit: true
+audit_log_path: "/var/log/kube-apiserver-log.json"
+audit_log_maxage: 30
+audit_log_maxbackups: 10
+audit_log_maxsize: 100
+
+tls_min_version: VersionTLS12
+tls_cipher_suites:
+  - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+
 kube_apiserver_enable_admission_plugins:
   - AlwaysPullImages
   - EventRateLimit
   - NodeRestriction
-  - PodSecurityPolicy
   - ServiceAccount
+  - PodSecurity
 kube_apiserver_admission_control_config_file: true
 kube_apiserver_admission_event_rate_limits:
   limit1:
@@ -307,41 +314,41 @@ kube_apiserver_admission_event_rate_limits:
     qps: 5000
     burst: 20000
 kube_encrypt_secret_data: true
-podsecuritypolicy_restricted_spec:
-  privileged: false
-  allowPrivilegeEscalation: false
-  requiredDropCapabilities:
-    - ALL
-  volumes:
-    - 'configMap'
-    - 'emptyDir'
-    - 'projected'
-    - 'secret'
-    - 'downwardAPI'
-    - 'persistentVolumeClaim'
-  hostNetwork: false
-  hostIPC: false
-  hostPID: false
-  runAsUser:
-    rule: 'RunAsAny'
-  seLinux:
-    rule: 'RunAsAny'
-  runAsGroup:
-    rule: 'MustRunAs'
-    ranges:
-      - min: 1
-        max: 65535
-  supplementalGroups:
-    rule: 'MustRunAs'
-    ranges:
-      - min: 1
-        max: 65535
-  fsGroup:
-    rule: 'MustRunAs'
-    ranges:
-      - min: 1
-        max: 65535
-  readOnlyRootFilesystem: false
+kube_encryption_resources: [secrets]
+kube_encryption_algorithm: "secretbox"
+## kube-controller-manager
+kube_controller_manager_bind_address: 127.0.0.1
+kube_controller_terminated_pod_gc_threshold: 50
+kube_controller_feature_gates: ["RotateKubeletServerCertificate=true"]
+## kube-scheduler
+kube_scheduler_bind_address: 127.0.0.1
+## kubelet
+kubelet_authorization_mode_webhook: true
+kubelet_authentication_token_webhook: true
+kube_read_only_port: 0
+kubelet_protect_kernel_defaults: true
+kubelet_event_record_qps: 1
+kubelet_rotate_certificates: true
+kubelet_streaming_connection_idle_timeout: "1h30m"
+kubelet_make_iptables_util_chains: true
+kubelet_rotate_server_certificates: true
+kubelet_feature_gates: ["RotateKubeletServerCertificate=true", "SeccompDefault=true"]
+kubelet_seccomp_default: true
+kubelet_systemd_hardening: true
+kubelet_csr_approver_repository_url: https://postfinance.github.io/kubelet-csr-approver
+kubelet_csr_approver_chart_version: 1.0.5
+kubelet_csr_approver_values:
+  image:
+    repository: "{{ docker_image_repo }}/postfinance/kubelet-csr-approver"
+    tag: "v{{ kubelet_csr_approver_chart_version }}"
+  bypassDnsResolution: true
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+
+# create a default Pod Security Configuration and deny running of insecure pods
+# kube_system namespace is exempted by default
+kube_pod_security_use_default: true
+kube_pod_security_default_enforce: restricted
 
 ## calico
 calico_network_backend: bird
@@ -375,7 +382,6 @@ containerd_insecure_registries: >-
   {}
   {% endif -%}
 
-metallb_protocol: "layer2"
 metallb_config:
   controller:
     nodeselector:
@@ -565,4 +571,8 @@ btx:
   version: "1.2.1"
   pvc:
     size: "100Gi"
+
+### dasel binary - used by k8spatch.
+dasel_version: v2.4.1
+dasel_download_url: "https://github.com/TomWright/dasel/releases/download/{{ dasel_version }}/dasel_linux_amd64"
 ...
