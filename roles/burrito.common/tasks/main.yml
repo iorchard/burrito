@@ -19,4 +19,15 @@
 - name: Main | import sshkey tasks
   ansible.builtin.import_tasks: "sshkey.yml"
   when: deploy_ssh_key
+
+- name: Main | add files.cluster.local to /etc/hosts file
+  ansible.builtin.lineinfile:
+    dest: /etc/hosts
+    regexp: ".*files.cluster.local$"
+    line: "{{ hostvars[groups['kube_control_plane'][0]]['ip'] }} files.cluster.local"
+    state: present
+    backup: true
+    unsafe_writes: true
+  become: true
+  when: offline
 ...
