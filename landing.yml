@@ -3,17 +3,22 @@
   hosts: kube_control_plane
   any_errors_fatal: true
   roles:
-    - {role: burrito.genesisregistry, tags: ['genesisregistry', 'burrito']}
+    - role: burrito.genesisregistry
+      when: offline
+      tags: ['genesisregistry', 'burrito']
 
 - name: deploy local yum repository
   hosts: all
   any_errors_fatal: true
   roles:
-    - {role: burrito.localrepo, tags: ['localrepo', 'burrito']}
+    - role: burrito.localrepo
+      when: offline
+      tags: ['localrepo', 'burrito']
 
 - name: deploy Graceful Node Shutdown Helper (GNSH)
   hosts: k8s_cluster
   any_errors_fatal: true
   roles:
-    - {role: burrito.gnsh, tags: ['gnsh', 'burrito']}
+    - role: burrito.gnsh
+      tags: ['gnsh', 'burrito']
 ...
