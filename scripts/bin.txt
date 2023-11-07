@@ -14,7 +14,6 @@ https://github.com/opencontainers/runc/releases/download/v1.1.9/runc.amd64
 https://github.com/projectcalico/calico/archive/v3.26.3.tar.gz
 https://github.com/projectcalico/calico/releases/download/v3.26.3/calicoctl-linux-amd64
 https://github.com/TomWright/dasel/releases/download/v2.4.1/dasel_linux_amd64
-https://postfinance.github.io/kubelet-csr-approver/index.yaml
 https://postfinance.github.io/kubelet-csr-approver/kubelet-csr-approver-1.0.5.tgz
 https://storage.googleapis.com/gvisor/releases/release/20210921/x86_64/containerd-shim-runsc-v1
 https://storage.googleapis.com/gvisor/releases/release/20210921/x86_64/runsc
