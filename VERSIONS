@@ -1,9 +1,13 @@
-btx: 1.2.1 (7c0fe3cb06652090ddc607d74a15dc3ca99e5fc2)
+btx: main (2d4073fb034fac1ce550c7e417bbf29fe24cdf5d)
 ceph-ansible: stable-7.0 (dadddae8cd298fe78f2b98d1c5d07905148af89b)
-kubespray: release-2.22 (200e0d54a2c77b02d7dfbe433a7f4a0c62668a9e)
-ceph: 17.2.6
-kubernetes: 1.24.14
-helm: 3.12.0
+kubespray: master (6a70f026628c4f9976f96e135853f094239ca48e)
+ceph: 17.2.7 (b12291d110049b2f35e32e0de30d70e9a4c060d2)
+kubernetes: v1.28.3
+etcd: v3.5.9
+containerd: v1.7.7
+calico: v3.26.3
+nerdctl: v1.6.0
+helm: v3.13.1
 mariadb: 10.6.11
 openstack: Yoga
 rabbitmq: 3.11.14
