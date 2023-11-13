@@ -40,6 +40,9 @@ pod:
           capabilities:
             add:
               - SYS_ADMIN
+              - NET_ADMIN
+              - DAC_OVERRIDE
+              - DAC_READ_SEARCH
           readOnlyRootFilesystem: false
 {% endif %}
 {% if "powerflex" in storage_backends %}
@@ -277,6 +280,7 @@ conf:
       nfs_shares_config: "/etc/cinder/share_{{ n.name }}"
       nas_secure_file_operations: {{ n.nas_secure_file_operations }}
       nas_secure_file_permissions: {{ n.nas_secure_file_permissions }}
+      image_volume_cache_enabled: True
 {% endfor %}
 {% endif %}
 {% if "powerflex" in storage_backends %}
