@@ -1,0 +1,8 @@
+registry.connect.redhat.com/hitachi/hspc-csi-driver:v3.12.1
+registry.connect.redhat.com/hitachi/hspc-operator:v1.12.1
+registry.redhat.io/openshift4/ose-csi-external-attacher:v4.11.0
+registry.redhat.io/openshift4/ose-csi-external-provisioner:v4.11.0
+registry.redhat.io/openshift4/ose-csi-external-resizer-rhel8:v4.11.0
+registry.redhat.io/openshift4/ose-csi-external-snapshotter-rhel8:v4.11.0
+registry.redhat.io/openshift4/ose-csi-livenessprobe:v4.11.0
+registry.redhat.io/openshift4/ose-csi-node-driver-registrar:v4.11.0
