@@ -17,6 +17,7 @@ function USAGE() {
   echo "k8s       - play kubernetes installation tasks."
   echo "netapp    - play netapp tasks. (when netapp in storage backend)"
   echo "powerflex - play powerflex tasks. (when powerflex in storage backend)"
+  echo "hitachi   - play hitachi tasks. (when hitachi in storage backend)"
   echo "patch     - play kubernetes security patch tasks."
   echo "registry  - play local registry setup tasks."
   echo "burrito   - play openstack installation tasks."

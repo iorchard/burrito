@@ -51,10 +51,12 @@ storage_backends:
   - ceph
   - netapp
   - powerflex
+  - hitachi
 
 # ceph: set ceph configuration in group_vars/all/ceph_vars.yml
 # netapp: set netapp configuration in group_vars/all/netapp_vars.yml
 # powerflex: set powerflex configuration in group_vars/all/powerflex_vars.yml
+# hitachi: set hitachi configuration in group_vars/all/hitachi_vars.yml
 
 ###################################################
 ## Do not edit below if you are not an expert!!!  #

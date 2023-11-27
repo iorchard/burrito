@@ -39,6 +39,7 @@ if [ ! -d "group_vars" ]; then
   cp ceph_vars.yml.tpl group_vars/all/ceph_vars.yml
   cp netapp_vars.yml.tpl group_vars/all/netapp_vars.yml
   cp powerflex_vars.yml.tpl group_vars/all/powerflex_vars.yml
+  cp hitachi_vars.yml.tpl group_vars/all/hitachi_vars.yml
 fi
 
 ./scripts/patch.sh
