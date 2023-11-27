@@ -1,0 +1,13 @@
+---
+artifacts_dir: "{{ ansible_env.HOME }}/hitachi-artifacts"
+redhat_io_image_repo: "registry.redhat.io"
+redhat_com__image_repo: "registry.connect.redhat.com"
+
+hitachi_secret_name: "hitachi-secret"
+hitachi_namespace: "hspc-operator-system"
+template_files:
+  - {dest: "{{ artifacts_dir }}/hspc-operator.yaml"}
+  - {dest: "{{ artifacts_dir }}/hspc_v1_hspc.yaml"}
+  - {dest: "{{ artifacts_dir }}/hspc_secret.yaml"}
+  - {dest: "{{ artifacts_dir }}/hspc_storageclass.yaml"}
+...

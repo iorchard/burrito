@@ -1,0 +1,42 @@
+---
+- name: Setup | create hspc namespace
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ hitachi_namespace }}"
+        labels:
+          control-plane: controller-manager
+          pod-security.kubernetes.io/enforce: privileged
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | create hitachi artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: directory
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | templating hitachi manifest files
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.dest | basename }}.j2"
+    mode: "0600"
+  loop: "{{ template_files }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | create hitachi resources
+  kubernetes.core.k8s:
+    src: "{{ item.dest }}"
+    state: present
+    wait: true
+  become: true
+  loop: "{{ template_files }}"
+  delegate_to: localhost
+  run_once: true
+...
