@@ -4,6 +4,7 @@ metadata:
   name: hitachi
   annotations:
     kubernetes.io/description: Hitachi Storage Plug-in for Containers
+    storageclass.kubernetes.io/is-default-class: "{{ 'true' if storage_backends[0] == 'hitachi' else 'false' }}"
 provisioner: hspc.csi.hitachi.com
 reclaimPolicy: Delete
 volumeBindingMode: Immediate
