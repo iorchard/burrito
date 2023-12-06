@@ -189,7 +189,7 @@ radosgw_interface: "{{ storage_iface_name }}"
 # set the size, min_size, and single_osd_node
 ceph_pool_default_size: "{% if (groups['osds']|length) > 3 %}3{% else %}2{% endif %}"
 ceph_pool_default_min_size: "{% if (groups['osds']|length) > 3 %}2{% else %}1{% endif %}"
-single_osd_node: "{{ ((groups['osds']|length) == 1)|ternary('true', 'false') }}"
+single_osd_node: "{{ ((groups['osds']|length) == 1)|ternary(true, false) }}"
 
 ceph_conf_overrides:
   global:
@@ -438,6 +438,8 @@ pvc_access_modes_map:
   ceph: 'ReadWriteOnce'
   netapp: 'ReadWriteMany'
   powerflex: 'ReadWriteOnce'
+  hitachi: 'ReadWriteOnce'
+
 
 # ingress
 ingress:
@@ -463,18 +465,22 @@ glance_store_types:
   ceph: 'rbd'
   netapp: 'file'
   powerflex: 'cinder'
+  hitachi: 'cinder'
 glance_storage:
   ceph: 'rbd'
   netapp: 'pvc'
   powerflex: 'cinder'
+  hitachi: 'cinder'
 glance_nginx_deploy_types:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'StatefulSet'
+  hitachi: 'StatefulSet'
 glance_pvc_nginx_client_tmp:
   ceph: false
   netapp: true
   powerflex: false
+  hitachi: false
 glance:
   storage: "{{ storage_backends|map('extract', glance_storage)|list|first }}"
   enabled_backends: "{{ storage_backends|map('extract', glance_store_types)|unique }}"
@@ -519,6 +525,7 @@ nova_pvc_instances:
   ceph: false
   netapp: true
   powerflex: false
+  hitachi: false
 nova:
   vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
   hypervisor_host_interface: "{{ mgmt_iface_name }}"
@@ -540,14 +547,17 @@ cinder_backends_map:
   ceph: 'rbd1'
   netapp: "{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}"
   powerflex: 'powerflex'
+  hitachi: 'hitachi'
 cinder_vol_deploy_type_map:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'StatefulSet'
+  hitachi: 'StatefulSet'
 cinder_pvc_conversion:
   ceph: false
   netapp: true
   powerflex: false
+  hitachi: false
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first }}"
