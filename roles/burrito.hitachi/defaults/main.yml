@@ -10,4 +10,9 @@ template_files:
   - {dest: "{{ artifacts_dir }}/hspc_v1_hspc.yaml"}
   - {dest: "{{ artifacts_dir }}/hspc_secret.yaml"}
   - {dest: "{{ artifacts_dir }}/hspc_storageclass.yaml"}
+
+service_conf:
+  - {dest: "/etc/multipath.conf", owner: "root", group: "root", mode: "0600"}
+systemd_service_name:
+  - multipathd.service
 ...
