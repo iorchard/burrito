@@ -39,6 +39,7 @@ conf:
       #enabled_backends: "{{ glance.enabled_backends | zip(glance.enabled_backends) | map('join', ':')|join(',') }}"
       enabled_backends: "{{ glance.enabled_backends | zip(glance.enabled_backends) | map('join', ':')|first }}"
     keystone_authtoken:
+      service_token_roles: admin
       service_token_roles_required: true
       cafile: /etc/glance/certs/ca.crt
 
@@ -136,7 +137,7 @@ conf:
 
           proxy_http_version  1.1;
           proxy_pass          http://websocket;
-          proxy_read_timeout  90;
+          proxy_read_timeout  300;
         }
       }
     }
