@@ -12,7 +12,7 @@ images:
     nova_api: "{{ docker_image_repo }}/jijisa/nova:yoga-ubuntu_focal"
     nova_cell_setup: "{{ docker_image_repo }}/jijisa/nova:yoga-ubuntu_focal"
     nova_cell_setup_init: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    nova_compute: "{{ docker_image_repo }}/jijisa/nova:skb-yoga-ovspatch-ubuntu_jammy"
+    nova_compute: "{{ docker_image_repo }}/jijisa/nova:skb-yoga-ubuntu_jammy"
     nova_compute_ssh: "{{ docker_image_repo }}/jijisa/nova:yoga-ubuntu_focal"
     nova_conductor: "{{ docker_image_repo }}/jijisa/nova:yoga-ubuntu_focal"
     nova_db_sync: "{{ docker_image_repo }}/jijisa/nova:yoga-ubuntu_focal"
@@ -70,6 +70,7 @@ console:
       vncserver_proxyclient_interface: {{ nova.vncserver_proxyclient_interface }}
 
 conf:
+  enable_iscsi: {{ ("hitachi" in storage_backends)|ternary('true', 'false') }}
   db_acl:
     enabled: true
 {% raw %}
