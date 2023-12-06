@@ -90,6 +90,14 @@ pod:
           - name: cinder-tmp
             emptyDir: {}
 {% endif %}
+{% if "hitachi" in storage_backends %}
+    cinder_volume:
+      container:
+        cinder_volume:
+          runAsUser: 0
+          privileged: true
+          readOnlyRootFilesystem: false
+{% endif %}
   replicas:
     api: {{ pod.replicas }}
     backup: {{ pod.replicas }}
@@ -100,7 +108,7 @@ bootstrap:
   volume_types:
 {% if "ceph" in storage_backends %}
     rbd1:
-      volume_backend_name: rbd1
+      volume_backend_name: {{ cinder_backends_map.ceph }}
       access_type: "private"
 {% endif %}
 {% if "netapp" in storage_backends %}
@@ -117,7 +125,12 @@ bootstrap:
 {% endif %}
 {% if "powerflex" in storage_backends %}
     powerflex:
-      volume_backend_name: powerflex
+      volume_backend_name: {{ cinder_backends_map.powerflex }}
+      access_type: "private"
+{% endif %}
+{% if "hitachi" in storage_backends %}
+    hitachi:
+      volume_backend_name: {{ cinder_backends_map.hitachi }}
       access_type: "private"
 {% endif %}
 
@@ -127,6 +140,7 @@ network:
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: "https"
 conf:
+  enable_iscsi: {{ ("hitachi" in storage_backends)|ternary('true', 'false') }}
   enable_powerflex: {{ ("powerflex" in storage_backends)|ternary('true', 'false') }}
   db_acl:
     enabled: true
@@ -193,6 +207,7 @@ conf:
         app_name: rbd
   cinder:
     DEFAULT:
+      rpc_response_timeout: 300
       verify_glance_signatures: disabled
       glance_ca_certificates_file: /etc/cinder/certs/ca.crt
       debug: true
@@ -297,6 +312,34 @@ conf:
       image_upload_use_cinder_backend: True
       image_upload_use_internal_tenant: True
 {% endif %}
+{% if "hitachi" in storage_backends %}
+    hitachi:
+      volume_driver: cinder.volume.drivers.hitachi.hbsd_fc.HBSDFCDriver
+      volume_backend_name: hitachi
+      san_ip: "{{ hitachi_san_ip }}"
+      san_login: "{{ hitachi_san_login }}"
+      san_password: "{{ hitachi_san_password }}"
+      use_multipath_for_image_xfer: True
+      image_volume_cache_enabled: True
+      image_upload_use_cinder_backend: True
+      image_upload_use_internal_tenant: True
+      suppress_requests_ssl_warnings: True
+      hitachi_storage_id: "{{ hitachi_storage_id }}"
+      hitachi_storage_cli: REST
+      hitachi_pool: "{{ hitachi_pool }}"
+      hitachi_ldev_range: "{{ hitachi_ldev_range }}"
+      hitachi_target_ports: "{{ hitachi_target_ports }}"
+      hitachi_compute_target_ports: "{{ hitachi_compute_target_ports }}"
+      hitachi_default_copy_method: FULL
+      hitachi_copy_speed: 3
+      hitachi_over_subscription: False
+      hitachi_rest_disable_io_wait: True
+      hitachi_port_scheduler: False
+      hitachi_group_create: False
+      hitachi_group_delete: False
+      hitachi_rest_name_only_discovery: True
+{% endif %}
+
 endpoints:
   oslo_db:
     auth:
