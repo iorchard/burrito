@@ -1,38 +1,18 @@
 ---
-#- name: Genesis Registry | apply patch to hspc-csi-node daemonset
-#  ansible.builtin.command: >-
-#    kubectl patch ds hspc-csi-node -n {{ hitachi_namespace }} -p \
-#      '{"spec": {"template": {"spec": {"containers": [{"name": "driver-registrar", "image": "{{ containerd_insecure_registries.genesis_registry }}/openshift4/ose-csi-node-driver-registrar:{{ osecsi_version }}"},{"name": "hspc-csi-driver", "image": "{{ containerd_insecure_registries.genesis_registry }}/hitachi/hspc-csi-driver:{{ hspc_csi_driver_version }}"}]}}}}'
-#  become: true
-#  delegate_to: localhost
-#  run_once: true
-
-- name: Genesis Registry | apply patch to hspc-csi-node daemonset
-  kubernetes.core.k8s_json_patch:
-    kind: DaemonSet
-    namespace: "{{ hitachi_namespace }}"
-    name: hspc-csi-node
-    patch: "{{ hitachi_csi_daemonset_patch_list }}"
-  become: true
+- name: Genesis Registry | apply patch to hspc_v1_hspc.yaml
+  ansible.builtin.replace:
+    path: "{{ artifacts_dir }}/hspc_v1_hspc.yaml"
+    regexp: "{{ containerd_insecure_registries.seed_registry }}"
+    replace: "{{ containerd_insecure_registries.genesis_registry }}"
+    backup: true
   delegate_to: localhost
   run_once: true
 
-- name: Genesis Registry | apply patch to hspc-csi-controller deployment
-  kubernetes.core.k8s_json_patch:
-    kind: Deployment
-    namespace: "{{ hitachi_namespace }}"
-    name: hspc-csi-controller
-    patch: "{{ hspc_csi_controller_deploy_patch_list }}"
-  become: true
-  delegate_to: localhost
-  run_once: true
-
-- name: Genesis Registry | apply patch to hspc-operator-controller-manager deployment
-  kubernetes.core.k8s_json_patch:
-    kind: Deployment
-    namespace: "{{ hitachi_namespace }}"
-    name: hspc-operator-controller-manager
-    patch: "{{ hspc_operator_deploy_patch_list }}"
+- name: Genesis Registry | recreate hspc
+  kubernetes.core.k8s:
+    src: "{{ artifacts_dir }}/hspc_v1_hspc.yaml"
+    state: present
+    wait: true
   become: true
   delegate_to: localhost
   run_once: true

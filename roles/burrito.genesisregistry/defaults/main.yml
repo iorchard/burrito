@@ -160,4 +160,8 @@ hspc_csi_daemonset: |
   {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
   {% endfor -%}
 hspc_csi_daemonset_patch_list: "{{ hspc_csi_daemonset.splitlines()|map('from_yaml')|list }}"
+
+# hspc_v1_hspc
+artifacts_dir: "{{ ansible_env.HOME }}/hitachi-artifacts"
+
 ...
