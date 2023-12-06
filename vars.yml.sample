@@ -187,7 +187,7 @@ radosgw_interface: "{{ storage_iface_name }}"
 # set the size, min_size, and single_osd_node
 ceph_pool_default_size: "{% if (groups['osds']|length) > 3 %}3{% else %}2{% endif %}"
 ceph_pool_default_min_size: "{% if (groups['osds']|length) > 3 %}2{% else %}1{% endif %}"
-single_osd_node: "{{ ((groups['osds']|length) == 1)|ternary('true', 'false') }}"
+single_osd_node: "{{ ((groups['osds']|length) == 1)|ternary(true, false) }}"
 
 ceph_conf_overrides:
   global:
