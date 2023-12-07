@@ -10,9 +10,9 @@ reclaimPolicy: Delete
 volumeBindingMode: Immediate
 allowVolumeExpansion: true
 parameters:
-  serialNumber: "{{ serial_number }}"
-  poolID: "{{ pool_id }}"
-  portID: {{ port_id }}
+  serialNumber: "{{ hitachi_serial_number }}"
+  poolID: "{{ hitachi_pool_id }}"
+  portID: {{ hitachi_port_id }}
   connectionType: fc
   csi.storage.k8s.io/fstype: ext4
   csi.storage.k8s.io/node-publish-secret-name: "{{ hitachi_secret_name }}"
