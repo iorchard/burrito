@@ -38,6 +38,8 @@ gcr_image_repo: "{{ registry_host }}"
 github_image_repo: "{{ registry_host }}"
 docker_image_repo: "{{ registry_host }}"
 quay_image_repo: "{{ registry_host }}"
+redhat_io_image_repo: "{{ registry_host }}"
+redhat_com__image_repo: "{{ registry_host }}"
 ## Kubernetes components
 kubeadm_download_url: "{{ files_repo }}/dl.k8s.io/release/{{ kubeadm_version }}/bin/linux/{{ image_arch }}/kubeadm"
 kubectl_download_url: "{{ files_repo }}/dl.k8s.io/release/{{ kube_version }}/bin/linux/{{ image_arch }}/kubectl"

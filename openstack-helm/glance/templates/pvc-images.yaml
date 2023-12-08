@@ -21,7 +21,7 @@ apiVersion: v1
 metadata:
   name: glance-images
 spec:
-  accessModes: [ "ReadWriteMany" ]
+  accessModes: [ "{{ .Values.nginx_deployment.pvc.access_modes }}" ]
   resources:
     requests:
       storage: {{ .Values.volume.size }}

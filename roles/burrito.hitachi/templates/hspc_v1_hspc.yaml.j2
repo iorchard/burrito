@@ -1,0 +1,34 @@
+apiVersion: csi.hitachi.com/v1
+kind: HSPC
+metadata:
+  name: hspc
+  namespace: {{ hitachi_namespace }}
+spec:
+  controller:
+    containers:
+      - name: csi-provisioner
+        image: {{ redhat_io_image_repo }}/openshift4/ose-csi-external-provisioner:v4.11.0
+        imagePullPolicy: Always
+      - name: external-attacher
+        image: {{ redhat_io_image_repo }}/openshift4/ose-csi-external-attacher:v4.11.0
+        imagePullPolicy: Always
+      - name: csi-resizer
+        image: {{ redhat_io_image_repo }}/openshift4/ose-csi-external-resizer-rhel8:v4.11.0
+        imagePullPolicy: Always
+      - name: csi-snapshotter
+        image: {{ redhat_io_image_repo }}/openshift4/ose-csi-external-snapshotter-rhel8:v4.11.0
+        imagePullPolicy: Always
+      - name: liveness-probe
+        image: {{ redhat_io_image_repo }}/openshift4/ose-csi-livenessprobe:v4.11.0
+        imagePullPolicy: Always
+      - name: hspc-csi-driver
+        image: {{ redhat_com__image_repo }}/hitachi/hspc-csi-driver:v3.12.1
+        imagePullPolicy: Always
+  node:
+    containers:
+      - name: driver-registrar
+        image: {{ redhat_io_image_repo }}/openshift4/ose-csi-node-driver-registrar:v4.11.0
+        imagePullPolicy: Always
+      - name: hspc-csi-driver
+        image: {{ redhat_com__image_repo }}/hitachi/hspc-csi-driver:v3.12.1
+        imagePullPolicy: Always

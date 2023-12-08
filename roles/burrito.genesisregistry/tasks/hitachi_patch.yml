@@ -1,0 +1,19 @@
+---
+- name: Genesis Registry | apply patch to hspc_v1_hspc.yaml
+  ansible.builtin.replace:
+    path: "{{ artifacts_dir }}/hspc_v1_hspc.yaml"
+    regexp: "{{ containerd_insecure_registries.seed_registry }}"
+    replace: "{{ containerd_insecure_registries.genesis_registry }}"
+    backup: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Genesis Registry | recreate hspc
+  kubernetes.core.k8s:
+    src: "{{ artifacts_dir }}/hspc_v1_hspc.yaml"
+    state: present
+    wait: true
+  become: true
+  delegate_to: localhost
+  run_once: true
+...

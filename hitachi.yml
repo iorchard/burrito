@@ -1,0 +1,9 @@
+---
+- name: deploy hitachi csi drivers
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.hitachi
+      when: '"hitachi" in storage_backends'
+      tags: ['hitachi']
+...

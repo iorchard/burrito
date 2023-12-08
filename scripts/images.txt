@@ -1,5 +1,5 @@
 docker.io/jijisa/barbican:yoga-ubuntu_focal
-docker.io/jijisa/btx:1.2.1
+docker.io/jijisa/btx:1.2.2
 docker.io/jijisa/cinder:skb-yoga-ubuntu_jammy
 docker.io/jijisa/glance:skb-yoga-ubuntu_jammy
 docker.io/jijisa/heat:yoga-ubuntu_focal
@@ -7,7 +7,7 @@ docker.io/jijisa/horizon:yoga-ubuntu_focal
 docker.io/jijisa/keystone:yoga-ubuntu_focal
 docker.io/jijisa/mariadb-server:10.6.11
 docker.io/jijisa/neutron:skb-yoga-ubuntu_jammy
-docker.io/jijisa/nova:skb-yoga-ovspatch-ubuntu_jammy
+docker.io/jijisa/nova:skb-yoga-ubuntu_jammy
 docker.io/jijisa/nova:yoga-ubuntu_focal
 docker.io/jijisa/placement:yoga-ubuntu_focal
 docker.io/jijisa/ubuntu-source-neutron-bgp-dragent:yoga

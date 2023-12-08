@@ -3,6 +3,12 @@ haproxy_conf_dir: "/etc/haproxy"
 service_conf:
   - {dest: "{{ haproxy_conf_dir }}/conf.d/registry.cfg", owner: "root", group: "haproxy", mode: "0640"}
 
+# hitachi openshift csi driver version
+hitachi_namespace: "hspc-operator-system"
+hspc_operator_version: "v1.12.1"
+hspc_csi_driver_version: "v3.12.1"
+osecsi_version: "v4.11.0"
+
 genesis_registry:
   root_dir: "/var/lib/registry"
   secret: "{{ lookup('community.general.random_string', length=12, base64=True) }}"
@@ -26,6 +32,15 @@ genesis_registry:
   powerflex:
     - "dellemc/csi-vxflexos:{{ pfx_version }}"
     - "sig-storage/snapshot-controller:{{ pfx_snapshot_controller_version }}"
+  hitachi:
+    - "hitachi/hspc-operator:{{ hspc_operator_version }}"
+    - "hitachi/hspc-csi-driver:{{ hspc_csi_driver_version }}"
+    - "openshift4/ose-csi-external-attacher:{{ osecsi_version }}"
+    - "openshift4/ose-csi-external-provisioner:{{ osecsi_version }}"
+    - "openshift4/ose-csi-external-resizer-rhel8:{{ osecsi_version }}"
+    - "openshift4/ose-csi-external-snapshotter-rhel8:{{ osecsi_version }}"
+    - "openshift4/ose-csi-livenessprobe:{{ osecsi_version }}"
+    - "openshift4/ose-csi-node-driver-registrar:{{ osecsi_version }}"
   addr: "{{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}"
 
 genesis_images: "{{ genesis_registry.common + genesis_registry[storage_backends[0]] }}"
@@ -113,4 +128,40 @@ snapshot_controller_deploy: |
   {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
   {% endfor -%}
 snapshot_controller_deploy_patch_list: "{{ snapshot_controller_deploy.splitlines()|map('from_yaml')|list }}"
+
+# hitachi deployment patch variables
+hspc_operator_deploy_images:
+  - "hitachi/hspc-operator:{{ hspc_operator_version }}"
+hspc_operator_deploy: |
+  {% for v in hspc_operator_deploy_images -%}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+hspc_operator_deploy_patch_list: "{{ hspc_operator_deploy.splitlines()|map('from_yaml')|list }}"
+
+hspc_csi_controller_deploy_images:
+  - "openshift4/ose-csi-external-provisioner:{{ osecsi_version }}"
+  - "openshift4/ose-csi-external-attacher:{{ osecsi_version }}"
+  - "openshift4/ose-csi-external-resizer-rhel8:{{ osecsi_version }}"
+  - "openshift4/ose-csi-external-snapshotter-rhel8:{{ osecsi_version }}"
+  - "openshift4/ose-csi-livenessprobe:{{ osecsi_version }}"
+  - "hitachi/hspc-csi-driver:{{ hspc_csi_driver_version }}"
+hspc_csi_controller_deploy: |
+  {% for v in hspc_csi_controller_deploy_images -%}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+hspc_csi_controller_deploy_patch_list: "{{ hspc_csi_controller_deploy.splitlines()|map('from_yaml')|list }}"
+
+# hspc-csi-node daemonset patch variables
+hspc_csi_daemonset_images:
+  - "openshift4/ose-csi-node-driver-registrar:{{ osecsi_version }}"
+  - "hitachi/hspc-csi-driver:{{ hspc_csi_driver_version }}"
+hspc_csi_daemonset: |
+  {% for v in hspc_csi_daemonset_images -%}
+  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
+  {% endfor -%}
+hspc_csi_daemonset_patch_list: "{{ hspc_csi_daemonset.splitlines()|map('from_yaml')|list }}"
+
+# hspc_v1_hspc
+artifacts_dir: "{{ ansible_env.HOME }}/hitachi-artifacts"
+
 ...
