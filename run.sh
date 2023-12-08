@@ -20,8 +20,8 @@ function USAGE() {
   echo "hitachi   - play hitachi tasks. (when hitachi in storage backend)"
   echo "patch     - play kubernetes security patch tasks."
   echo "registry  - play local registry setup tasks."
-  echo "burrito   - play openstack installation tasks."
   echo "landing   - play localrepo/genesis registry setup tasks."
+  echo "burrito   - play openstack installation tasks."
   echo "scale     - play kubernetes node addition tasks."
   echo
   echo "ansible_parameters"
