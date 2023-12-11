@@ -42,13 +42,6 @@ osds
 rgws
 clients
 
-[powerflex:children]
-mdm
-sds
-sdc
-gateway
-presentation
-
 [etcd:children]
 kube_control_plane
 
