@@ -67,6 +67,13 @@
     - "{{ artifacts_dir }}/[0-9]*"
   become: true
 
+- name: ceph-csi | set auth_client_required to cephx
+  ansible.builtin.command: >-
+    ceph config set mon auth_client_required cephx
+  become: true
+  delegate_to: localhost
+  run_once: true
+
 - name: ceph-csi | wait until registry is running.
   kubernetes.core.k8s_info:
     kind: Pod
@@ -82,7 +89,7 @@
     - storage_backends[0] == 'ceph'
     - registry_enabled
 
-- name: fail if registry is not running
+- name: ceph-csi | fail if registry is not running
   ansible.builtin.fail:
     msg: >-
       Registry is not running after {{ registry_ready_timeout }} seconds.
