@@ -1,7 +1,6 @@
 ---
 keepalived_vip: ~
-ceph_rgw_uid: "cloudpc"
+ceph_rgw_uid: "burrito-rgw"
 ceph_rgw_buckets:
-  - cloudpc-bucket
-  - mng-elastic-backup
+  - burrito-test-bucket
 ...
