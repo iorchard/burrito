@@ -19,7 +19,7 @@ function USAGE() {
   echo "powerflex - play powerflex tasks. (when powerflex in storage backend)"
   echo "hitachi   - play hitachi tasks. (when hitachi in storage backend)"
   echo "patch     - play kubernetes security patch tasks."
-  echo "registry  - play local registry setup tasks."
+  echo "registry  - play local registry setup tasks. (offline install only)"
   echo "landing   - play localrepo/genesis registry setup tasks."
   echo "burrito   - play openstack installation tasks."
   echo "scale     - play kubernetes node addition tasks."
