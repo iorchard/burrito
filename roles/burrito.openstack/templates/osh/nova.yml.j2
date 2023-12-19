@@ -36,12 +36,6 @@ bootstrap:
         m1_medium: null
         m1_large: null
         m1_xlarge: null
-        default:
-          name: "default"
-          id: "auto"
-          ram: 8192
-          disk: 50
-          vcpus: 4
 network:
   backend:
   - {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
