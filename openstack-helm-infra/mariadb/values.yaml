@@ -77,13 +77,13 @@ pod:
   security_context:
     server:
       pod:
-        runAsUser: 42434
+        runAsUser: 999
       container:
         perms:
           runAsUser: 0
           readOnlyRootFilesystem: true
         mariadb:
-          runAsUser: 42434
+          runAsUser: 999
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
     ingress:
