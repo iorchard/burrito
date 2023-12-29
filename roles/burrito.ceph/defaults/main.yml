@@ -1,0 +1,4 @@
+---
+ceph_conf_dir: "/etc/ceph"
+ceph_artifacts_dir: "{{ ansible_env.HOME }}/ceph-artifacts"
+...

@@ -1,0 +1,16 @@
+---
+online_pkgs:
+  - epel-release
+  - centos-release-ceph-reef
+
+prereq_pkgs:
+  - chrony
+
+client_pkgs:
+  - ceph-common
+
+packages:
+  - cephadm
+  - ceph-common
+  - podman
+...

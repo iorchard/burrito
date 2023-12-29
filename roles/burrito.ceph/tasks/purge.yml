@@ -1,0 +1,46 @@
+---
+- name: Purge | check if ceph cluster is accessible
+  ansible.builtin.shell: >-
+    cephadm --timeout=3 shell -- ceph fsid
+  become: true
+  register: _res
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+  failed_when: _res.rc not in [0, 1]
+
+- name: Purge | fail if ceph cluster is not accessible
+  ansible.builtin.assert:
+    fail_msg: >-
+      Abort) The ceph cluster is not accessible.
+    that:
+      - _res.rc == 0
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+
+- name: Purge | set the ceph cluster fsid
+  ansible.builtin.set_fact:
+    _fsid: "{{ _res.stdout }}"
+    msg: "fsid: {{ _res.stdout }}"
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+  when: _res.rc == 0
+
+- name: purge
+  ansible.builtin.debug:
+    msg: "{{ _fsid }}"
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+
+- name: Purge | disable cephadm mgr module
+  ansible.builtin.shell: >-
+    cephadm --timeout=5 shell -- ceph mgr module disable cephadm
+  become: true
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+  
+- name: Purge | purge the ceph cluster
+  ansible.builtin.shell: >-
+    cephadm rm-cluster --force --zap-osds --fsid {{ _fsid }}
+  become: true
+  when: inventory_hostname in groups['ceph_servers']
+...

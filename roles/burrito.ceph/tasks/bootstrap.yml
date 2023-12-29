@@ -1,0 +1,23 @@
+---
+- name: Bootstrap | bootstrap ceph cluster
+  ansible.builtin.command: >-
+    cephadm bootstrap \
+        --allow-overwrite \
+        --mon-ip {{ hostvars[groups['mons'][0]]['ansible_' + storage_iface_name].ipv4.address }} \
+        --skip-dashboard \
+        --skip-firewalld \
+        --skip-monitoring-stack  \
+        --ssh-user {{ ansible_user }}
+  become: true
+  register: _res
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+  failed_when: _res.rc not in [0, 1]
+
+- name: Bootstrap | already bootstrapped
+  ansible.builtin.debug:
+    msg: "It looks ceph is already bootstrapped."
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+  when: _res.rc == 1
+...

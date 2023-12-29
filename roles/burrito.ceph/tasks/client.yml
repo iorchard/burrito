@@ -1,0 +1,33 @@
+---
+- name: client | get ceph config from the bootstrap node
+  ansible.builtin.slurp:
+    src: "{{ ceph_conf_dir }}/ceph.conf"
+  register: ceph_conf
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+
+- name: client | get client admin keyring
+  ansible.builtin.command: >-
+    ceph auth get client.admin
+  become: true
+  register: _res
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+
+- name: client | set client admin keyring fact
+  ansible.builtin.set_fact:
+    _client_admin_keyring: "{{ _res.stdout }}\n"
+
+- name: client | create ceph config file on client nodes
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  become: true  
+  when: inventory_hostname in groups['clients']
+  loop:
+    - {content: "{{ ceph_conf.content | b64decode }}", dest: "{{ ceph_conf_dir }}/ceph.conf", mode: "0644"}
+    - {content: "{{ _client_admin_keyring }}", dest: "{{ ceph_conf_dir }}/ceph.client.admin.keyring", mode: "0600"}
+...

@@ -12,5 +12,5 @@ pushd ${CURRENT_DIR}/../
     OFFLINE_VARS="--extra-vars=@offline_vars.yml"
   fi
   ansible-playbook --extra-vars=@vars.yml ${OFFLINE_VARS} \
-    ceph-ansible/infrastructure-playbooks/purge-cluster.yml
+    ceph_purge.yml
 popd
