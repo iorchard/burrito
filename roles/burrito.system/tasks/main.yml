@@ -7,13 +7,6 @@
     line: "{{ keepalived_vip }} {{ openstack_fqdn | join(' ') }}"
   become: true
 
-- name: Setup | template adminrc on controllers
-  ansible.builtin.template:
-    dest: "{{ ansible_env.HOME }}/.adminrc"
-    src: "adminrc.j2"
-    mode: 0600
-  when: inventory_hostname in groups['kube_control_plane']
-
 - name: Kubeconfig | check if CA certificate exists
   ansible.builtin.stat:
     path: "{{ tls_ca.crt }}"
