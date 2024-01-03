@@ -15,12 +15,12 @@ template_files:
   - {dest: "{{ artifacts_dir }}/08-csi-rbd-sc.yml"}
 
 # container image versions
-cephcsi_version: "v3.7.2"
-csi_attacher_version: "v4.0.0"
-csi_node_driver_registrar_version: "v2.5.1"
-csi_provisioner_version: "v3.3.0"
-csi_resizer_version: "v1.6.0"
-csi_snapshotter_version: "v6.1.0"
+cephcsi_version: "v3.10.1"
+csi_attacher_version: "v4.4.0"
+csi_node_driver_registrar_version: "v2.9.0"
+csi_provisioner_version: "v3.6.0"
+csi_resizer_version: "v1.9.0"
+csi_snapshotter_version: "v6.3.0"
 # wait timeout for registry in seconds (default: 300s = 5m)
 registry_ready_timeout: 300
 ...

@@ -1,0 +1,31 @@
+---
+- name: init | create pools
+  ansible.builtin.command: ceph osd pool create {{ item.name }}
+  become: true
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+  loop: "{{ ceph_pools }}"
+
+- name: init | enable application type
+  ansible.builtin.command: >-
+    ceph osd pool application enable {{ item.name }} {{ item.application }}
+  become: true
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+  loop: "{{ ceph_pools }}"
+  
+- name: init | initialize pools
+  ansible.builtin.command: rbd pool init {{ item.name }}
+  become: true
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+  loop: "{{ ceph_pools }}"
+
+- name: init | create client keyrings
+  ansible.builtin.command: >-
+    ceph auth get-or-create {{ item.name }} {{ item.caps }}
+  become: true
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+  loop: "{{ ceph_keys }}"
+...

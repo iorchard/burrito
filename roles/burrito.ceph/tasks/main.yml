@@ -25,6 +25,9 @@
 - name: Main | import ceph cluster setup tasks
   ansible.builtin.import_tasks: "setup.yml"
 
+- name: Main | import ceph init tasks
+  ansible.builtin.import_tasks: "init.yml"
+
 - name: Main | import ceph client tasks
   ansible.builtin.import_tasks: "client.yml"
 ...
