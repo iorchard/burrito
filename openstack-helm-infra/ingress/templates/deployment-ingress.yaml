@@ -15,14 +15,6 @@ limitations under the License.
 {{- if .Values.manifests.deployment_ingress }}
 {{- $envAll := . }}
 
-{{- if empty .Values.conf.controller.INGRESS_CLASS -}}
-{{- if eq .Values.deployment.mode "cluster" }}
-{{- $_ := set .Values.conf.controller "INGRESS_CLASS" .Values.deployment.cluster.class -}}
-{{- else if eq .Values.deployment.mode "namespace" }}
-{{- $_ := set .Values.conf.controller "INGRESS_CLASS" "nginx" -}}
-{{- end }}
-{{- end -}}
-
 {{- $serviceAccountName := printf "%s-%s" .Release.Name "ingress" }}
 {{ tuple $envAll "ingress" $serviceAccountName | include "helm-toolkit.snippets.kubernetes_pod_rbac_serviceaccount" }}
 ---
@@ -68,6 +60,7 @@ rules:
       - "networking.k8s.io"
     resources:
       - ingresses
+      - ingressclasses
     verbs:
       - get
       - list
@@ -77,16 +70,17 @@ rules:
       - "networking.k8s.io"
     resources:
       - ingresses/status
+      - ingressclasses/status
     verbs:
       - update
   - apiGroups:
-      - "policy"
+      - discovery.k8s.io
     resources:
-      - podsecuritypolicies
+      - endpointslices
     verbs:
-      - use
-    resourceNames:
-      - privileged
+      - get
+      - list
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -121,7 +115,7 @@ rules:
     resources:
       - configmaps
     resourceNames:
-      - {{ printf "%s" .Release.Name | quote }}
+      - {{ $envAll.Release.Name }}
     verbs:
       - get
       - update
@@ -140,13 +134,13 @@ rules:
       - create
       - update
   - apiGroups:
-      - "policy"
+      - coordination.k8s.io
     resources:
-      - podsecuritypolicies
+      - leases
     verbs:
-      - use
-    resourceNames:
-      - privileged
+      - get
+      - create
+      - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -265,13 +259,13 @@ spec:
 {{ tuple $envAll "ingress_module_init" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ dict "envAll" $envAll "application" "server" "container" "ingress_vip_kernel_modules" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
           command:
-            - /tmp/ingress-vip.sh
+            - /tmp/nginx/ingress-vip.sh
             - kernel_modules
           volumeMounts:
             - name: pod-tmp
-              mountPath: /tmp
+              mountPath: /tmp/nginx
             - name: ingress-bin
-              mountPath: /tmp/ingress-vip.sh
+              mountPath: /tmp/nginx/ingress-vip.sh
               subPath: ingress-vip.sh
               readOnly: true
             - name: host-rootfs
@@ -284,13 +278,13 @@ spec:
           env:
 {{ include "helm-toolkit.utils.to_k8s_env_vars" .Values.network.vip | indent 12 }}
           command:
-            - /tmp/ingress-vip.sh
+            - /tmp/nginx/ingress-vip.sh
             - start
           volumeMounts:
             - name: pod-tmp
-              mountPath: /tmp
+              mountPath: /tmp/nginx
             - name: ingress-bin
-              mountPath: /tmp/ingress-vip.sh
+              mountPath: /tmp/nginx/ingress-vip.sh
               subPath: ingress-vip.sh
               readOnly: true
 {{- end }}
@@ -338,7 +332,14 @@ spec:
               value: {{ .Release.Name | quote }}
             - name: ERROR_PAGE_SERVICE
               value: {{ tuple "ingress" "error_pages" . | include "helm-toolkit.endpoints.hostname_short_endpoint_lookup" | quote }}
-{{ include "helm-toolkit.utils.to_k8s_env_vars" .Values.conf.controller | indent 12 }}
+            - name: INGRESS_CLASS
+              value: "{{ .Values.deployment.cluster.class }}"
+              {{- if .Values.deployment.cluster.ingressClassByName }}
+            - name: INGRESS_CLASS_BY_NAME
+              value: "{{ .Values.deployment.cluster.ingressClassByName }}"
+              {{- end }}
+            - name: CONTROLLER_CLASS
+              value: "{{ .Values.deployment.cluster.controllerClass }}"
           ports:
             - containerPort: {{ tuple "ingress" "internal" "http" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
             {{- if .Values.network.host_namespace }}
@@ -361,13 +362,13 @@ spec:
               hostPort: {{ tuple "ingress" "internal" "server" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
             {{- end }}
           command:
-            - /tmp/ingress-controller.sh
+            - /tmp/nginx/ingress-controller.sh
             - start
           lifecycle:
             preStop:
               exec:
                 command:
-                  - /tmp/ingress-controller.sh
+                  - /tmp/nginx/ingress-controller.sh
                   - stop
           volumeMounts:
             - name: timezone-config
@@ -378,9 +379,9 @@ spec:
               mountPath: /tmp/client-body
           {{- end }}
             - name: pod-tmp
-              mountPath: /tmp
+              mountPath: /tmp/nginx
             - name: ingress-bin
-              mountPath: /tmp/ingress-controller.sh
+              mountPath: /tmp/nginx/ingress-controller.sh
               subPath: ingress-controller.sh
               readOnly: true
 {{- if and .Values.network.host_namespace .Values.network.vip.manage }}
@@ -391,19 +392,19 @@ spec:
           env:
 {{ include "helm-toolkit.utils.to_k8s_env_vars" .Values.network.vip | indent 12 }}
           command:
-            - /tmp/ingress-vip.sh
+            - /tmp/nginx/ingress-vip.sh
             - sleep
           lifecycle:
             preStop:
               exec:
                 command:
-                  - /tmp/ingress-vip.sh
+                  - /tmp/nginx/ingress-vip.sh
                   - stop
           volumeMounts:
             - name: pod-tmp
-              mountPath: /tmp
+              mountPath: /tmp/nginx
             - name: ingress-bin
-              mountPath: /tmp/ingress-vip.sh
+              mountPath: /tmp/nginx/ingress-vip.sh
               subPath: ingress-vip.sh
               readOnly: true
 {{- else if eq .Values.network.vip.mode "keepalived" }}

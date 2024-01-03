@@ -2,9 +2,7 @@
 deployment:
   ceph: false
   client_secrets: true
-  rbd_provisioner: false
   csi_rbd_provisioner: false
-  cephfs_provisioner: false
 storageclass:
   rbd:
     provision_storage_class: false
@@ -24,9 +22,7 @@ manifests:
   configmap_bin: false
   configmap_bin_common: false
   configmap_etc: true
-  deployment_rbd_provisioner: false
   deployment_csi_rbd_provisioner: false
-  deployment_cephfs_provisioner: false
   job_bootstrap: false
   job_cephfs_client_key: false
   job_image_repo_sync: false

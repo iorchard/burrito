@@ -32,4 +32,5 @@ monitoring:
 
 manifests:
   cron_job_mariadb_backup: true
+  job_ks_user: false
 ...

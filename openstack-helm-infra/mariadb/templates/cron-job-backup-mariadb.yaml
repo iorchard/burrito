@@ -53,9 +53,15 @@ spec:
           serviceAccountName: {{ $serviceAccountName }}
           restartPolicy: OnFailure
           shareProcessNamespace: true
-{{ if $envAll.Values.pod.tolerations.mariadb.enabled }}
+{{- if $envAll.Values.pod.tolerations.mariadb.enabled }}
 {{ tuple $envAll "mariadb" | include "helm-toolkit.snippets.kubernetes_tolerations" | indent 10 }}
-{{ end }}
+{{- end }}
+{{- if $envAll.Values.pod.affinity }}
+{{- if $envAll.Values.pod.affinity.mariadb_backup }}
+          affinity:
+{{  index $envAll.Values.pod.affinity "mariadb_backup"  | toYaml | indent 12}}
+{{- end }}
+{{- end }}
           nodeSelector:
             {{ .Values.labels.job.node_selector_key }}: {{ .Values.labels.job.node_selector_value }}
           initContainers:
@@ -98,8 +104,8 @@ spec:
               args:
                 - -c
                 - >-
-                    /tmp/backup_mariadb.sh;
-                    /usr/bin/pkill mysqld
+                    ( /tmp/start_verification_server.sh ) &
+                    /tmp/backup_mariadb.sh
               env:
                 - name: MARIADB_BACKUP_BASE_DIR
                   value: {{ .Values.conf.backup.base_path | quote }}
@@ -126,6 +132,16 @@ spec:
                   value: {{ .Values.conf.backup.remote_backup.delay_range.min | quote }}
                 - name: MAX_DELAY_SEND_BACKUP_TO_REMOTE
                   value: {{ .Values.conf.backup.remote_backup.delay_range.max | quote }}
+                - name: THROTTLE_BACKUPS_ENABLED
+                  value: "{{ .Values.conf.backup.remote_backup.throttle_backups.enabled }}"
+                - name: THROTTLE_LIMIT
+                  value: {{ .Values.conf.backup.remote_backup.throttle_backups.sessions_limit | quote }}
+                - name: THROTTLE_LOCK_EXPIRE_AFTER
+                  value: {{ .Values.conf.backup.remote_backup.throttle_backups.lock_expire_after | quote }}
+                - name: THROTTLE_RETRY_AFTER
+                  value: {{ .Values.conf.backup.remote_backup.throttle_backups.retry_after | quote }}
+                - name: THROTTLE_CONTAINER_NAME
+                  value: {{ .Values.conf.backup.remote_backup.throttle_backups.container_name | quote }}
 {{- with $env := dict "ksUserSecret" $envAll.Values.secrets.identity.mariadb }}
 {{- include "helm-toolkit.snippets.keystone_openrc_env_vars" $env | indent 16 }}
 {{- end }}
@@ -151,49 +167,14 @@ spec:
                   subPath: admin_user.cnf
                   readOnly: true
 {{ dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.secrets.tls.oslo_db.server.internal "path" "/etc/mysql/certs" | include "helm-toolkit.snippets.tls_volume_mount" | indent 16 }}
-            - name: mariadb-verify-server
-{{ tuple $envAll "mariadb" | include "helm-toolkit.snippets.image" | indent 14 }}
-{{ dict "envAll" $envAll "application" "mariadb_backup" "container" "mariadb_verify_server" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 14 }}
-{{ tuple $envAll $envAll.Values.pod.resources.server | include "helm-toolkit.snippets.kubernetes_resources" | indent 14 }}
-              env:
-                {{- if $envAll.Values.manifests.certificates }}
-                - name: MARIADB_X509
-                  value: "REQUIRE X509"
-                {{- end }}
-                - name: MYSQL_HISTFILE
-                  value: /dev/null
-                - name: MARIADB_BACKUP_BASE_DIR
-                  value: {{ .Values.conf.backup.base_path | quote }}
-              ports:
-                - name: mysql
-                  protocol: TCP
-                  containerPort: {{ tuple "oslo_db" "direct" "mysql" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-              command:
-                - /tmp/start_verification_server.sh
-              volumeMounts:
-                - name: pod-tmp
-                  mountPath: /tmp
-                - name: var-run
-                  mountPath: /var/run/mysqld
-                - name: mycnfd
-                  mountPath: /etc/mysql/conf.d
-                - name: mariadb-etc
-                  mountPath: /etc/mysql/my.cnf
-                  subPath: my.cnf
-                  readOnly: true
-                - name: mariadb-secrets
-                  mountPath: /etc/mysql/admin_user.cnf
-                  subPath: admin_user.cnf
-                  readOnly: true
-                - name: mysql-data
-                  mountPath: /var/lib/mysql
                 - name: mariadb-bin
                   mountPath: /tmp/start_verification_server.sh
                   readOnly: true
                   subPath: start_verification_server.sh
-          restartPolicy: OnFailure
-          serviceAccount: {{ $serviceAccountName }}
-          serviceAccountName: {{ $serviceAccountName }}
+                - name: mysql-data
+                  mountPath: /var/lib/mysql
+                - name: var-run
+                  mountPath: /run/mysqld
           volumes:
             - name: pod-tmp
               emptyDir: {}
