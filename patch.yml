@@ -4,11 +4,6 @@
   ansible.builtin.import_playbook: ceph-csi.yml
   tags: ceph-csi
 
-- name: Deploy cri patch playbook
-  any_errors_fatal: true
-  ansible.builtin.import_playbook: cripatch.yml
-  tags: ["cripatch", "never"]
-
 - name: Deploy k8s patch playbook
   any_errors_fatal: true
   ansible.builtin.import_playbook: k8spatch.yml
