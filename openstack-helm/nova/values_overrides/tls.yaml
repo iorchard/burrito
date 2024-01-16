@@ -118,13 +118,13 @@ endpoints:
       default: https
     port:
       api:
-        default: 8443
+        default: 443
   image:
     scheme:
       default: https
     port:
       api:
-        public: 8443
+        public: 443
   compute:
     host_fqdn_override:
       default:
@@ -138,7 +138,7 @@ endpoints:
       service: 'https'
     port:
       api:
-        public: 8443
+        public: 443
   compute_metadata:
     host_fqdn_override:
       default:
@@ -151,7 +151,7 @@ endpoints:
       default: https
     port:
       metadata:
-        public: 8443
+        public: 443
   compute_novnc_proxy:
     host_fqdn_override:
       default:
@@ -187,13 +187,13 @@ endpoints:
       default: https
     port:
       api:
-        public: 8443
+        public: 443
   network:
     scheme:
       default: https
     port:
       api:
-        public: 8443
+        public: 443
   oslo_messaging:
     port:
       https:

@@ -25,8 +25,8 @@ OVS_CTL=/run/openvswitch/ovs-vswitchd.${OVS_PID}.ctl
 chown neutron: ${OVS_CTL}
 
 function get_dpdk_config_value {
-  values=$1
-  filter=$2
+  values=${@:1:$#-1}
+  filter=${!#}
   value=$(echo ${values} | jq -r ${filter})
   if [[ "${value}" == "null" ]]; then
     echo ""
@@ -65,7 +65,7 @@ function get_name_by_pci_id {
 
 function get_ip_address_from_interface {
   local interface=$1
-  local ip=$(ip -4 -o addr s "${interface}" | awk '{ print $4; exit }' | awk -F '/' '{print $1}')
+  local ip=$(ip -4 -o addr s "${interface}" | awk '{ print $4; exit }' | awk -F '/' 'NR==1 {print $1}')
   if [ -z "${ip}" ] ; then
     exit 1
   fi
@@ -74,7 +74,7 @@ function get_ip_address_from_interface {
 
 function get_ip_prefix_from_interface {
   local interface=$1
-  local prefix=$(ip -4 -o addr s "${interface}" | awk '{ print $4; exit }' | awk -F '/' '{print $2}')
+  local prefix=$(ip -4 -o addr s "${interface}" | awk '{ print $4; exit }' | awk -F '/' 'NR==1 {print $2}')
   if [ -z "${prefix}" ] ; then
     exit 1
   fi
@@ -360,7 +360,7 @@ function process_dpdk_bonds {
       ovs-vsctl --db=unix:${OVS_SOCKET} set Bridge "${dpdk_bridge}" other_config:update_config=false
       ovs-vsctl --db=unix:${OVS_SOCKET} --may-exist add-bond "${dpdk_bridge}" "${bond_name}" \
         ${nic_name_str} \
-        "${ovs_options}" ${dev_args_str}
+        ${ovs_options} ${dev_args_str}
     fi
 
   done < "/tmp/bonds_array"

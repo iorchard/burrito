@@ -17,7 +17,5 @@ limitations under the License.
 set -x
 exec neutron-bgp-dragent \
       --config-file /etc/neutron/neutron.conf \
-{{- if and ( empty .Values.conf.neutron.DEFAULT.host ) ( .Values.pod.use_fqdn.neutron_agent ) }}
-  --config-file /tmp/pod-shared/neutron-agent.ini \
-{{- end }}
-      --config-file /etc/neutron/bgp_dragent.ini
+      --config-file /etc/neutron/bgp_dragent.ini \
+      --debug

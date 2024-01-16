@@ -30,9 +30,11 @@ images:
     ks_user: docker.io/openstackhelm/heat:stein-ubuntu_bionic
     ks_service: docker.io/openstackhelm/heat:stein-ubuntu_bionic
     ks_endpoints: docker.io/openstackhelm/heat:stein-ubuntu_bionic
+    netoffload: ghcr.io/vexxhost/netoffload:v1.0.1
     neutron_server: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
     neutron_dhcp: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
     neutron_metadata: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
+    neutron_ovn_metadata: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
     neutron_l3: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
     neutron_l2gw: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
     neutron_openvswitch_agent: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
@@ -40,6 +42,7 @@ images:
     neutron_sriov_agent: docker.io/openstackhelm/neutron:stein-18.04-sriov
     neutron_sriov_agent_init: docker.io/openstackhelm/neutron:stein-18.04-sriov
     neutron_bagpipe_bgp: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
+    neutron_bgp_dragent: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
     neutron_ironic_agent: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
     neutron_netns_cleanup_cron: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
     dep_check: quay.io/airshipit/kubernetes-entrypoint:v1.0.0
@@ -82,6 +85,9 @@ labels:
     node_selector_key: sriov
     node_selector_value: enabled
   bagpipe_bgp:
+    node_selector_key: openstack-compute-node
+    node_selector_value: enabled
+  bgp_dragent:
     node_selector_key: openstack-compute-node
     node_selector_value: enabled
   server:
@@ -156,13 +162,11 @@ dependencies:
       sriov: {}
       l2gateway: {}
       bagpipe_bgp: {}
+      ovn:
+        server:
+          pod: null
+      bgp_dragent: {}
       openvswitch:
-        bgp:
-          pod:
-            - requireSameNode: true
-              labels:
-                application: neutron
-                component: neutron-ovs-agent
         dhcp:
           pod:
             - requireSameNode: true
@@ -182,12 +186,6 @@ dependencies:
                 application: neutron
                 component: neutron-ovs-agent
       linuxbridge:
-        bgp:
-          pod:
-            - requireSameNode: true
-              labels:
-                application: neutron
-                component: neutron-lb-agent
         dhcp:
           pod:
             - requireSameNode: true
@@ -229,17 +227,6 @@ dependencies:
       services:
         - endpoint: internal
           service: oslo_db
-    bgp:
-      pod: null
-      jobs:
-        - neutron-rabbit-init
-      services:
-        - endpoint: internal
-          service: oslo_messaging
-        - endpoint: internal
-          service: network
-        - endpoint: internal
-          service: compute
     dhcp:
       pod: null
       jobs:
@@ -302,6 +289,17 @@ dependencies:
           service: compute
         - endpoint: public
           service: compute_metadata
+    ovn_metadata:
+      pod:
+        - requireSameNode: true
+          labels:
+            application: ovn
+            component: ovn-controller
+      services:
+        - endpoint: internal
+          service: compute_metadata
+        - endpoint: internal
+          service: network
     ovs_agent:
       jobs:
         - neutron-rabbit-init
@@ -309,11 +307,7 @@ dependencies:
         - requireSameNode: true
           labels:
             application: openvswitch
-            component: openvswitch-vswitchd
-        - requireSameNode: true
-          labels:
-            application: openvswitch
-            component: openvswitch-vswitchd-db
+            component: server
       services:
         - endpoint: internal
           service: oslo_messaging
@@ -366,20 +360,6 @@ pod:
   probes:
     rpc_timeout: 60
     rpc_retries: 2
-    bgp_dragent:
-      bgp_dragent:
-        readiness:
-          enabled: true
-          params:
-            initialDelaySeconds: 30
-            periodSeconds: 190
-            timeoutSeconds: 185
-        liveness:
-          enabled: true
-          params:
-            initialDelaySeconds: 120
-            periodSeconds: 600
-            timeoutSeconds: 580
     dhcp_agent:
       dhcp_agent:
         readiness:
@@ -426,11 +406,26 @@ pod:
             initialDelaySeconds: 120
             periodSeconds: 600
             timeoutSeconds: 580
+    ovn_metadata_agent:
+      ovn_metadata_agent:
+        readiness:
+          enabled: true
+          params:
+            initialDelaySeconds: 30
+            periodSeconds: 190
+            timeoutSeconds: 185
+        liveness:
+          enabled: true
+          params:
+            initialDelaySeconds: 120
+            periodSeconds: 600
+            timeoutSeconds: 580
     ovs_agent:
       ovs_agent:
         readiness:
           enabled: true
           params:
+            timeoutSeconds: 10
         liveness:
           enabled: true
           params:
@@ -449,6 +444,15 @@ pod:
       bagpipe_bgp:
         readiness:
           enabled: true
+          params:
+        liveness:
+          enabled: true
+          params:
+            initialDelaySeconds: 60
+    bgp_dragent:
+      bgp_dragent:
+        readiness:
+          enabled: false
           params:
         liveness:
           enabled: true
@@ -473,10 +477,14 @@ pod:
         readiness:
           enabled: true
           params:
+            periodSeconds: 15
+            timeoutSeconds: 10
         liveness:
           enabled: true
           params:
             initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 10
   security_context:
     neutron_dhcp_agent:
       pod:
@@ -497,6 +505,13 @@ pod:
         runAsUser: 42424
       container:
         neutron_bagpipe_bgp:
+          readOnlyRootFilesystem: true
+          privileged: true
+    neutron_bgp_dragent:
+      pod:
+        runAsUser: 42424
+      container:
+        neutron_bgp_dragent:
           readOnlyRootFilesystem: true
           privileged: true
     neutron_l3_agent:
@@ -524,18 +539,18 @@ pod:
         neutron_lb_agent:
           readOnlyRootFilesystem: true
           privileged: true
-    neutron_bgp_dragent:
-      pod:
-        runAsUser: 42435
-      container:
-        neutron_bgp_dragent_init:
-          runAsUser: 0
-          readOnlyRootFilesystem: true
     neutron_metadata_agent:
       pod:
         runAsUser: 42424
       container:
         neutron_metadata_agent_init:
+          runAsUser: 0
+          readOnlyRootFilesystem: true
+    neutron_ovn_metadata_agent:
+      pod:
+        runAsUser: 42424
+      container:
+        neutron_ovn_metadata_agent_init:
           runAsUser: 0
           readOnlyRootFilesystem: true
     neutron_ovs_agent:
@@ -549,6 +564,10 @@ pod:
               - SYS_CHROOT
           runAsUser: 0
           readOnlyRootFilesystem: true
+        netoffload:
+          privileged: true
+          runAsUser: 0
+          readOnlyRootFilesystem: true
         neutron_ovs_agent_init:
           privileged: true
           runAsUser: 0
@@ -558,7 +577,7 @@ pod:
           privileged: true
     neutron_server:
       pod:
-        runAsUser: 42435
+        runAsUser: 42424
       container:
         nginx:
           runAsUser: 0
@@ -606,77 +625,45 @@ pod:
       - key: node-role.kubernetes.io/master
         operator: Exists
         effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
   mounts:
     neutron_server:
       init_container: null
       neutron_server:
         volumeMounts:
-          - mountPath: /etc/localtime
-            name: timezone
         volumes:
-          - hostPath:
-              path: /etc/localtime
-            name: timezone
     neutron_dhcp_agent:
       init_container: null
       neutron_dhcp_agent:
         volumeMounts:
-          - mountPath: /etc/localtime
-            name: timezone
         volumes:
-          - hostPath:
-              path: /etc/localtime
-            name: timezone
     neutron_l3_agent:
       init_container: null
       neutron_l3_agent:
         volumeMounts:
-          - mountPath: /etc/localtime
-            name: timezone
         volumes:
-          - hostPath:
-              path: /etc/localtime
-            name: timezone
     neutron_lb_agent:
       init_container: null
       neutron_lb_agent:
         volumeMounts:
-          - mountPath: /etc/localtime
-            name: timezone
         volumes:
-          - hostPath:
-              path: /etc/localtime
-            name: timezone
-    neutron_bgp_dragent:
-      init_container: null
-      neutron_bgp_dragent:
-        volumeMounts:
-          - mountPath: /etc/localtime
-            name: timezone
-        volumes:
-          - hostPath:
-              path: /etc/localtime
-            name: timezone
     neutron_metadata_agent:
       init_container: null
       neutron_metadata_agent:
         volumeMounts:
-          - mountPath: /etc/localtime
-            name: timezone
         volumes:
-          - hostPath:
-              path: /etc/localtime
-            name: timezone
+    neutron_ovn_metadata_agent:
+      init_container: null
+      neutron_ovn_metadata_agent:
+        volumeMounts:
+        volumes:
     neutron_ovs_agent:
       init_container: null
       neutron_ovs_agent:
         volumeMounts:
-          - mountPath: /etc/localtime
-            name: timezone
         volumes:
-          - hostPath:
-              path: /etc/localtime
-            name: timezone
     neutron_sriov_agent:
       init_container: null
       neutron_sriov_agent:
@@ -690,6 +677,11 @@ pod:
     bagpipe_bgp:
       init_container: null
       bagpipe_bgp:
+        volumeMounts:
+        volumes:
+    bgp_dragent:
+      init_container: null
+      bgp_dragent:
         volumeMounts:
         volumes:
     neutron_ironic_agent:
@@ -745,11 +737,11 @@ pod:
           enabled: true
           min_ready_seconds: 0
           max_unavailable: 1
-        bgp_dragent:
+        metadata_agent:
           enabled: true
           min_ready_seconds: 0
           max_unavailable: 1
-        metadata_agent:
+        ovn_metadata_agent:
           enabled: true
           min_ready_seconds: 0
           max_unavailable: 1
@@ -804,6 +796,13 @@ pod:
         limits:
           memory: "1024Mi"
           cpu: "2000m"
+      ovn_metadata:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "1024Mi"
+          cpu: "2000m"
       ovs:
         requests:
           memory: "128Mi"
@@ -826,6 +825,13 @@ pod:
           memory: "1024Mi"
           cpu: "2000m"
       bagpipe_bgp:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "1024Mi"
+          cpu: "2000m"
+      bgp_dragent:
         requests:
           memory: "128Mi"
           cpu: "100m"
@@ -1251,196 +1257,7 @@ conf:
       paste.app_factory: neutron.api.v2.router:APIRouter.factory
     filter:osprofiler:
       paste.filter_factory: osprofiler.web:WsgiMiddleware.factory
-  policy:
-    context_is_admin: role:admin
-    owner: tenant_id:%(tenant_id)s
-    admin_or_owner: rule:context_is_admin or rule:owner
-    context_is_advsvc: role:advsvc
-    admin_or_network_owner: rule:context_is_admin or tenant_id:%(network:tenant_id)s
-    admin_owner_or_network_owner: rule:owner or rule:admin_or_network_owner
-    admin_only: rule:context_is_admin
-    regular_user: ''
-    shared: field:networks:shared=True
-    shared_subnetpools: field:subnetpools:shared=True
-    shared_address_scopes: field:address_scopes:shared=True
-    external: field:networks:router:external=True
-    default: rule:admin_or_owner
-    create_subnet: rule:admin_or_network_owner
-    create_subnet:segment_id: rule:admin_only
-    create_subnet:service_types: rule:admin_only
-    get_subnet: rule:admin_or_owner or rule:shared
-    get_subnet:segment_id: rule:admin_only
-    update_subnet: rule:admin_or_network_owner
-    update_subnet:service_types: rule:admin_only
-    delete_subnet: rule:admin_or_network_owner
-    create_subnetpool: ''
-    create_subnetpool:shared: rule:admin_only
-    create_subnetpool:is_default: rule:admin_only
-    get_subnetpool: rule:admin_or_owner or rule:shared_subnetpools
-    update_subnetpool: rule:admin_or_owner
-    update_subnetpool:is_default: rule:admin_only
-    delete_subnetpool: rule:admin_or_owner
-    create_address_scope: ''
-    create_address_scope:shared: rule:admin_only
-    get_address_scope: rule:admin_or_owner or rule:shared_address_scopes
-    update_address_scope: rule:admin_or_owner
-    update_address_scope:shared: rule:admin_only
-    delete_address_scope: rule:admin_or_owner
-    create_network: ''
-    get_network: rule:admin_or_owner or rule:shared or rule:external or rule:context_is_advsvc
-    get_network:router:external: rule:regular_user
-    get_network:segments: rule:admin_only
-    get_network:provider:network_type: rule:admin_only
-    get_network:provider:physical_network: rule:admin_only
-    get_network:provider:segmentation_id: rule:admin_only
-    get_network:queue_id: rule:admin_only
-    get_network_ip_availabilities: rule:admin_only
-    get_network_ip_availability: rule:admin_only
-    create_network:shared: rule:admin_only
-    create_network:router:external: rule:admin_only
-    create_network:is_default: rule:admin_only
-    create_network:segments: rule:admin_only
-    create_network:provider:network_type: rule:admin_only
-    create_network:provider:physical_network: rule:admin_only
-    create_network:provider:segmentation_id: rule:admin_only
-    update_network: rule:admin_or_owner
-    update_network:segments: rule:admin_only
-    update_network:shared: rule:admin_only
-    update_network:provider:network_type: rule:admin_only
-    update_network:provider:physical_network: rule:admin_only
-    update_network:provider:segmentation_id: rule:admin_only
-    update_network:router:external: rule:admin_only
-    delete_network: rule:admin_or_owner
-    create_segment: rule:admin_only
-    get_segment: rule:admin_only
-    update_segment: rule:admin_only
-    delete_segment: rule:admin_only
-    network_device: 'field:port:device_owner=~^network:'
-    create_port: ''
-    create_port:device_owner: not rule:network_device or rule:context_is_advsvc or rule:admin_or_network_owner
-    create_port:mac_address: rule:context_is_advsvc or rule:admin_or_network_owner
-    create_port:fixed_ips: rule:context_is_advsvc or rule:admin_or_network_owner
-    create_port:port_security_enabled: rule:context_is_advsvc or rule:admin_or_network_owner
-    create_port:binding:host_id: rule:admin_only
-    create_port:binding:profile: rule:admin_only
-    create_port:mac_learning_enabled: rule:context_is_advsvc or rule:admin_or_network_owner
-    create_port:allowed_address_pairs: rule:admin_or_network_owner
-    get_port: rule:context_is_advsvc or rule:admin_owner_or_network_owner
-    get_port:queue_id: rule:admin_only
-    get_port:binding:vif_type: rule:admin_only
-    get_port:binding:vif_details: rule:admin_only
-    get_port:binding:host_id: rule:admin_only
-    get_port:binding:profile: rule:admin_only
-    update_port: rule:admin_or_owner or rule:context_is_advsvc
-    update_port:device_owner: not rule:network_device or rule:context_is_advsvc or rule:admin_or_network_owner
-    update_port:mac_address: rule:admin_only or rule:context_is_advsvc
-    update_port:fixed_ips: rule:context_is_advsvc or rule:admin_or_network_owner
-    update_port:port_security_enabled: rule:context_is_advsvc or rule:admin_or_network_owner
-    update_port:binding:host_id: rule:admin_only
-    update_port:binding:profile: rule:admin_only
-    update_port:mac_learning_enabled: rule:context_is_advsvc or rule:admin_or_network_owner
-    update_port:allowed_address_pairs: rule:admin_or_network_owner
-    delete_port: rule:context_is_advsvc or rule:admin_owner_or_network_owner
-    get_router:ha: rule:admin_only
-    create_router: rule:regular_user
-    create_router:external_gateway_info:enable_snat: rule:admin_only
-    create_router:distributed: rule:admin_only
-    create_router:ha: rule:admin_only
-    get_router: rule:admin_or_owner
-    get_router:distributed: rule:admin_only
-    update_router:external_gateway_info:enable_snat: rule:admin_only
-    update_router:distributed: rule:admin_only
-    update_router:ha: rule:admin_only
-    delete_router: rule:admin_or_owner
-    add_router_interface: rule:admin_or_owner
-    remove_router_interface: rule:admin_or_owner
-    create_router:external_gateway_info:external_fixed_ips: rule:admin_only
-    update_router:external_gateway_info:external_fixed_ips: rule:admin_only
-    insert_rule: rule:admin_or_owner
-    remove_rule: rule:admin_or_owner
-    create_qos_queue: rule:admin_only
-    get_qos_queue: rule:admin_only
-    update_agent: rule:admin_only
-    delete_agent: rule:admin_only
-    get_agent: rule:admin_only
-    create_dhcp-network: rule:admin_only
-    delete_dhcp-network: rule:admin_only
-    get_dhcp-networks: rule:admin_only
-    create_l3-router: rule:admin_only
-    delete_l3-router: rule:admin_only
-    get_l3-routers: rule:admin_only
-    get_dhcp-agents: rule:admin_only
-    get_l3-agents: rule:admin_only
-    get_loadbalancer-agent: rule:admin_only
-    get_loadbalancer-pools: rule:admin_only
-    get_agent-loadbalancers: rule:admin_only
-    get_loadbalancer-hosting-agent: rule:admin_only
-    create_floatingip: rule:regular_user
-    create_floatingip:floating_ip_address: rule:admin_only
-    update_floatingip: rule:admin_or_owner
-    delete_floatingip: rule:admin_or_owner
-    get_floatingip: rule:admin_or_owner
-    create_network_profile: rule:admin_only
-    update_network_profile: rule:admin_only
-    delete_network_profile: rule:admin_only
-    get_network_profiles: ''
-    get_network_profile: ''
-    update_policy_profiles: rule:admin_only
-    get_policy_profiles: ''
-    get_policy_profile: ''
-    create_metering_label: rule:admin_only
-    delete_metering_label: rule:admin_only
-    get_metering_label: rule:admin_only
-    create_metering_label_rule: rule:admin_only
-    delete_metering_label_rule: rule:admin_only
-    get_metering_label_rule: rule:admin_only
-    get_service_provider: rule:regular_user
-    get_lsn: rule:admin_only
-    create_lsn: rule:admin_only
-    create_flavor: rule:admin_only
-    update_flavor: rule:admin_only
-    delete_flavor: rule:admin_only
-    get_flavors: rule:regular_user
-    get_flavor: rule:regular_user
-    create_service_profile: rule:admin_only
-    update_service_profile: rule:admin_only
-    delete_service_profile: rule:admin_only
-    get_service_profiles: rule:admin_only
-    get_service_profile: rule:admin_only
-    get_policy: rule:regular_user
-    create_policy: rule:admin_only
-    update_policy: rule:admin_only
-    delete_policy: rule:admin_only
-    get_policy_bandwidth_limit_rule: rule:regular_user
-    create_policy_bandwidth_limit_rule: rule:admin_only
-    delete_policy_bandwidth_limit_rule: rule:admin_only
-    update_policy_bandwidth_limit_rule: rule:admin_only
-    get_policy_dscp_marking_rule: rule:regular_user
-    create_policy_dscp_marking_rule: rule:admin_only
-    delete_policy_dscp_marking_rule: rule:admin_only
-    update_policy_dscp_marking_rule: rule:admin_only
-    get_rule_type: rule:regular_user
-    get_policy_minimum_bandwidth_rule: rule:regular_user
-    create_policy_minimum_bandwidth_rule: rule:admin_only
-    delete_policy_minimum_bandwidth_rule: rule:admin_only
-    update_policy_minimum_bandwidth_rule: rule:admin_only
-    restrict_wildcard: "(not field:rbac_policy:target_tenant=*) or rule:admin_only"
-    create_rbac_policy: ''
-    create_rbac_policy:target_tenant: rule:restrict_wildcard
-    update_rbac_policy: rule:admin_or_owner
-    update_rbac_policy:target_tenant: rule:restrict_wildcard and rule:admin_or_owner
-    get_rbac_policy: rule:admin_or_owner
-    delete_rbac_policy: rule:admin_or_owner
-    create_flavor_service_profile: rule:admin_only
-    delete_flavor_service_profile: rule:admin_only
-    get_flavor_service_profile: rule:regular_user
-    get_auto_allocated_topology: rule:admin_or_owner
-    create_trunk: rule:regular_user
-    get_trunk: rule:admin_or_owner
-    delete_trunk: rule:admin_or_owner
-    get_subports: ''
-    add_subports: rule:admin_or_owner
-    remove_subports: rule:admin_or_owner
+  policy: {}
   api_audit_map:
     DEFAULT:
       target_endpoint_type: None
@@ -1514,6 +1331,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1541,6 +1359,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1566,6 +1385,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1587,6 +1407,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1677,6 +1498,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
         - netns_cleanup_cron
@@ -1699,6 +1521,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
         - netns_cleanup_cron
@@ -1748,6 +1571,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1768,6 +1592,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1804,6 +1629,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1841,6 +1667,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1878,6 +1705,7 @@ conf:
         - l3_agent
         - lb_agent
         - metadata_agent
+        - ovn_metadata_agent
         - ovs_agent
         - sriov_agent
         - netns_cleanup_cron
@@ -2005,7 +1833,13 @@ conf:
       enable_proxy_headers_parsing: true
     oslo_policy:
       policy_file: /etc/neutron/policy.yaml
+    ovn:
+      ovn_metadata_enabled: true
     nova:
+      auth_type: password
+      auth_version: v3
+      endpoint_type: internal
+    placement:
       auth_type: password
       auth_version: v3
       endpoint_type: internal
@@ -2017,9 +1851,12 @@ conf:
     ironic:
       endpoint_type: internal
     keystone_authtoken:
+      service_token_roles: service
+      service_token_roles_required: true
       memcache_security_strategy: ENCRYPT
       auth_type: password
       auth_version: v3
+      service_type: network
     octavia:
       request_poll_timeout: 3000
   logging:
@@ -2095,7 +1932,7 @@ conf:
         # (NOTE)portdirect: if unset this is populated dyanmicly from the value
         # in 'network.backend' to sane defaults.
         mechanism_drivers: null
-        type_drivers: flat,vlan,vxlan
+        type_drivers: flat,vlan,vxlan,local
         tenant_network_types: vxlan
       ml2_type_vxlan:
         vni_ranges: 1:1000
@@ -2107,6 +1944,9 @@ conf:
       # using ml2_type_vlan.network_vlan_ranges:
       # ml2_type_vlan:
       #   network_vlan_ranges: "external:1100:1110"
+      ml2_type_geneve:
+        vni_ranges: 1:65536
+        max_header_size: 38
       agent:
         extensions: ""
     ml2_conf_sriov: null
@@ -2184,6 +2024,19 @@ conf:
       enabled: true
       backend: dogpile.cache.memcached
   bagpipe_bgp: {}
+  ovn_metadata_agent:
+    DEFAULT:
+      # we cannot change the proxy socket path as it is declared
+      # as a hostPath volume from agent daemonsets
+      metadata_proxy_socket: /var/lib/neutron/openstack-helm/metadata_proxy
+      metadata_proxy_shared_secret: "password"
+      metadata_workers: 2
+    cache:
+      enabled: true
+      backend: dogpile.cache.memcached
+    ovs:
+      ovsdb_connection: unix:/run/openvswitch/db.sock
+  bgp_dragent: {}
 
   rabbitmq:
     # NOTE(rk760n): adding rmq policy to mirror messages from notification queues and set expiration time for the ones
@@ -2216,8 +2069,15 @@ conf:
   #   br0: if0
   #   br1: iface_two
   # br-ex will be added by default
-  #auto_bridge_add:
-  #  br-ex: null
+  auto_bridge_add:
+    br-ex: null
+
+  # Network off-loading configuration
+  netoffload:
+    enabled: false
+    asap2:
+      # - dev: enp97s0f0
+      #   vfs: 16
 
   # configuration of OVS DPDK bridges and NICs
   # this is a separate section and not part of the auto_bridge_add section
@@ -2470,6 +2330,13 @@ endpoints:
         password: password
         user_domain_name: service
         project_domain_name: service
+      placement:
+        region_name: RegionOne
+        project_name: service
+        username: placement
+        password: password
+        user_domain_name: service
+        project_domain_name: service
       designate:
         region_name: RegionOne
         project_name: service
@@ -2645,13 +2512,13 @@ manifests:
   configmap_etc: true
   daemonset_dhcp_agent: true
   daemonset_l3_agent: true
-  daemonset_bgp_dragent: false
   daemonset_lb_agent: true
   daemonset_metadata_agent: true
   daemonset_ovs_agent: true
   daemonset_sriov_agent: true
   daemonset_l2gw_agent: false
   daemonset_bagpipe_bgp: false
+  daemonset_bgp_dragent: false
   daemonset_netns_cleanup_cron: true
   deployment_ironic_agent: false
   deployment_server: true

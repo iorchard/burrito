@@ -1,27 +1,28 @@
 ---
 images:
   tags:
-    nginx: "{{ docker_image_repo }}/library/nginx:1.23"
-    bootstrap: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    db_init: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    db_drop: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    ks_user: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    ks_service: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    ks_endpoints: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    neutron_dhcp: "{{ docker_image_repo }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
-    neutron_l3: "{{ docker_image_repo }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
-    neutron_l2gw: "{{ docker_image_repo }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
-    neutron_linuxbridge_agent: "{{ docker_image_repo }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
-    neutron_metadata: "{{ docker_image_repo }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
-    neutron_openvswitch_agent: "{{ docker_image_repo }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
-    neutron_rpc_server: "{{ docker_image_repo }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
-    neutron_bagpipe_bgp: "{{ docker_image_repo }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
-    neutron_netns_cleanup_cron: "{{ docker_image_repo }}/jijisa/neutron:skb-yoga-ubuntu_jammy"
-    neutron_server: "{{ docker_image_repo }}/jijisa/ubuntu-source-neutron-server:yoga"
-    neutron_bgp_dragent: "{{ docker_image_repo }}/jijisa/ubuntu-source-neutron-bgp-dragent:yoga"
-    neutron_db_sync: "{{ docker_image_repo }}/jijisa/ubuntu-source-neutron-bgp-dragent:yoga"
+    nginx: "{{ docker_image_repo }}/library/nginx:1.25.3"
+    bootstrap: "{{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy"
+    db_init: "{{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy"
+    db_drop: "{{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy"
+    ks_user: "{{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy"
+    ks_service: "{{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy"
+    ks_endpoints: "{{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy"
+    neutron_db_sync: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_dhcp: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_l3: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_l2gw: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_linuxbridge_agent: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_metadata: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_ovn_metadata: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_openvswitch_agent: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_rpc_server: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_bagpipe_bgp: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_netns_cleanup_cron: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_server: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
+    neutron_bgp_dragent: "{{ docker_image_repo }}/jijisa/neutron:2023.1-ubuntu_jammy"
     dep_check: "{{ quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0"
-    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.11-management"
+    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.12.11-management"
 
 network:
   server:
@@ -68,21 +69,6 @@ pod:
       limits:
         memory: "1024Mi"
         cpu: "2000m"
-  probes:
-    bgp_dragent:
-      bgp_dragent:
-        readiness:
-          enabled: true
-          params:
-            initialDelaySeconds: 30
-            periodSeconds: 190
-            timeoutSeconds: 185
-        liveness:
-          enabled: true
-          params:
-            initialDelaySeconds: 120
-            periodSeconds: 600
-            timeoutSeconds: 580
   replicas:
     server: {{ pod.replicas }}
   security_context:
@@ -92,27 +78,10 @@ pod:
       container:
         neutron_server:
           readOnlyRootFilesystem: false
-    neutron_bgp_dragent:
-      pod:
-        runAsUser: 42435
-      container:
-        neutron_bgp_dragent_init:
-          runAsUser: 0
-          readOnlyRootFilesystem: true
   mounts:
     neutron_server:
       init_container: null
       neutron_server:
-        volumeMounts:
-          - name: timezone
-            mountPath: /etc/localtime
-        volumes:
-          - name: timezone
-            hostPath:
-              path: /etc/localtime
-    neutron_bgp_dragent:
-      init_container: null
-      neutron_bgp_dragent:
         volumeMounts:
           - name: timezone
             mountPath: /etc/localtime
@@ -186,6 +155,8 @@ conf:
       service_plugins: []
 {% endif %}
       dhcp_agents_per_network: 2
+    experimental:
+      linuxbridge: true
     nova:
       cafile: /etc/neutron/certs/ca.crt
     keystone_authtoken:
@@ -332,6 +303,10 @@ endpoints:
         cacert: /etc/ssl/certs/openstack-helm.crt
         username: nova
         password: {{ nova.password }}
+      placement:
+        cacert: /etc/ssl/certs/openstack-helm.crt
+        username: placement
+        password: {{ placement.password }}
       test:
         cacert: /etc/ssl/certs/openstack-helm.crt
     scheme:

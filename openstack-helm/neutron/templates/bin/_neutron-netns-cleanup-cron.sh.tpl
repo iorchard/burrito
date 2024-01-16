@@ -14,14 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 
-set -ex
+set -xe
 
-chown ${NEUTRON_USER_UID} /var/lib/neutron/openstack-helm
-
-{{- if and ( empty .Values.conf.neutron.DEFAULT.host ) ( .Values.pod.use_fqdn.neutron_agent ) }}
-mkdir -p /tmp/pod-shared
-tee > /tmp/pod-shared/neutron-agent.ini << EOF
-[DEFAULT]
-host = $(hostname --fqdn)
-EOF
-{{- end }}
+# Run "neutron-netns-cleanup" every 5 minutes
+while sleep 300; do
+    neutron-netns-cleanup \
+        --config-file /etc/neutron/neutron.conf \
+        --config-file /etc/neutron/dhcp_agent.ini \
+        --config-file /etc/neutron/l3_agent.ini
+done
