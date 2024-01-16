@@ -23,6 +23,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ tuple "oslo_messaging" "internal" . | include "helm-toolkit.endpoints.hostname_short_endpoint_lookup" }}
+  labels:
+{{ tuple $envAll "rabbitmq" "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
 spec:
   clusterIP: None
   ports:
@@ -32,6 +34,8 @@ spec:
       name: clustering
     - port: {{ tuple "oslo_messaging" "internal" $protocol . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
       name: {{  printf "%s" $protocol }}
+    - name: metrics
+      port: {{ tuple "oslo_messaging" "internal" "metrics" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
   selector:
 {{ tuple $envAll "rabbitmq" "server" | include "helm-toolkit.snippets.kubernetes_metadata_labels" | indent 4 }}
 {{ end }}

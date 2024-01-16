@@ -125,6 +125,9 @@ pod:
       - key: node-role.kubernetes.io/master
         operator: Exists
         effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
   replicas:
     server: 2
     prometheus_rabbitmq_exporter: 1
@@ -186,6 +189,9 @@ conf:
     skip_queues: "^$"
     include_queues: ".*"
     rabbit_exporters: "overview,exchange,node,queue"
+    rabbitmq_mgmt_metrics_collector_disabled: false
+  # This IP could be IPv4/IPv6 and the tcp port will be appended to it and eventually it is set to rabbitmq.listeners.tcp.1
+  bind_address: "::"
   rabbitmq:
     listeners:
       tcp:
@@ -206,6 +212,9 @@ conf:
     # This confinguration is used for non TLS deployments
     management.listener.ip: "::"
     management.listener.port: null
+  rabbit_advanced_config:
+    enabled: false
+    default_consumer_prefetch: 250
   rabbitmq_exporter:
     rabbit_timeout: 30
   # Feature Flags is introduced in RabbitMQ 3.8.0
@@ -351,6 +360,8 @@ endpoints:
       http:
         default: 15672
         public: 80
+      metrics:
+        default: 15692
   prometheus_rabbitmq_exporter:
     namespace: null
     hosts:
@@ -416,9 +427,9 @@ manifests:
   job_image_repo_sync: true
   monitoring:
     prometheus:
-      configmap_bin: true
-      deployment_exporter: true
-      service_exporter: true
+      configmap_bin: false
+      deployment_exporter: false
+      service_exporter: false
       network_policy_exporter: false
   network_policy: false
   pod_test: true
