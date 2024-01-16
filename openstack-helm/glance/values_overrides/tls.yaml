@@ -82,7 +82,7 @@ endpoints:
       default: https
     port:
       api:
-        default: 8443
+        default: 443
   image:
     host_fqdn_override:
       default:
@@ -96,15 +96,15 @@ endpoints:
       public: https
     port:
       api:
-        public: 8443
+        public: 443
   dashboard:
     scheme:
       default: https
       public: https
     port:
       web:
-        default: 8443
-        public: 8443
+        default: 80
+        public: 443
   oslo_messaging:
     port:
       https:
