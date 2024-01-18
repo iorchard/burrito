@@ -85,6 +85,9 @@ pod:
         - key: node-role.kubernetes.io/master
           operator: Exists
           effect: NoSchedule
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
   mounts:
     barbican_api:
       init_container: null
@@ -374,6 +377,7 @@ conf:
       auth_version: v3
       memcache_security_strategy: ENCRYPT
       memcache_secret_key: null
+      service_type: key-manager
     database:
       max_retries: -1
     barbican_api:
@@ -566,7 +570,12 @@ endpoints:
       default: barbican-api
       public: barbican
     host_fqdn_override:
-      default: null
+      default:
+        tls:
+          secretName: barbican-tls-internal
+          issuerRef:
+            kind: ClusterIssuer
+            name: ca-clusterissuer
     path:
       default: /
     scheme:

@@ -2,12 +2,12 @@
 images:
   tags:
     nginx: {{ docker_image_repo }}/library/nginx:1.25.3
-    bootstrap: {{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy
-    db_init: {{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy
-    db_drop: {{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy
-    ks_user: {{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy
-    ks_service: {{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy
-    ks_endpoints: {{ docker_image_repo }}/openstackhelm/heat:2023.1-ubuntu_jammy
+    bootstrap: {{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy
+    db_init: {{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy
+    db_drop: {{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy
+    ks_user: {{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy
+    ks_service: {{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy
+    ks_endpoints: {{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy
     glance_db_sync: {{ docker_image_repo }}/jijisa/glance:2023.1-ubuntu_jammy
     glance_api: {{ docker_image_repo }}/jijisa/glance:2023.1-ubuntu_jammy
     glance_metadefs_load: {{ docker_image_repo }}/jijisa/glance:2023.1-ubuntu_jammy

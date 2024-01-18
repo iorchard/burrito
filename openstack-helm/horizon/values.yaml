@@ -22,7 +22,7 @@ images:
     horizon_db_sync: docker.io/openstackhelm/horizon:stein-ubuntu_bionic
     db_drop: docker.io/openstackhelm/heat:stein-ubuntu_bionic
     horizon: docker.io/openstackhelm/horizon:stein-ubuntu_bionic
-    test: docker.io/openstackhelm/osh-selenium:latest-ubuntu_bionic
+    test: docker.io/openstackhelm/osh-selenium:latest-ubuntu_focal
     dep_check: quay.io/airshipit/kubernetes-entrypoint:v1.0.0
     image_repo_sync: docker.io/docker:17.07.0
   pull_policy: "IfNotPresent"
@@ -31,6 +31,9 @@ images:
     exclude:
       - dep_check
       - image_repo_sync
+
+# Use selenium v4 syntax
+selenium_v4: true
 
 release_group: null
 
@@ -249,7 +252,7 @@ conf:
         # Pass any settings to the end of local_settings.py
         raw: {}
         openstack_api_versions:
-          container_infra: "1.19"
+          container_infra: "1.10"
       template: |
         import os
 
@@ -315,7 +318,7 @@ conf:
 
         OPENSTACK_API_VERSIONS = {
             "identity": 3,
-            "container-infra": {{ .Values.conf.horizon.local_settings.config.openstack_api_versions.container_infra }}
+            "container-infra": "{{ .Values.conf.horizon.local_settings.config.openstack_api_versions.container_infra }}"
         }
 
         # Set this to True if running on multi-domain model. When this is enabled, it
@@ -1139,6 +1142,9 @@ pod:
       enabled: false
       tolerations:
       - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
         operator: Exists
         effect: NoSchedule
   mounts:

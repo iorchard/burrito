@@ -52,21 +52,21 @@ release_group: null
 images:
   tags:
     test: docker.io/xrally/xrally-openstack:2.0.0
-    db_init: docker.io/openstackhelm/heat:ussuri-ubuntu_bionic
-    cinder_db_sync: docker.io/openstackhelm/cinder:ussuri-ubuntu_bionic
-    db_drop: docker.io/openstackhelm/heat:ussuri-ubuntu_bionic
+    db_init: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
+    cinder_db_sync: docker.io/openstackhelm/cinder:wallaby-ubuntu_focal
+    db_drop: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
     rabbit_init: docker.io/rabbitmq:3.7-management
-    ks_user: docker.io/openstackhelm/heat:ussuri-ubuntu_bionic
-    ks_service: docker.io/openstackhelm/heat:ussuri-ubuntu_bionic
-    ks_endpoints: docker.io/openstackhelm/heat:ussuri-ubuntu_bionic
-    cinder_api: docker.io/openstackhelm/cinder:ussuri-ubuntu_bionic
-    bootstrap: docker.io/openstackhelm/heat:ussuri-ubuntu_bionic
-    cinder_scheduler: docker.io/openstackhelm/cinder:ussuri-ubuntu_bionic
-    cinder_volume: docker.io/openstackhelm/cinder:ussuri-ubuntu_bionic
-    cinder_volume_usage_audit: docker.io/openstackhelm/cinder:ussuri-ubuntu_bionic
-    cinder_storage_init: docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_bionic
-    cinder_backup: docker.io/openstackhelm/cinder:ussuri-ubuntu_bionic
-    cinder_backup_storage_init: docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_bionic
+    ks_user: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
+    ks_service: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
+    ks_endpoints: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
+    cinder_api: docker.io/openstackhelm/cinder:wallaby-ubuntu_focal
+    bootstrap: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
+    cinder_scheduler: docker.io/openstackhelm/cinder:wallaby-ubuntu_focal
+    cinder_volume: docker.io/openstackhelm/cinder:wallaby-ubuntu_focal
+    cinder_volume_usage_audit: docker.io/openstackhelm/cinder:wallaby-ubuntu_focal
+    cinder_storage_init: docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_focal
+    cinder_backup: docker.io/openstackhelm/cinder:wallaby-ubuntu_focal
+    cinder_backup_storage_init: docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_focal
     dep_check: quay.io/airshipit/kubernetes-entrypoint:v1.0.0
     image_repo_sync: docker.io/docker:17.07.0
   pull_policy: "IfNotPresent"
@@ -190,6 +190,9 @@ pod:
       enabled: false
       tolerations:
       - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
         operator: Exists
         effect: NoSchedule
   useHostNetwork:
@@ -468,7 +471,19 @@ conf:
     composite:osapi_volume:
       use: call:cinder.api:root_app_factory
       /: apiversions
+      /v1: openstack_volume_api_v1
+      /v2: openstack_volume_api_v2
       /v3: openstack_volume_api_v3
+    composite:openstack_volume_api_v1:
+      use: call:cinder.api.middleware.auth:pipeline_factory
+      noauth: cors http_proxy_to_wsgi request_id faultwrap sizelimit osprofiler noauth apiv1
+      keystone: cors http_proxy_to_wsgi request_id faultwrap sizelimit osprofiler authtoken audit keystonecontext apiv1
+      keystone_nolimit: cors http_proxy_to_wsgi request_id faultwrap sizelimit osprofiler authtoken audit keystonecontext apiv1
+    composite:openstack_volume_api_v2:
+      use: call:cinder.api.middleware.auth:pipeline_factory
+      noauth: cors http_proxy_to_wsgi request_id faultwrap sizelimit osprofiler noauth apiv2
+      keystone: cors http_proxy_to_wsgi request_id faultwrap sizelimit osprofiler authtoken audit keystonecontext apiv2
+      keystone_nolimit: cors http_proxy_to_wsgi request_id faultwrap sizelimit osprofiler authtoken audit keystonecontext apiv2
     composite:openstack_volume_api_v3:
       use: call:cinder.api.middleware.auth:pipeline_factory
       noauth: cors http_proxy_to_wsgi request_id faultwrap sizelimit osprofiler noauth apiv3
@@ -489,6 +504,10 @@ conf:
       paste.filter_factory: cinder.api.middleware.auth:NoAuthMiddleware.factory
     filter:sizelimit:
       paste.filter_factory: oslo_middleware.sizelimit:RequestBodySizeLimiter.factory
+    app:apiv1:
+      paste.app_factory: cinder.api.v1.router:APIRouter.factory
+    app:apiv2:
+      paste.app_factory: cinder.api.v2.router:APIRouter.factory
     app:apiv3:
       paste.app_factory: cinder.api.v3.router:APIRouter.factory
     pipeline:apiversions:
@@ -502,122 +521,7 @@ conf:
     filter:audit:
       paste.filter_factory: keystonemiddleware.audit:filter_factory
       audit_map_file: /etc/cinder/api_audit_map.conf
-  policy:
-    context_is_admin: role:admin
-    admin_or_owner: is_admin:True or project_id:%(project_id)s
-    default: rule:admin_or_owner
-    admin_api: is_admin:True
-    volume:create: ''
-    volume:delete: rule:admin_or_owner
-    volume:get: rule:admin_or_owner
-    volume:get_all: rule:admin_or_owner
-    volume:get_volume_metadata: rule:admin_or_owner
-    volume:create_volume_metadata: rule:admin_or_owner
-    volume:delete_volume_metadata: rule:admin_or_owner
-    volume:update_volume_metadata: rule:admin_or_owner
-    volume:get_volume_admin_metadata: rule:admin_api
-    volume:update_volume_admin_metadata: rule:admin_api
-    volume:get_snapshot: rule:admin_or_owner
-    volume:get_all_snapshots: rule:admin_or_owner
-    volume:create_snapshot: rule:admin_or_owner
-    volume:delete_snapshot: rule:admin_or_owner
-    volume:update_snapshot: rule:admin_or_owner
-    volume:get_snapshot_metadata: rule:admin_or_owner
-    volume:delete_snapshot_metadata: rule:admin_or_owner
-    volume:update_snapshot_metadata: rule:admin_or_owner
-    volume:extend: rule:admin_or_owner
-    volume:update_readonly_flag: rule:admin_or_owner
-    volume:retype: rule:admin_or_owner
-    volume:update: rule:admin_or_owner
-    volume_extension:types_manage: rule:admin_api
-    volume_extension:types_extra_specs: rule:admin_api
-    volume_extension:access_types_qos_specs_id: rule:admin_api
-    volume_extension:access_types_extra_specs: rule:admin_api
-    volume_extension:volume_type_access: rule:admin_or_owner
-    volume_extension:volume_type_access:addProjectAccess: rule:admin_api
-    volume_extension:volume_type_access:removeProjectAccess: rule:admin_api
-    volume_extension:volume_type_encryption: rule:admin_api
-    volume_extension:volume_encryption_metadata: rule:admin_or_owner
-    volume_extension:extended_snapshot_attributes: rule:admin_or_owner
-    volume_extension:volume_image_metadata: rule:admin_or_owner
-    volume_extension:quotas:show: ''
-    volume_extension:quotas:update: rule:admin_api
-    volume_extension:quotas:delete: rule:admin_api
-    volume_extension:quota_classes: rule:admin_api
-    volume_extension:quota_classes:validate_setup_for_nested_quota_use: rule:admin_api
-    volume_extension:volume_admin_actions:reset_status: rule:admin_api
-    volume_extension:snapshot_admin_actions:reset_status: rule:admin_api
-    volume_extension:backup_admin_actions:reset_status: rule:admin_api
-    volume_extension:volume_admin_actions:force_delete: rule:admin_api
-    volume_extension:volume_admin_actions:force_detach: rule:admin_api
-    volume_extension:snapshot_admin_actions:force_delete: rule:admin_api
-    volume_extension:backup_admin_actions:force_delete: rule:admin_api
-    volume_extension:volume_admin_actions:migrate_volume: rule:admin_api
-    volume_extension:volume_admin_actions:migrate_volume_completion: rule:admin_api
-    volume_extension:volume_actions:upload_public: rule:admin_api
-    volume_extension:volume_actions:upload_image: rule:admin_or_owner
-    volume_extension:volume_host_attribute: rule:admin_api
-    volume_extension:volume_tenant_attribute: rule:admin_or_owner
-    volume_extension:volume_mig_status_attribute: rule:admin_api
-    volume_extension:hosts: rule:admin_api
-    volume_extension:services:index: rule:admin_api
-    volume_extension:services:update: rule:admin_api
-    volume_extension:volume_manage: rule:admin_api
-    volume_extension:volume_unmanage: rule:admin_api
-    volume_extension:list_manageable: rule:admin_api
-    volume_extension:capabilities: rule:admin_api
-    volume:create_transfer: rule:admin_or_owner
-    volume:accept_transfer: ''
-    volume:delete_transfer: rule:admin_or_owner
-    volume:get_transfer: rule:admin_or_owner
-    volume:get_all_transfers: rule:admin_or_owner
-    volume_extension:replication:promote: rule:admin_api
-    volume_extension:replication:reenable: rule:admin_api
-    volume:failover_host: rule:admin_api
-    volume:freeze_host: rule:admin_api
-    volume:thaw_host: rule:admin_api
-    backup:create: ''
-    backup:delete: rule:admin_or_owner
-    backup:get: rule:admin_or_owner
-    backup:get_all: rule:admin_or_owner
-    backup:restore: rule:admin_or_owner
-    backup:backup-import: rule:admin_api
-    backup:backup-export: rule:admin_api
-    backup:update: rule:admin_or_owner
-    snapshot_extension:snapshot_actions:update_snapshot_status: ''
-    snapshot_extension:snapshot_manage: rule:admin_api
-    snapshot_extension:snapshot_unmanage: rule:admin_api
-    snapshot_extension:list_manageable: rule:admin_api
-    consistencygroup:create: group:nobody
-    consistencygroup:delete: group:nobody
-    consistencygroup:update: group:nobody
-    consistencygroup:get: group:nobody
-    consistencygroup:get_all: group:nobody
-    consistencygroup:create_cgsnapshot: group:nobody
-    consistencygroup:delete_cgsnapshot: group:nobody
-    consistencygroup:get_cgsnapshot: group:nobody
-    consistencygroup:get_all_cgsnapshots: group:nobody
-    group:group_types_manage: rule:admin_api
-    group:group_types_specs: rule:admin_api
-    group:access_group_types_specs: rule:admin_api
-    group:group_type_access: rule:admin_or_owner
-    group:create: ''
-    group:delete: rule:admin_or_owner
-    group:update: rule:admin_or_owner
-    group:get: rule:admin_or_owner
-    group:get_all: rule:admin_or_owner
-    group:create_group_snapshot: ''
-    group:delete_group_snapshot: rule:admin_or_owner
-    group:update_group_snapshot: rule:admin_or_owner
-    group:get_group_snapshot: rule:admin_or_owner
-    group:get_all_group_snapshots: rule:admin_or_owner
-    scheduler_extension:scheduler_stats:get_pools: rule:admin_api
-    message:delete: rule:admin_or_owner
-    message:get: rule:admin_or_owner
-    message:get_all: rule:admin_or_owner
-    clusters:get: rule:admin_api
-    clusters:get_all: rule:admin_api
-    clusters:update: rule:admin_api
+  policy: {}
   api_audit_map:
     DEFAULT:
       target_endpoint_type: None
@@ -636,6 +540,8 @@ conf:
       types: type
       volumes: volume
     service_endpoints:
+      volume: service/storage/block
+      volumev2: service/storage/block
       volumev3: service/storage/block
   cinder_sudoers: |
     # This sudoers file supports rootwrap for both Kolla and LOCI Images.
@@ -909,12 +815,12 @@ conf:
         replication: 3
         crush_rule: replicated_rule
         chunk_size: 8
-        app_name: rbd
+        app_name: cinder-backup
       cinder.volumes:
         replication: 3
         crush_rule: replicated_rule
         chunk_size: 8
-        app_name: rbd
+        app_name: cinder-volume
   cinder:
     DEFAULT:
       volume_usage_audit_period: hour
@@ -923,6 +829,7 @@ conf:
       use_syslog: false
       use_stderr: true
       enable_v1_api: false
+      enable_v2_api: false
       volume_name_template: "%s"
       osapi_volume_workers: 1
       glance_api_version: 2
@@ -953,9 +860,16 @@ conf:
     database:
       max_retries: -1
     keystone_authtoken:
+      service_token_roles: service
+      service_token_roles_required: true
       auth_version: v3
       auth_type: password
       memcache_security_strategy: ENCRYPT
+      service_type: volumev3
+    nova:
+      auth_type: password
+      auth_version: v3
+      interface: internal
     oslo_policy:
       policy_file: /etc/cinder/policy.yaml
     oslo_concurrency:
@@ -970,7 +884,7 @@ conf:
       backend_url: file:///var/lib/cinder/coordination
     service_user:
       auth_type: password
-      send_service_user_token: false
+      send_service_user_token: true
   logging:
     loggers:
       keys:
@@ -1060,7 +974,7 @@ conf:
       rados_connect_timeout: -1
       rbd_user: cinder
       rbd_secret_uuid: 457eb676-33da-42ec-9a8c-9293d545c337
-      image_volume_cache_enabled: True
+      image_volume_cache_enabled: true
       image_volume_cache_max_size_gb: 200
       image_volume_cache_max_count: 50
   rally_tests:
@@ -1178,7 +1092,7 @@ dependencies:
         - endpoint: internal
           service: identity
         - endpoint: internal
-          service: volumev3
+          service: volume
     backup_storage_init:
       jobs: null
     bootstrap:
@@ -1186,7 +1100,7 @@ dependencies:
         - endpoint: internal
           service: identity
         - endpoint: internal
-          service: volumev3
+          service: volume
       pod:
         - requireSameNode: false
           labels:
@@ -1237,7 +1151,7 @@ dependencies:
         - endpoint: internal
           service: identity
         - endpoint: internal
-          service: volumev3
+          service: volume
     storage_init:
       jobs: null
     tests:
@@ -1245,7 +1159,7 @@ dependencies:
         - endpoint: internal
           service: identity
         - endpoint: internal
-          service: volumev3
+          service: volume
     volume:
       jobs:
         - cinder-db-sync
@@ -1257,7 +1171,7 @@ dependencies:
         - endpoint: internal
           service: identity
         - endpoint: internal
-          service: volumev3
+          service: volume
     volume_usage_audit:
       jobs:
         - cinder-db-sync
@@ -1269,7 +1183,7 @@ dependencies:
         - endpoint: internal
           service: identity
         - endpoint: internal
-          service: volumev3
+          service: volume
     image_repo_sync:
       services:
         - endpoint: internal
@@ -1296,7 +1210,7 @@ secrets:
     admin: cinder-rabbitmq-admin
     cinder: cinder-rabbitmq-user
   tls:
-    volumev3:
+    volume:
       api:
         public: cinder-tls-public
         internal: cinder-tls-api
@@ -1346,7 +1260,7 @@ endpoints:
         user_domain_name: default
         project_domain_name: default
       cinder:
-        role: admin
+        role: admin,service
         region_name: RegionOne
         username: cinder
         password: password
@@ -1391,13 +1305,50 @@ endpoints:
         public: 80
   volume:
     name: cinder
+    hosts:
+      default: cinder-api
+      public: cinder
+    host_fqdn_override:
+      default: null
+      # NOTE(portdirect): this chart supports TLS for fqdn over-ridden public
+      # endpoints using the following format:
+      # public:
+      #   host: null
+      #   tls:
+      #     crt: null
+      #     key: null
     path:
-      default: /v3/%(tenant_id)s
+      default: '/v1/%(tenant_id)s'
+    scheme:
+      default: 'http'
     port:
       api:
-        public: 8080
+        default: 8776
+        public: 80
+  volumev2:
+    name: cinderv2
+    hosts:
+      default: cinder-api
+      public: cinder
+    host_fqdn_override:
+      default: null
+      # NOTE(portdirect): this chart supports TLS for fqdn over-ridden public
+      # endpoints using the following format:
+      # public:
+      #   host: null
+      #   tls:
+      #     crt: null
+      #     key: null
+    path:
+      default: '/v2/%(tenant_id)s'
+    scheme:
+      default: 'http'
+    port:
+      api:
+        default: 8776
+        public: 80
   volumev3:
-    name: cinder
+    name: cinderv3
     hosts:
       default: cinder-api
       public: cinder
@@ -1418,12 +1369,6 @@ endpoints:
       api:
         default: 8776
         public: 80
-  volume:
-    path:
-      default: /v3/%(tenant_id)s
-    port:
-      api:
-        public: 8080
   oslo_db:
     auth:
       admin:

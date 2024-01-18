@@ -1,10 +1,10 @@
 ---
 images:
   tags:
-    db_init: {{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal
-    db_drop: {{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal
-    horizon_db_sync: {{ docker_image_repo }}/jijisa/horizon:yoga-ubuntu_focal
-    horizon: {{ docker_image_repo }}/jijisa/horizon:yoga-ubuntu_focal
+    db_init: {{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy
+    db_drop: {{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy
+    horizon_db_sync: {{ docker_image_repo }}/jijisa/horizon:2023.1-ubuntu_jammy
+    horizon: {{ docker_image_repo }}/jijisa/horizon:2023.1-ubuntu_jammy
     dep_check: {{ quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0
 
 pod:

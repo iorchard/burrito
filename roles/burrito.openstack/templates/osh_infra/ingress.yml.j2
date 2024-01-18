@@ -10,6 +10,10 @@ images:
 
 deployment:
   type: StatefulSet
+  cluster:
+    class: "nginx"
+    ingressClassByName: false
+    controllerClass: "k8s.io/nginx-ingress"
 network:
   host_namespace: true
 monitoring:

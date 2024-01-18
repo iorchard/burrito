@@ -1,20 +1,20 @@
 ---
 images:
   tags:
-    db_init: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    cinder_db_sync: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
-    db_drop: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.11-management"
-    ks_user: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    ks_service: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    ks_endpoints: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    cinder_api: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
-    bootstrap: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    cinder_scheduler: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
-    cinder_volume: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
-    cinder_volume_usage_audit: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
+    db_init: "{{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy"
+    cinder_db_sync: "{{ docker_image_repo }}/jijisa/cinder:2023.1-ubuntu_jammy"
+    db_drop: "{{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy"
+    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.12.11-management"
+    ks_user: "{{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy"
+    ks_service: "{{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy"
+    ks_endpoints: "{{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy"
+    cinder_api: "{{ docker_image_repo }}/jijisa/cinder:2023.1-ubuntu_jammy"
+    bootstrap: "{{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy"
+    cinder_scheduler: "{{ docker_image_repo }}/jijisa/cinder:2023.1-ubuntu_jammy"
+    cinder_volume: "{{ docker_image_repo }}/jijisa/cinder:2023.1-ubuntu_jammy"
+    cinder_volume_usage_audit: "{{ docker_image_repo }}/jijisa/cinder:2023.1-ubuntu_jammy"
     cinder_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:latest-ubuntu_focal"
-    cinder_backup: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
+    cinder_backup: "{{ docker_image_repo }}/jijisa/cinder:2023.1-ubuntu_jammy"
     cinder_backup_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:latest-ubuntu_focal"
     dep_check: "{{ quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0"
 
@@ -166,7 +166,7 @@ conf:
       ThreadLimit         720
     </IfModule>
   wsgi_cinder: |
-    {{- $portInt := tuple "volumev3" "internal" "api" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+    {{- $portInt := tuple "volume" "internal" "api" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
     Listen {{ $portInt }}
     <VirtualHost *:{{ $portInt }}>
       ServerName {{ printf "%s.%s.svc.%s" "cinder-api" .Release.Namespace .Values.endpoints.cluster_domain_suffix }}
@@ -233,8 +233,6 @@ conf:
       quota_volumes: -1
     keystone_authtoken:
       cafile: /etc/cinder/certs/ca.crt
-      service_token_roles: admin
-      service_token_roles_required: true
     key_manager:
       backend: barbican
     nova:
@@ -277,7 +275,6 @@ conf:
       rbd_pool: "volumes"
       rbd_secret_uuid: "{{ ceph_secret_uuid }}"
       rbd_exclusive_cinder_pool: true
-      image_volume_cache_enabled: True
 {% else %}
     rbd1: null
 {% endif %}
@@ -393,13 +390,25 @@ endpoints:
         public: 8443
   volume:
     name: cinder
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: cinder-tls-api
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
     path:
       default: /v3/%(tenant_id)s
+    scheme:
+      default: https
+      internal: https
     port:
       api:
         public: 8443
   volumev3:
-    name: cinder
+    name: cinderv3
     host_fqdn_override:
       default:
         tls:

@@ -79,7 +79,7 @@ spec:
       initContainers:
 {{ tuple $envAll "pod_dependency" $mounts_libvirt_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
 {{ dict "envAll" $envAll | include "helm-toolkit.snippets.kubernetes_apparmor_loader_init_container" | indent 8 }}
-{{- if eq .Values.conf.qemu.vnc_tls "1" }}
+{{- if eq .Values.conf.qemu.vnc_tls "0" }}
         - name: cert-init-vnc
 {{ tuple $envAll "kubectl" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ dict "envAll" $envAll "application" "libvirt" "container" "cert_init" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
