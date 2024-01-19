@@ -1,4 +1,5 @@
 ---
 ceph_conf_dir: "/etc/ceph"
 ceph_artifacts_dir: "{{ ansible_env.HOME }}/ceph-artifacts"
+ceph_bootstrap_params: "{{ single_osd_node | ternary('--single-host-defaults', '') }}"
 ...

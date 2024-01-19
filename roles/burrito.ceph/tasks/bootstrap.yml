@@ -1,12 +1,12 @@
 ---
 - name: Bootstrap | bootstrap ceph cluster
   ansible.builtin.command: >-
-    cephadm bootstrap \
+    cephadm bootstrap {{ ceph_bootstrap_params }} \
         --allow-overwrite \
         --mon-ip {{ hostvars[groups['mons'][0]]['ansible_' + storage_iface_name].ipv4.address }} \
         --skip-dashboard \
         --skip-firewalld \
-        --skip-monitoring-stack  \
+        --skip-monitoring-stack \
         --ssh-user {{ ansible_user }}
   become: true
   register: _res
