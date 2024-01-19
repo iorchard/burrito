@@ -1,8 +1,8 @@
-btx: main (2d4073fb034fac1ce550c7e417bbf29fe24cdf5d)
-kubespray: master (aea150e5dc244e933c6d5e2aee35ffb7ffe614a9)
+btx: 2.0.0
+kubespray: master (78eb74c252992acb99dbf7d2a62b04ebce662043)
 ceph: 18.2.1
 kubernetes: v1.28.5
-etcd: v3.5.9
+etcd: v3.5.10
 containerd: v1.7.11
 calico: v3.26.4
 nerdctl: v1.7.1
