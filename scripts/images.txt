@@ -23,6 +23,7 @@ quay.io/calico/cni:v3.26.4
 quay.io/calico/kube-controllers:v3.26.4
 quay.io/calico/node:v3.26.4
 quay.io/calico/pod2daemon-flexvol:v3.26.4
+quay.io/ceph/ceph:v18.2.1
 quay.io/cephcsi/cephcsi:v3.10.1
 quay.io/jetstack/cert-manager-cainjector:v1.12.6
 quay.io/jetstack/cert-manager-controller:v1.12.6
