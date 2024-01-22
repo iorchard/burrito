@@ -105,7 +105,7 @@
           deployer time: {{ deployer_epoch }}
           my time: {{ ansible_date_time.epoch }}
         that:
-          - "{{ (deployer_epoch|int - ansible_date_time.epoch|int)|abs }} < {{ checklist.clock_deviation_threshold }}"
+          - (deployer_epoch|int - ansible_date_time.epoch|int)|abs < checklist.clock_deviation_threshold
 
     - name: check if osd block devices exist in osd nodes
       ansible.builtin.assert:
