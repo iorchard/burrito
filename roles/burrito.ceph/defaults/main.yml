@@ -1,4 +1,6 @@
 ---
+registry_conf_dir: "/etc/containers/registries.conf.d"
+quay_image_repo: "quay.io"
 ceph_version: "v18.2.1"
 ceph_conf_dir: "/etc/ceph"
 ceph_artifacts_dir: "{{ ansible_env.HOME }}/ceph-artifacts"
