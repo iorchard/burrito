@@ -111,10 +111,10 @@
       ansible.builtin.assert:
         quiet: "{{ checklist.quiet }}"
         fail_msg: >-
-          Cannot find the device: {{ item.data }}
+          Cannot find the device: {{ item.path }}
         that:
-          - ansible_devices.{{ item.data|basename }} is defined
-      loop: "{{ lvm_volumes }}"
+          - ansible_devices.{{ item.path|basename }} is defined
+      loop: "{{ data_devices }}"
       when: inventory_hostname in groups['osds']
 
     - name: check if network-node group is not empty
