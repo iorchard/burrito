@@ -1,0 +1,19 @@
+---
+artifacts_dir: "{{ ansible_env.HOME }}/primera-artifacts"
+
+primera_secret:
+  name: "primera-secret"
+  service_name: "primera3par-csp-svc"
+  service_port: "8080"
+  backend: "192.168.200.178"
+  username: username
+  password: password
+primera_namespace: "hpe-storage"
+primera_chart_repo_url: "https://hpe-storage.github.io/co-deployments"
+primera_version: "2.4.0"
+primera_k8s_cpg: "k8s_cpg"
+template_files:
+  - {dest: "{{ artifacts_dir }}/values.yaml"}
+  - {dest: "{{ artifacts_dir }}/secret.yaml"}
+  - {dest: "{{ artifacts_dir }}/storageclass.yaml"}
+...

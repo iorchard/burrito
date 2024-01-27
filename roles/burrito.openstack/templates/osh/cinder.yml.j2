@@ -27,6 +27,8 @@ volume_deployment:
     size: {{ cinder.volume_deploy.size }}
 
 pod:
+  useHostNetwork:
+    volume: "{{ enable_iscsi }}"
   security_context:
     cinder_api:
       container:
@@ -90,7 +92,7 @@ pod:
           - name: cinder-tmp
             emptyDir: {}
 {% endif %}
-{% if "hitachi" in storage_backends %}
+{% if enable_iscsi %}
     cinder_volume:
       container:
         cinder_volume:
@@ -133,6 +135,11 @@ bootstrap:
       volume_backend_name: {{ cinder_backends_map.hitachi }}
       access_type: "private"
 {% endif %}
+{% if "primera" in storage_backends %}
+    primera:
+      volume_backend_name: {{ cinder_backends_map.primera }}
+      access_type: "private"
+{% endif %}
 
 network:
   api:
@@ -140,7 +147,7 @@ network:
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: "https"
 conf:
-  enable_iscsi: {{ ("hitachi" in storage_backends)|ternary('true', 'false') }}
+  enable_iscsi: {{ enable_iscsi }}
   enable_powerflex: {{ ("powerflex" in storage_backends)|ternary('true', 'false') }}
   db_acl:
     enabled: true
@@ -335,6 +342,29 @@ conf:
       hitachi_group_create: False
       hitachi_group_delete: False
       hitachi_rest_name_only_discovery: True
+{% endif %}
+{% if "primera" in storage_backends %}
+    primera:
+      volume_driver: "{{ primera_volume_driver }}"
+      volume_backend_name: primera
+      san_ip: "{{ primera_ip }}"
+      san_login: "{{ primera_username }}"
+      san_password: "{{ primera_password }}"
+      use_multipath_for_image_xfer: True
+      image_volume_cache_enabled: True
+      image_upload_use_cinder_backend: True
+      image_upload_use_internal_tenant: True
+      #hpe3par_target_nsp: "0:3:3"
+      hpe3par_api_url: "{{ primera_api_url }}"
+      hpe3par_username: "{{ primera_username }}"
+      hpe3par_password: "{{ primera_password }}"
+      hpe3par_cpg: "{{ primera_openstack_cpg }}"
+      hpe3par_debug: true
+      hpe3par_cpg_snap: "{{ primera_openstack_cpg }}"
+      hpe3par_snapshot_retension: 48
+      hpe3par_snapshot_expiration: 72
+      max_over_scription_raio: 20.0
+      reserved_percentage: 15
 {% endif %}
 
 endpoints:

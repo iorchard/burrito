@@ -1,0 +1,78 @@
+---
+#- name: Setup | copy static files
+#  ansible.builtin.copy:
+#    dest: "{{ item.dest }}"
+#    src: "{{ ansible_os_family | lower }}{{ item.dest }}"
+#    owner: "{{ item.owner }}"
+#    group: "{{ item.group }}"
+#    mode: "{{ item.mode }}"
+#    backup: true
+#  loop: "{{ service_conf }}"
+#  become: true
+#  notify:
+#    - systemctl restart service
+
+- name: Setup | create a namespace
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ primera_namespace }}"
+        labels:
+          control-plane: controller-manager
+          pod-security.kubernetes.io/enforce: privileged
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | create artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: directory
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | templating manifest files
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.dest | basename }}.j2"
+    mode: "0600"
+  loop: "{{ template_files }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | add chart repo
+  kubernetes.core.helm_repository:
+    name: hpe-storage
+    repo_url: "{{ primera_chart_repo_url }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | install helm chart
+  kubernetes.core.helm:
+    name: hpe-csi-driver
+    release_namespace: "{{ primera_namespace }}"
+    chart_ref: hpe-storage/hpe-csi-driver
+    chart_version: "{{ primera_version }}"
+    values_files:
+      - "{{ artifacts_dir }}/values.yaml"
+    wait: true
+    state: present
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | create a secret and a storageclass
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ item }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+  loop:
+    - "{{ artifacts_dir }}/secret.yaml"
+    - "{{ artifacts_dir }}/storageclass.yaml"
+...

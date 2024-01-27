@@ -1,0 +1,26 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "{{ 'true' if storage_backends[0] == 'primera' else 'false' }}"
+  name: primera
+provisioner: csi.hpe.com
+parameters:
+  csi.storage.k8s.io/fstype: xfs
+  csi.storage.k8s.io/provisioner-secret-name: {{ primera_secret.name }}
+  csi.storage.k8s.io/provisioner-secret-namespace: {{ primera_namespace }}
+  csi.storage.k8s.io/controller-publish-secret-name: {{ primera_secret.name }}
+  csi.storage.k8s.io/controller-publish-secret-namespace: {{ primera_namespace }}
+  csi.storage.k8s.io/node-stage-secret-name: {{ primera_secret.name }}
+  csi.storage.k8s.io/node-stage-secret-namespace: {{ primera_namespace }}
+  csi.storage.k8s.io/node-publish-secret-name: {{ primera_secret.name }}
+  csi.storage.k8s.io/node-publish-secret-namespace: {{ primera_namespace }}
+  csi.storage.k8s.io/controller-expand-secret-name: {{ primera_secret.name }}
+  csi.storage.k8s.io/controller-expand-secret-namespace: {{ primera_namespace }}
+  cpg: {{ primera_k8s_cpg }}
+  provisioningType: tpvv
+  accessProtocol: fc
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+...

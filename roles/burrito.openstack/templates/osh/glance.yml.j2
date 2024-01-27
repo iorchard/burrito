@@ -61,6 +61,7 @@ conf:
 {% if "cinder" in glance.enabled_backends %}
     cinder:
       cinder_catalog_info: "volumev3::internalURL"
+      cinder_use_multipath: True
 {% endif %}
 
     glance_store:
@@ -223,6 +224,8 @@ endpoints:
         password: {{ glance.password }}
     statefulset: null
 pod:
+  useHostNetwork:
+    api: "{{ (glance.storage == 'cinder') | ternary('true', 'false') }}"
   security_context:
     glance:
       pod:

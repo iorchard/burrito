@@ -97,6 +97,7 @@ spec:
 {{- end }}
 {{- if eq .Values.storage "cinder" }}
       hostIPC: true
+      hostPID: true
 {{- end }}
       initContainers:
 {{ tuple $envAll "api" $mounts_glance_api_init | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
