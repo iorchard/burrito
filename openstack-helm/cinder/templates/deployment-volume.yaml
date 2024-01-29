@@ -71,7 +71,6 @@ spec:
       hostIPC: true
 {{- end }}
 {{- if .Values.conf.enable_iscsi }}
-      hostPID: true
       hostIPC: true
 {{- end }}
       initContainers:
