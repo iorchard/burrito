@@ -52,11 +52,13 @@ storage_backends:
   - netapp
   - powerflex
   - hitachi
+  - primera
 
 # ceph: set ceph configuration in group_vars/all/ceph_vars.yml
 # netapp: set netapp configuration in group_vars/all/netapp_vars.yml
 # powerflex: set powerflex configuration in group_vars/all/powerflex_vars.yml
 # hitachi: set hitachi configuration in group_vars/all/hitachi_vars.yml
+# primera: set HP primera configuration in group_vars/all/primera_vars.yml
 
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
@@ -418,6 +420,7 @@ pvc_access_modes_map:
   netapp: 'ReadWriteMany'
   powerflex: 'ReadWriteOnce'
   hitachi: 'ReadWriteOnce'
+  primera: 'ReadWriteOnce'
 
 
 # ingress
@@ -434,6 +437,14 @@ rabbitmq:
   volume_size: "10Gi"
   password: "{{ vault_rabbitmq_openstack_password }}"
 
+enable_iscsi_map:
+  ceph: false
+  netapp: false
+  powerflex: false
+  hitachi: true
+  primera: true
+enable_iscsi: "{{ storage_backends|map('extract', enable_iscsi_map)|list is any }}"
+
 # keystone
 os_admin_password: "{{ vault_openstack_admin_password }}"
 keystone:
@@ -445,21 +456,25 @@ glance_store_types:
   netapp: 'file'
   powerflex: 'cinder'
   hitachi: 'cinder'
+  primera: 'cinder'
 glance_storage:
   ceph: 'rbd'
   netapp: 'pvc'
   powerflex: 'cinder'
   hitachi: 'cinder'
+  primera: 'cinder'
 glance_nginx_deploy_types:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'StatefulSet'
   hitachi: 'StatefulSet'
+  primera: 'StatefulSet'
 glance_pvc_nginx_client_tmp:
   ceph: false
   netapp: true
   powerflex: false
   hitachi: false
+  primera: false
 glance:
   storage: "{{ storage_backends|map('extract', glance_storage)|list|first }}"
   enabled_backends: "{{ storage_backends|map('extract', glance_store_types)|unique }}"
@@ -505,6 +520,7 @@ nova_pvc_instances:
   netapp: true
   powerflex: false
   hitachi: false
+  primera: false
 nova:
   vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
   hypervisor_host_interface: "{{ mgmt_iface_name }}"
@@ -527,16 +543,19 @@ cinder_backends_map:
   netapp: "{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}"
   powerflex: 'powerflex'
   hitachi: 'hitachi'
+  primera: 'primera'
 cinder_vol_deploy_type_map:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'StatefulSet'
   hitachi: 'StatefulSet'
+  primera: 'StatefulSet'
 cinder_pvc_conversion:
   ceph: false
   netapp: true
   powerflex: false
   hitachi: false
+  primera: false
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first }}"
