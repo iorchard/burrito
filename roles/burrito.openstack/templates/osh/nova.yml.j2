@@ -221,7 +221,7 @@ conf:
     libvirt:
       volume_use_multipath: {{ enable_iscsi }}
       connection_uri: "qemu+tcp://127.0.0.1/system"
-      images_type: qcow2
+      images_type: {{ (storage_backends[0] == 'ceph')|ternary('rbd', 'qcow2') }}
 {% if "ceph" in storage_backends %}
       images_rbd_pool: vms
       images_rbd_ceph_conf: /etc/ceph/ceph.conf
