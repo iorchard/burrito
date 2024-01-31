@@ -17,6 +17,16 @@
         that:
           - (hostvars[inventory_hostname]['ip']|ansible.builtin.ipaddr) != False
 
+    - name: check if there is a default gateway on k8s nodes.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ inventory_hostname }} does not have a default gateway.
+        that:
+          - hostvars[inventory_hostname]['ansible_default_ipv4'].gateway is defined
+      when:
+        - inventory_hostname in groups['k8s_cluster']
+
     - name: check if keepalived_vip address is valid.
       ansible.builtin.assert:
         quiet: "{{ checklist.quiet }}"
