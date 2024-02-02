@@ -1,0 +1,20 @@
+---
+- name: Genesis Registry | patch the image urls in the manifests
+  ansible.builtin.replace:
+    path: "{{ item }}"
+    regexp: "{{ containerd_insecure_registries.seed_registry }}"
+    replace: "{{ containerd_insecure_registries.genesis_registry }}"
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ primera_manifests }}"
+
+- name: Genesis Registry | apply the patch
+  kubernetes.core.k8s:
+    src: "{{ item }}"
+    state: present
+    wait: true
+  become: true
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ primera_manifests }}"
+...

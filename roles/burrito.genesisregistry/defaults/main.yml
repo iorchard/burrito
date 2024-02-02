@@ -41,6 +41,13 @@ genesis_registry:
     - "openshift4/ose-csi-external-snapshotter-rhel8:{{ osecsi_version }}"
     - "openshift4/ose-csi-livenessprobe:{{ osecsi_version }}"
     - "openshift4/ose-csi-node-driver-registrar:{{ osecsi_version }}"
+  primera:
+    - "hpestorage/alletra-9000-primera-and-3par-csp:{{ primera_csi_version }}"
+    - "hpestorage/csi-driver:{{ primera_csi_version }}"
+    - "hpestorage/csi-extensions:{{ primera_csi_extension_version }}"
+    - "hpestorage/volume-group-provisioner:{{ primera_volume_group_provisioner_version }}"
+    - "hpestorage/volume-group-snapshotter:{{ primera_volume_group_snapshotter_version }}"
+    - "hpestorage/volume-mutator:{{ primera_volume_mutator_version }}"
   addr: "{{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}"
 
 genesis_images: "{{ genesis_registry.common + genesis_registry[storage_backends[0]] }}"
@@ -164,4 +171,9 @@ hspc_csi_daemonset_patch_list: "{{ hspc_csi_daemonset.splitlines()|map('from_yam
 # hspc_v1_hspc
 artifacts_dir: "{{ ansible_env.HOME }}/hitachi-artifacts"
 
+# primera
+primera_artifacts_dir: "{{ ansible_env.HOME }}/primera-artifacts"
+primera_manifests:
+  - "{{ primera_artifacts_dir }}/csi-driver/3par-primera-csp.yaml"
+  - "{{ primera_artifacts_dir }}/csi-driver/hpe-csi-k8s.yaml"
 ...
