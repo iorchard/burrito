@@ -1,17 +1,4 @@
 ---
-#- name: Setup | copy static files
-#  ansible.builtin.copy:
-#    dest: "{{ item.dest }}"
-#    src: "{{ ansible_os_family | lower }}{{ item.dest }}"
-#    owner: "{{ item.owner }}"
-#    group: "{{ item.group }}"
-#    mode: "{{ item.mode }}"
-#    backup: true
-#  loop: "{{ service_conf }}"
-#  become: true
-#  notify:
-#    - systemctl restart service
-
 - name: Setup | create a namespace
   kubernetes.core.k8s:
     state: present
@@ -27,10 +14,26 @@
   delegate_to: localhost
   run_once: true
 
-- name: Setup | create artifacts directory
+- name: Setup | delete artifacts directory
   ansible.builtin.file:
     path: "{{ artifacts_dir }}"
+    state: absent
+
+- name: Setup | create artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}/csi-driver"
     state: directory
+    recurse: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | copy static files
+  ansible.builtin.copy:
+    dest: "{{ artifacts_dir }}/csi-driver/{{ item | basename }}"
+    src: "{{ item }}"
+    mode: "0644"
+  with_fileglob:
+    - "files/csi-driver/*"
   delegate_to: localhost
   run_once: true
 
@@ -43,24 +46,17 @@
   delegate_to: localhost
   run_once: true
 
-- name: Setup | add chart repo
-  kubernetes.core.helm_repository:
-    name: hpe-storage
-    repo_url: "{{ primera_chart_repo_url }}"
-  become: true
-  delegate_to: localhost
-  run_once: true
-
-- name: Setup | install helm chart
-  kubernetes.core.helm:
-    name: hpe-csi-driver
-    release_namespace: "{{ primera_namespace }}"
-    chart_ref: hpe-storage/hpe-csi-driver
-    chart_version: "{{ primera_version }}"
-    values_files:
-      - "{{ artifacts_dir }}/values.yaml"
-    wait: true
+- name: Setup | apply csi manifests
+  kubernetes.core.k8s:
+    src: "{{ item }}"
     state: present
+    wait: false
+  loop:
+    - "{{ artifacts_dir }}/csi-driver/hpe-linux-config.yaml"
+    - "{{ artifacts_dir }}/csi-driver/hpe-volumegroup-snapshotgroup-crds.yaml"
+    - "{{ artifacts_dir }}/csi-driver/3par-primera-csp.yaml"
+    - "{{ artifacts_dir }}/csi-driver/3par-primera-crd.yaml"
+    - "{{ artifacts_dir }}/csi-driver/hpe-csi-k8s.yaml"
   become: true
   delegate_to: localhost
   run_once: true

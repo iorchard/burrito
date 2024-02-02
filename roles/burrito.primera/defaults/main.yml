@@ -1,5 +1,7 @@
 ---
 artifacts_dir: "{{ ansible_env.HOME }}/primera-artifacts"
+pod:
+  replicas: 1
 
 primera_secret:
   name: "primera-secret"
@@ -10,10 +12,20 @@ primera_secret:
   password: password
 primera_namespace: "hpe-storage"
 primera_chart_repo_url: "https://hpe-storage.github.io/co-deployments"
-primera_version: "2.4.0"
+primera_csi_version: "v2.4.0"
+primera_csi_extension_version: "v1.2.5"
+primera_volume_mutator_version: "v1.3.4"
+primera_volume_group_snapshotter_version: "v1.0.4"
+primera_volume_group_provisioner_version: "v1.0.4"
 primera_k8s_cpg: "k8s_cpg"
 template_files:
   - {dest: "{{ artifacts_dir }}/values.yaml"}
   - {dest: "{{ artifacts_dir }}/secret.yaml"}
   - {dest: "{{ artifacts_dir }}/storageclass.yaml"}
+  - {dest: "{{ artifacts_dir }}/csi-driver/3par-primera-csp.yaml"}
+  - {dest: "{{ artifacts_dir }}/csi-driver/hpe-csi-k8s.yaml"}
+uninstall_files:
+  - "{{ artifacts_dir }}/csi-driver/hpe-linux-config.yaml"
+  - "{{ artifacts_dir }}/csi-driver/3par-primera-csp.yaml"
+  - "{{ artifacts_dir }}/csi-driver/hpe-csi-k8s.yaml"
 ...
