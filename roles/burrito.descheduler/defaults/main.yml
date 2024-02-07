@@ -1,0 +1,13 @@
+---
+artifacts_dir: "{{ ansible_env.HOME }}/descheduler-artifacts"
+pod:
+  replicas: 1
+
+template_files:
+  - {dest: "{{ artifacts_dir }}/deployment.yaml"}
+
+# container image versions
+descheduler_version: "v0.28.1"
+descheduler_interval: "5m"
+descheduler_log_level: "3"
+...
