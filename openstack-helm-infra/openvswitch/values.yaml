@@ -20,8 +20,8 @@ release_group: null
 
 images:
   tags:
-    openvswitch_db_server: docker.io/openstackhelm/openvswitch:latest-ubuntu_bionic
-    openvswitch_vswitchd: docker.io/openstackhelm/openvswitch:latest-ubuntu_bionic
+    openvswitch_db_server: docker.io/openstackhelm/openvswitch:latest-ubuntu_focal
+    openvswitch_vswitchd: docker.io/openstackhelm/openvswitch:latest-ubuntu_focal
     dep_check: quay.io/airshipit/kubernetes-entrypoint:v1.0.0
     image_repo_sync: docker.io/library/docker:17.07.0
   pull_policy: "IfNotPresent"
@@ -44,8 +44,11 @@ pod:
       - key: node-role.kubernetes.io/master
         operator: Exists
         effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
   probes:
-    ovs_db:
+    ovs:
       ovs_db:
         liveness:
           enabled: true
@@ -59,7 +62,6 @@ pod:
             initialDelaySeconds: 90
             periodSeconds: 30
             timeoutSeconds: 5
-    ovs_vswitch:
       ovs_vswitch:
         liveness:
           enabled: true
@@ -74,7 +76,7 @@ pod:
             periodSeconds: 10
             timeoutSeconds: 1
   security_context:
-    openvswitch_db_server:
+    ovs:
       pod:
         runAsUser: 42424
       container:
@@ -86,10 +88,6 @@ pod:
           runAsUser: 42424
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
-    openvswitch_vswitchd:
-      pod:
-        runAsUser: 0
-      container:
         modules:
           runAsUser: 0
           capabilities:
@@ -108,11 +106,7 @@ pod:
     upgrades:
       daemonsets:
         pod_replacement_strategy: RollingUpdate
-        ovs_db:
-          enabled: true
-          min_ready_seconds: 0
-          max_unavailable: 1
-        ovs_vswitchd:
+        ovs:
           enabled: true
           min_ready_seconds: 0
           max_unavailable: 1
@@ -199,13 +193,7 @@ dependencies:
           - endpoint: node
             service: local_image_registry
   static:
-    db: null
-    vswitchd:
-      pod:
-        - requireSameNode: true
-          labels:
-            application: openvswitch
-            component: openvswitch-vswitchd-db
+    ovs: null
     image_repo_sync:
       services:
         - endpoint: internal
@@ -213,18 +201,24 @@ dependencies:
 
 manifests:
   configmap_bin: true
-  daemonset_ovs_db: true
+  daemonset: true
   daemonset_ovs_vswitchd: true
   job_image_repo_sync: true
   network_policy: false
   secret_registry: true
 
 conf:
+  poststart:
+    timeout: 5
+    rootUser: "root"
+    extraCommand: null
   openvswitch_db_server:
     ptcp_port: null
   ovs_other_config:
     handler_threads: null
     revalidator_threads: null
+  ovs_hw_offload:
+    enabled: false
   ovs_dpdk:
     enabled: false
     ## Mandatory parameters. Please uncomment when enabling DPDK

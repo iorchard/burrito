@@ -12,7 +12,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 
-{{- if and .Values.manifests.ingress_novncproxy .Values.network.novncproxy.ingress.public }}
+{{- if and .Values.manifests.ingress_novncproxy .Values.network.novncproxy.ingress.public (eq .Values.console.console_kind "novnc") }}
 {{- $envAll := . }}
 {{- $ingressOpts := dict "envAll" $envAll "backendService" "novncproxy" "backendServiceType" "compute_novnc_proxy" "backendPort" "n-novnc" -}}
 {{- $secretName := $envAll.Values.secrets.tls.compute_novnc_proxy.novncproxy.internal -}}

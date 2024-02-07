@@ -1,0 +1,48 @@
+---
+- name: Rocky Linux | Install online packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  loop: "{{ online_pkgs }}"
+  become: true
+  when: not offline
+
+- name: Rocky Linux | Install prerequisite packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  loop: "{{ prereq_pkgs }}"
+  become: true
+
+- name: Rocky Linux | Install packages on ceph servers
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ packages }}"
+  when: inventory_hostname in groups['ceph_servers']
+
+- name: Rocky Linux | Install packages on ceph clients
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ client_pkgs }}"
+  when: inventory_hostname in groups['clients']
+...

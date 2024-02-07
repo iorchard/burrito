@@ -1,0 +1,74 @@
+---
+- name: Setup | create a namespace
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ primera_namespace }}"
+        labels:
+          control-plane: controller-manager
+          pod-security.kubernetes.io/enforce: privileged
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | delete artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: absent
+
+- name: Setup | create artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}/csi-driver"
+    state: directory
+    recurse: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | copy static files
+  ansible.builtin.copy:
+    dest: "{{ artifacts_dir }}/csi-driver/{{ item | basename }}"
+    src: "{{ item }}"
+    mode: "0644"
+  with_fileglob:
+    - "files/csi-driver/*"
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | templating manifest files
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.dest | basename }}.j2"
+    mode: "0600"
+  loop: "{{ template_files }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | apply csi manifests
+  kubernetes.core.k8s:
+    src: "{{ item }}"
+    state: present
+    wait: false
+  loop:
+    - "{{ artifacts_dir }}/csi-driver/hpe-linux-config.yaml"
+    - "{{ artifacts_dir }}/csi-driver/hpe-volumegroup-snapshotgroup-crds.yaml"
+    - "{{ artifacts_dir }}/csi-driver/3par-primera-csp.yaml"
+    - "{{ artifacts_dir }}/csi-driver/3par-primera-crd.yaml"
+    - "{{ artifacts_dir }}/csi-driver/hpe-csi-k8s.yaml"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | create a secret and a storageclass
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ item }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+  loop:
+    - "{{ artifacts_dir }}/secret.yaml"
+    - "{{ artifacts_dir }}/storageclass.yaml"
+...

@@ -17,6 +17,16 @@
         that:
           - (hostvars[inventory_hostname]['ip']|ansible.builtin.ipaddr) != False
 
+    - name: check if there is a default gateway on k8s nodes.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ inventory_hostname }} does not have a default gateway.
+        that:
+          - hostvars[inventory_hostname]['ansible_default_ipv4'].gateway is defined
+      when:
+        - inventory_hostname in groups['k8s_cluster']
+
     - name: check if keepalived_vip address is valid.
       ansible.builtin.assert:
         quiet: "{{ checklist.quiet }}"
@@ -105,16 +115,16 @@
           deployer time: {{ deployer_epoch }}
           my time: {{ ansible_date_time.epoch }}
         that:
-          - "{{ (deployer_epoch|int - ansible_date_time.epoch|int)|abs }} < {{ checklist.clock_deviation_threshold }}"
+          - (deployer_epoch|int - ansible_date_time.epoch|int)|abs < checklist.clock_deviation_threshold
 
     - name: check if osd block devices exist in osd nodes
       ansible.builtin.assert:
         quiet: "{{ checklist.quiet }}"
         fail_msg: >-
-          Cannot find the device: {{ item.data }}
+          Cannot find the device: {{ item.path }}
         that:
-          - ansible_devices.{{ item.data|basename }} is defined
-      loop: "{{ lvm_volumes }}"
+          - ansible_devices.{{ item.path|basename }} is defined
+      loop: "{{ data_devices }}"
       when: inventory_hostname in groups['osds']
 
     - name: check if network-node group is not empty

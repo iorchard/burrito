@@ -1,0 +1,16 @@
+---
+- name: sshkey | get ssh public key from the bootstrap node
+  ansible.builtin.slurp:
+    src: "{{ ceph_conf_dir }}/ceph.pub"
+  register: ssh_public_key
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+
+- name: sshkey | add ssh public key to other nodes
+  ansible.posix.authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    manage_dir: true
+    key: "{{ ssh_public_key.content | b64decode }}"
+  when: inventory_hostname not in groups['clients']
+...

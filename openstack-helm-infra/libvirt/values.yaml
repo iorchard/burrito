@@ -28,9 +28,10 @@ images:
   tags:
     libvirt: docker.io/openstackhelm/libvirt:latest-ubuntu_focal
     libvirt_exporter: vexxhost/libvirtd-exporter:latest
-    ceph_config_helper: 'docker.io/openstackhelm/ceph-config-helper:ubuntu_bionic-20200217'
+    ceph_config_helper: 'docker.io/openstackhelm/ceph-config-helper:ubuntu_focal_18.2.0-1-20231013'
     dep_check: quay.io/airshipit/kubernetes-entrypoint:v1.0.0
     image_repo_sync: docker.io/library/docker:17.07.0
+    kubectl: docker.io/bitnami/kubectl:latest
   pull_policy: "IfNotPresent"
   local_registry:
     active: false
@@ -115,11 +116,66 @@ conf:
     log_level: "3"
     log_outputs: "1:file:/var/log/libvirt/libvirtd.log"
   qemu:
+    vnc_tls: "0"
+    vnc_tls_x509_verify: "0"
     stdio_handler: "file"
     user: "nova"
     group: "kvm"
   kubernetes:
-    cgroup: "kubepods"
+    cgroup: "kubepods.slice"
+  vencrypt:
+    # Issuer to use for the vencrypt certs.
+    issuer:
+      kind: ClusterIssuer
+      name: ca-clusterissuer
+    # Script is included here (vs in bin/) to allow overriding, in the case that
+    # communication happens over an IP other than the pod IP for some reason.
+    cert_init_sh: |
+      #!/bin/bash
+      set -x
+
+      HOSTNAME_FQDN=$(hostname --fqdn)
+
+      # Script to create certs for each libvirt pod based on pod IP (by default).
+      cat <<EOF | kubectl apply -f -
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: ${POD_NAME}-${TYPE}
+        namespace: ${POD_NAMESPACE}
+        ownerReferences:
+          - apiVersion: v1
+            kind: Pod
+            name: ${POD_NAME}
+            uid: ${POD_UID}
+      spec:
+        secretName: ${POD_NAME}-${TYPE}
+        commonName: ${POD_IP}
+        usages:
+        - client auth
+        - server auth
+        dnsNames:
+        - ${HOSTNAME}
+        - ${HOSTNAME_FQDN}
+        ipAddresses:
+        - ${POD_IP}
+        issuerRef:
+          kind: ${ISSUER_KIND}
+          name: ${ISSUER_NAME}
+      EOF
+
+      kubectl -n ${POD_NAMESPACE} wait --for=condition=Ready --timeout=300s \
+        certificate/${POD_NAME}-${TYPE}
+
+      # NOTE(mnaser): cert-manager does not clean-up the secrets when the certificate
+      #               is deleted, so we should add an owner reference to the secret
+      #               to ensure that it is cleaned up when the pod is deleted.
+      kubectl -n ${POD_NAMESPACE} patch secret ${POD_NAME}-${TYPE} \
+        --type=json -p='[{"op": "add", "path": "/metadata/ownerReferences", "value": [{"apiVersion": "v1", "kind": "Pod", "name": "'${POD_NAME}'", "uid": "'${POD_UID}'"}]}]'
+
+      kubectl -n ${POD_NAMESPACE} get secret ${POD_NAME}-${TYPE} -o jsonpath='{.data.tls\.crt}' | base64 -d > /tmp/${TYPE}.crt
+      kubectl -n ${POD_NAMESPACE} get secret ${POD_NAME}-${TYPE} -o jsonpath='{.data.tls\.key}' | base64 -d > /tmp/${TYPE}.key
+      kubectl -n ${POD_NAMESPACE} get secret ${POD_NAME}-${TYPE} -o jsonpath='{.data.ca\.crt}' | base64 -d > /tmp/${TYPE}-ca.crt
 
 pod:
   probes:
@@ -167,6 +223,9 @@ pod:
       enabled: false
       tolerations:
       - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
         operator: Exists
         effect: NoSchedule
   dns_policy: "ClusterFirstWithHostNet"
@@ -217,6 +276,13 @@ dependencies:
           - endpoint: node
             service: local_image_registry
     targeted:
+      ovn:
+        libvirt:
+          pod:
+            - requireSameNode: true
+              labels:
+                application: ovn
+                component: ovn-controller
       openvswitch:
         libvirt:
           pod:
@@ -252,6 +318,7 @@ manifests:
   daemonset_libvirt: true
   job_image_repo_sync: true
   network_policy: false
+  role_cert_manager: false
   secret_registry: true
 
 secrets:

@@ -49,10 +49,6 @@ data:
 {{ tuple "bin/_neutron-dhcp-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-dhcp-agent-init.sh: |
 {{ tuple "bin/_neutron-dhcp-agent-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
-  neutron-bgp-dragent.sh: |
-{{ tuple "bin/_neutron-bgp-dragent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
-  neutron-bgp-dragent-init.sh: |
-{{ tuple "bin/_neutron-bgp-dragent-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-l3-agent.sh: |
 {{ tuple "bin/_neutron-l3-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-l3-agent-init.sh: |
@@ -63,18 +59,20 @@ data:
 {{ tuple "bin/_neutron-linuxbridge-agent-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-linuxbridge-agent-init-modules.sh: |
 {{ tuple "bin/_neutron-linuxbridge-agent-init-modules.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
-  neutron-metadata-agent.sh: |
-{{ tuple "bin/_neutron-metadata-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
-  neutron-metadata-agent-init.sh: |
-{{ tuple "bin/_neutron-metadata-agent-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-openvswitch-agent.sh: |
 {{ tuple "bin/_neutron-openvswitch-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-openvswitch-agent-init.sh: |
 {{ tuple "bin/_neutron-openvswitch-agent-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-openvswitch-agent-init-modules.sh: |
 {{ tuple "bin/_neutron-openvswitch-agent-init-modules.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+{{- if .Values.conf.netoffload.enabled }}
+  neutron-openvswitch-agent-init-netoffload.sh: |
+{{ tuple "bin/_neutron-openvswitch-agent-init-netoffload.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+{{- end }}
   neutron-openvswitch-agent-readiness.sh: |
 {{ tuple "bin/_neutron-openvswitch-agent-readiness.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+  neutron-openvswitch-agent-liveness.sh: |
+{{ tuple "bin/_neutron-openvswitch-agent-liveness.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-sriov-agent.sh: |
 {{ tuple "bin/_neutron-sriov-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-sriov-agent-init.sh: |
@@ -85,6 +83,8 @@ data:
 {{ tuple "bin/_neutron-bagpipe-bgp.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-bagpipe-bgp-init.sh: |
 {{ tuple "bin/_neutron-bagpipe-bgp-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+  neutron-bgp-dragent.sh: |
+{{ tuple "bin/_neutron-bgp-dragent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
 {{- if .Values.manifests.certificates }}
   nginx.sh: |
 {{ tuple "bin/_nginx.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
@@ -93,12 +93,25 @@ data:
 {{ tuple "bin/_neutron-server.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   neutron-ironic-agent.sh: |
 {{ tuple "bin/_neutron-ironic-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
-  neutron-netns-cleanup-cron.py: |
-{{ tuple "bin/_neutron-netns-cleanup-cron.py.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+  neutron-netns-cleanup-cron.sh: |
+{{ tuple "bin/_neutron-netns-cleanup-cron.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   rabbit-init.sh: |
 {{- include "helm-toolkit.scripts.rabbit_init" . | indent 4 }}
   neutron-test-force-cleanup.sh: |
 {{ tuple "bin/_neutron-test-force-cleanup.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+
+  neutron-metadata-agent-init.sh: |
+{{ tuple "bin/_neutron-metadata-agent-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+{{- if ( has "ovn" .Values.network.backend ) }}
+  neutron-ovn-metadata-agent.sh: |
+{{ tuple "bin/_neutron-ovn-metadata-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+  neutron-ovn-init.sh: |
+{{ tuple "bin/_neutron-ovn-init.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+{{- else }}
+  neutron-metadata-agent.sh: |
+{{ tuple "bin/_neutron-metadata-agent.sh.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
+{{- end }}
+
 {{- if ( has "tungstenfabric" .Values.network.backend ) }}
   tf-plugin.pth: |
     /opt/plugin/site-packages

@@ -14,7 +14,6 @@ if [ x"$OPT" = x"offline" ]; then
   pip install --no-index --find-links /mnt/pypi \
                --requirement requirements.txt
   pushd /mnt/ansible_collections
-    [ -f ceph-ansible_req.yml ] && ansible-galaxy install --force -r ceph-ansible_req.yml || :
     [ -f pfx_req.yml ] && ansible-galaxy install --force -r pfx_req.yml || :
   popd
 else
@@ -24,7 +23,6 @@ else
   python -m pip install -U pip
   python -m pip install wheel
   python -m pip install -r requirements.txt
-  ansible-galaxy install -r ceph-ansible/requirements.yml
   ansible-galaxy install -r pfx_requirements.yml
 fi
 
@@ -40,6 +38,7 @@ if [ ! -d "group_vars" ]; then
   cp netapp_vars.yml.tpl group_vars/all/netapp_vars.yml
   cp powerflex_vars.yml.tpl group_vars/all/powerflex_vars.yml
   cp hitachi_vars.yml.tpl group_vars/all/hitachi_vars.yml
+  cp primera_vars.yml.tpl group_vars/all/primera_vars.yml
 fi
 
 ./scripts/patch.sh

@@ -12,10 +12,10 @@
 
 ---
 apiVersion: v1
-appVersion: v10.6.7
+appVersion: v10.11.6
 description: OpenStack-Helm MariaDB
 name: mariadb
-version: 0.2.28
+version: 0.2.38
 home: https://mariadb.com/kb/en/
 icon: http://badges.mariadb.org/mariadb-badge-180x60.png
 sources:

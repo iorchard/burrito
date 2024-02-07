@@ -45,11 +45,14 @@ pfx-[1:3]
 ###################################################
 ## Do not touch below if you are not an expert!!! #
 ###################################################
-[ceph:children]
+[ceph_servers:children]
 mons
 mgrs
 osds
 rgws
+
+[ceph:children]
+ceph_servers
 clients
 
 [powerflex:children]

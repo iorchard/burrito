@@ -90,13 +90,13 @@ rules:
       - list
       - watch
   - apiGroups:
-      - "policy"
+      - discovery.k8s.io
     resources:
-      - podsecuritypolicies
+      - endpointslices
     verbs:
-      - use
-    resourceNames:
-      - privileged
+      - get
+      - list
+      - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -192,13 +192,13 @@ rules:
       - create
       - update
   - apiGroups:
-      - "policy"
+      - coordination.k8s.io
     resources:
-      - podsecuritypolicies
+      - leases
     verbs:
-      - use
-    resourceNames:
-      - privileged
+      - get
+      - create
+      - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

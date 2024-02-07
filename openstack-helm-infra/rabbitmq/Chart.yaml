@@ -12,9 +12,9 @@
 
 ---
 apiVersion: v1
-appVersion: v3.9.0
+appVersion: v3.12.11
 description: OpenStack-Helm RabbitMQ
 name: rabbitmq
-version: 0.1.26
+version: 0.1.32
 home: https://github.com/rabbitmq/rabbitmq-server
 ...

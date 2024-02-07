@@ -6,14 +6,6 @@ metadata:
   namespace: {{ localrepo.namespace }}
 rules:
 - apiGroups:
-  - policy
-  resourceNames:
-  - privileged
-  resources:
-  - podsecuritypolicies
-  verbs:
-  - use
-- apiGroups:
   - ""
   - extensions
   - batch

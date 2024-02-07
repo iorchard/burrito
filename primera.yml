@@ -1,0 +1,9 @@
+---
+- name: deploy primera csi drivers
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.primera
+      when: '"primera" in storage_backends'
+      tags: ['primera']
+...

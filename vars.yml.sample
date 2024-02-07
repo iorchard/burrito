@@ -52,11 +52,13 @@ storage_backends:
   - netapp
   - powerflex
   - hitachi
+  - primera
 
 # ceph: set ceph configuration in group_vars/all/ceph_vars.yml
 # netapp: set netapp configuration in group_vars/all/netapp_vars.yml
 # powerflex: set powerflex configuration in group_vars/all/powerflex_vars.yml
 # hitachi: set hitachi configuration in group_vars/all/hitachi_vars.yml
+# primera: set HP primera configuration in group_vars/all/primera_vars.yml
 
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
@@ -175,71 +177,49 @@ keepalived_interface_svc: "{{ svc_iface_name }}"
 storage_netmask: "{{ hostvars[inventory_hostname]['ansible_' + storage_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + storage_iface_name].ipv4.netmask }}"
 public_network: "{{ storage_netmask | ansible.utils.ipaddr('net') }}"
 cluster_network: "{{ public_network }}"
-dashboard_enabled: false
-configure_firewall: false
-ceph_origin: repository
-ceph_repository: community
-ceph_repository_type: cdn
-ceph_stable_release: quincy
-osd_objectstore: bluestore
-docker_pull_timeout: "60s"
-monitor_interface: "{{ storage_iface_name }}"
-radosgw_interface: "{{ storage_iface_name }}"
 
 # set the size, min_size, and single_osd_node
 ceph_pool_default_size: "{% if (groups['osds']|length) > 3 %}3{% else %}2{% endif %}"
 ceph_pool_default_min_size: "{% if (groups['osds']|length) > 3 %}2{% else %}1{% endif %}"
 single_osd_node: "{{ ((groups['osds']|length) == 1)|ternary(true, false) }}"
 
-ceph_conf_overrides:
-  global:
-    auth_allow_insecure_global_id_reclaim: false
-    mon_allow_pool_delete: true
-    osd_pool_default_size: "{{ ceph_pool_default_size }}"
-    osd_pool_default_min_size: "{{ ceph_pool_default_min_size }}"
-    osd_crush_chooseleaf_type: "{{ single_osd_node | ternary(0, 1) }}"
-
 # rgw
 radosgw_frontend_type: beast
 radosgw_frontend_port: 7480
 
 # openstack/k8s pools
-openstack_config: true
 kube_pool:
   name: "kube"
   application: "rbd"
-  target_size_ratio: 0
 openstack_glance_pool:
   name: "images"
   application: "rbd"
-  target_size_ratio: 0
 openstack_cinder_pool:
   name: "volumes"
   application: "rbd"
-  target_size_ratio: 0
 openstack_cinder_backup_pool:
   name: "backups"
   application: "rbd"
-  target_size_ratio: 0
-openstack_nova_vms_pool:
+openstack_nova_pool:
   name: "vms"
   application: "rbd"
-  target_size_ratio: 0
 
-openstack_basic_pools:
+ceph_basic_pools:
   - "{{ kube_pool }}"
   - "{{ openstack_glance_pool }}"
   - "{{ openstack_cinder_pool }}"
-  - "{{ openstack_nova_vms_pool }}"
+  - "{{ openstack_nova_pool }}"
 
-openstack_pools: "{% if enable_cinder_backup %}{{ openstack_basic_pools + [openstack_cinder_backup_pool] }}{% else %}{{ openstack_basic_pools }}{% endif %}"
+ceph_pools: "{% if enable_cinder_backup %}{{ ceph_basic_pools + [openstack_cinder_backup_pool] }}{% else %}{{ ceph_basic_pools }}{% endif %}"
 
-openstack_keys:
-  - { name: client.kube, caps: { mon: "profile rbd", osd: "profile rbd pool={{ kube_pool.name }}", mgr: "profile rbd pool={{ kube_pool.name }}" }, mode: "0600" }
-  - { name: client.glance, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_cinder_pool.name }}, profile rbd pool={{ openstack_glance_pool.name }}"}, mode: "0600" }
-  - { name: client.cinder, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_cinder_pool.name }}, profile rbd pool={{ openstack_nova_pool.name }}, profile rbd pool={{ openstack_glance_pool.name }}"}, mode: "0600" }
-  - { name: client.cinder-backup, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_cinder_backup_pool.name }}"}, mode: "0600" }
-  - { name: client.openstack, caps: { mon: "profile rbd", osd: "profile rbd pool={{ openstack_glance_pool.name }}, profile rbd pool={{ openstack_nova_pool.name }}, profile rbd pool={{ openstack_cinder_pool.name }}, profile rbd pool={{ openstack_cinder_backup_pool.name }}"}, mode: "0600" }
+ceph_basic_keys:
+  - { name: client.kube, caps: "mon 'profile rbd' osd 'profile rbd pool={{ kube_pool.name }}' mgr 'profile rbd pool={{ kube_pool.name }}'" }
+  - { name: client.glance, caps: "mon 'profile rbd' osd 'profile rbd pool={{ openstack_glance_pool.name }}' mgr 'profile rbd pool={{ openstack_glance_pool.name }}'" }
+  - { name: client.cinder, caps: "mon 'profile rbd' osd 'profile rbd pool={{ openstack_cinder_pool.name }}, profile rbd pool={{ openstack_nova_pool.name }}, profile rbd pool={{ openstack_glance_pool.name }}' mgr 'profile rbd pool={{ openstack_cinder_pool.name }}'" }
+ceph_cinder_backup_key:
+  - { name: client.cinder-backup, caps: "mon 'profile rbd', osd 'profile rbd pool={{ openstack_cinder_backup_pool.name }}' mgr 'profile rbd pool={{ openstack_cinder_backup_pool.name }}'" }
+
+ceph_keys: "{% if enable_cinder_backup %}{{ ceph_basic_keys + [ceph_cinder_backup_key] }}{% else %}{{ ceph_basic_keys }}{% endif %}"
 
 # clients
 copy_admin_key: true
@@ -260,7 +240,7 @@ docker_image_repo: "docker.io"
 quay_image_repo: "quay.io"
 download_run_once: false
 bin_dir: /usr/bin
-kube_version: v1.28.3
+kube_version: v1.28.5
 kube_proxy_strict_arp: true
 kubeconfig_localhost: true
 kubectl_localhost: true
@@ -338,7 +318,7 @@ kubelet_feature_gates: ["RotateKubeletServerCertificate=true", "SeccompDefault=t
 kubelet_seccomp_default: true
 kubelet_systemd_hardening: true
 kubelet_csr_approver_repository_url: https://postfinance.github.io/kubelet-csr-approver
-kubelet_csr_approver_chart_version: 1.0.5
+kubelet_csr_approver_chart_version: 1.0.6
 kubelet_csr_approver_values:
   image:
     repository: "{{ docker_image_repo }}/postfinance/kubelet-csr-approver"
@@ -369,7 +349,7 @@ etcd_ionice_class: best-effort
 etcd_ionice_priority: 0
 
 # Registry deployment
-registry_version: "2.8.2"
+registry_version: "2.8.3"
 registry_enabled: "{{ offline|ternary(true, false) }}"
 registry_namespace: kube-system
 registry_storage_class: "{{ storage_backends[0] }}"
@@ -411,12 +391,13 @@ metallb_config:
 ceph_rgw_port: 7480
 
 # burrito.ceph-csi role variables
-cephcsi_version: "v3.9.0"
-csi_attacher_version: "v4.2.0"
-csi_node_driver_registrar_version: "v2.6.3"
-csi_provisioner_version: "v3.4.0"
-csi_resizer_version: "v1.7.0"
-csi_snapshotter_version: "v6.2.1"
+ceph_pool: "{{ kube_pool.name }}"
+cephcsi_version: "v3.10.1"
+csi_attacher_version: "v4.4.0"
+csi_node_driver_registrar_version: "v2.9.0"
+csi_provisioner_version: "v3.6.0"
+csi_resizer_version: "v1.9.0"
+csi_snapshotter_version: "v6.3.0"
 registry_ready_timeout: 300
 
 # burrito.netapp role variables
@@ -439,11 +420,12 @@ pvc_access_modes_map:
   netapp: 'ReadWriteMany'
   powerflex: 'ReadWriteOnce'
   hitachi: 'ReadWriteOnce'
+  primera: 'ReadWriteOnce'
 
 
 # ingress
 ingress:
-  volume_size: "100Gi"
+  volume_size: "200Gi"
 
 # mariadb
 mariadb:
@@ -454,6 +436,14 @@ mariadb:
 rabbitmq:
   volume_size: "10Gi"
   password: "{{ vault_rabbitmq_openstack_password }}"
+
+enable_iscsi_map:
+  ceph: false
+  netapp: false
+  powerflex: false
+  hitachi: true
+  primera: true
+enable_iscsi: "{{ storage_backends|map('extract', enable_iscsi_map)|list is any }}"
 
 # keystone
 os_admin_password: "{{ vault_openstack_admin_password }}"
@@ -466,21 +456,25 @@ glance_store_types:
   netapp: 'file'
   powerflex: 'cinder'
   hitachi: 'cinder'
+  primera: 'cinder'
 glance_storage:
   ceph: 'rbd'
   netapp: 'pvc'
   powerflex: 'cinder'
   hitachi: 'cinder'
+  primera: 'cinder'
 glance_nginx_deploy_types:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'StatefulSet'
   hitachi: 'StatefulSet'
+  primera: 'StatefulSet'
 glance_pvc_nginx_client_tmp:
   ceph: false
   netapp: true
   powerflex: false
   hitachi: false
+  primera: false
 glance:
   storage: "{{ storage_backends|map('extract', glance_storage)|list|first }}"
   enabled_backends: "{{ storage_backends|map('extract', glance_store_types)|unique }}"
@@ -494,7 +488,7 @@ glance:
     type: "{{ storage_backends|map('extract', glance_nginx_deploy_types)|first }}"
     class_name: "{{ storageclass_name }}"
     access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
-    size: "100Gi"
+    size: "200Gi"
   pvc_nginx_client_tmp: "{{ storage_backends|map('extract', glance_pvc_nginx_client_tmp)|list|first }}"
 
 # placement
@@ -526,6 +520,7 @@ nova_pvc_instances:
   netapp: true
   powerflex: false
   hitachi: false
+  primera: false
 nova:
   vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
   hypervisor_host_interface: "{{ mgmt_iface_name }}"
@@ -548,16 +543,19 @@ cinder_backends_map:
   netapp: "{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}"
   powerflex: 'powerflex'
   hitachi: 'hitachi'
+  primera: 'primera'
 cinder_vol_deploy_type_map:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'StatefulSet'
   hitachi: 'StatefulSet'
+  primera: 'StatefulSet'
 cinder_pvc_conversion:
   ceph: false
   netapp: true
   powerflex: false
   hitachi: false
+  primera: false
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first }}"
@@ -566,7 +564,7 @@ cinder:
     type: "{{ storage_backends|map('extract', cinder_vol_deploy_type_map)|first }}"
     class_name: "{{ storageclass_name }}"
     access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
-    size: "100Gi"
+    size: "200Gi"
   pvc_conversion: "{{ storage_backends|map('extract', cinder_pvc_conversion)|list|first }}"
 
 # horizon
@@ -581,11 +579,11 @@ barbican:
 
 ### btx
 btx:
-  version: "1.2.3"
+  version: "2.0.0"
   pvc:
-    size: "100Gi"
+    size: "200Gi"
 
 ### dasel binary - used by k8spatch.
-dasel_version: v2.4.1
+dasel_version: v2.5.0
 dasel_download_url: "https://github.com/TomWright/dasel/releases/download/{{ dasel_version }}/dasel_linux_amd64"
 ...

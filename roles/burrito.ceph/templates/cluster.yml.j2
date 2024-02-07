@@ -1,0 +1,56 @@
+#jinja2: lstrip_blocks: "True"
+{% for h in groups['ceph_servers'] %}
+---
+service_type: host
+hostname: {{ h }}
+addr: {{ hostvars[h]['ansible_' + storage_iface_name].ipv4.address }}
+{% if h in groups['mons'] %}
+labels:
+  - _admin
+{% endif %}
+{% endfor %}
+---
+service_type: mon
+placement:
+  count: 3
+  hosts:
+    {% for h in groups['mons'] %}
+    - {{ h }}
+    {% endfor %}
+networks:
+  - {{ public_network }}
+---
+service_type: mgr
+placement:
+  count: 3
+  hosts:
+    {% for h in groups['mgrs'] %}
+    - {{ h }}
+    {% endfor %}
+networks:
+  - {{ public_network }}
+---
+service_type: osd
+service_id: default_osd
+placement:
+  hosts:
+    {% for h in groups['osds'] %}
+    - {{ h }}
+    {% endfor %}
+data_devices:
+  paths: {{ data_devices }}
+---
+service_type: rgw
+service_id: default_rgw
+placement:
+  count_per_host: 1
+  hosts:
+    {% for h in groups['rgws'] %}
+    - {{ h }}
+    {% endfor %}
+networks:
+  - {{ public_network }}
+spec:
+  rgw_frontend_type: "{{ radosgw_frontend_type }}"
+  rgw_frontend_port: {{ radosgw_frontend_port }}
+...

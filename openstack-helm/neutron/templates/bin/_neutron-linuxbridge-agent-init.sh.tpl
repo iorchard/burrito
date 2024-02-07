@@ -33,7 +33,6 @@ do
   fi
 done
 
-{{- if .Values.conf.plugins.linuxbridge_agent.vxlan.enable_vxlan }}
 tunnel_interface="{{- .Values.network.interface.tunnel -}}"
 if [ -z "${tunnel_interface}" ] ; then
     # search for interface with tunnel network routing
@@ -47,7 +46,7 @@ if [ -z "${tunnel_interface}" ] ; then
 fi
 
 # determine local-ip dynamically based on interface provided but only if tunnel_types is not null
-LOCAL_IP=$(ip a s $tunnel_interface | grep 'inet ' | awk '{print $2}' | awk -F "/" '{print $1}'|head -1)
+LOCAL_IP=$(ip a s $tunnel_interface | grep 'inet ' | awk '{print $2}' | awk -F "/" 'NR==1 {print $1}')
 if [ -z "${LOCAL_IP}" ] ; then
   echo "Var LOCAL_IP is empty"
   exit 1
@@ -57,7 +56,6 @@ tee > /tmp/pod-shared/ml2-local-ip.ini << EOF
 [vxlan]
 local_ip = "${LOCAL_IP}"
 EOF
-{{- end }}
 
 {{- if and ( empty .Values.conf.neutron.DEFAULT.host ) ( .Values.pod.use_fqdn.neutron_agent ) }}
 mkdir -p /tmp/pod-shared

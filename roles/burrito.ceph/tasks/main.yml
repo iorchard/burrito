@@ -1,0 +1,33 @@
+---
+- name: Main | import common tasks
+  ansible.builtin.import_tasks: "common.yml"
+
+- name: Main | include os specific tasks
+  ansible.builtin.include_tasks: "{{ lookup('first_found', _params) }}"
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "."
+
+- name: Main | import ceph bootstrap tasks
+  ansible.builtin.import_tasks: "bootstrap.yml"
+
+- name: Main | import ceph public ssh key tasks
+  ansible.builtin.import_tasks: "sshkey.yml"
+
+- name: Main | import ceph cluster setup tasks
+  ansible.builtin.import_tasks: "setup.yml"
+
+- name: Main | import ceph init tasks
+  ansible.builtin.import_tasks: "init.yml"
+
+- name: Main | import ceph client tasks
+  ansible.builtin.import_tasks: "client.yml"
+...

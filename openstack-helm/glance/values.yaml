@@ -73,9 +73,9 @@ bootstrap:
     images:
       cirros:
         id: null
-        name: "Cirros 0.3.5 64-bit"
-        source_url: "http://download.cirros-cloud.net/0.3.5/"
-        image_file: "cirros-0.3.5-x86_64-disk.img"
+        name: "Cirros 0.6.2 64-bit"
+        source_url: "http://download.cirros-cloud.net/0.6.2/"
+        image_file: "cirros-0.6.2-x86_64-disk.img"
         min_disk: 1
         image_type: qcow2
         container_format: bare
@@ -108,8 +108,7 @@ conf:
         - args:
             container_format: bare
             disk_format: qcow2
-            # NOTE(aostapenko) temporary location to work around https://bugs.launchpad.net/rally/+bug/1887705
-            image_location: https://artifactory.mirantis.com/artifactory/binary-prod-local/mirantis/external/images/cirros/0.3.5/cirros-0.3.5-x86_64-disk.img
+            image_location: http://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img
           runner:
             concurrency: 1
             times: 1
@@ -121,8 +120,7 @@ conf:
         - args:
             container_format: bare
             disk_format: qcow2
-            # NOTE(aostapenko) temporary location to work around https://bugs.launchpad.net/rally/+bug/1887705
-            image_location: https://artifactory.mirantis.com/artifactory/binary-prod-local/mirantis/external/images/cirros/0.3.5/cirros-0.3.5-x86_64-disk.img
+            image_location: http://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img
           runner:
             concurrency: 1
             times: 1
@@ -198,61 +196,7 @@ conf:
       oslo_config_program: glance-api
     filter:http_proxy_to_wsgi:
       paste.filter_factory: oslo_middleware:HTTPProxyToWSGI.factory
-  policy:
-    metadef_default: ''
-    metadef_admin: 'role:admin'
-    context_is_admin: role:admin
-    default: role:admin
-    add_image: ''
-    delete_image: ''
-    get_image: ''
-    get_images: ''
-    modify_image: ''
-    publicize_image: role:admin
-    copy_from: ''
-    download_image: ''
-    upload_image: ''
-    delete_image_location: ''
-    get_image_location: ''
-    set_image_location: ''
-    add_member: ''
-    delete_member: ''
-    get_member: ''
-    get_members: ''
-    modify_member: ''
-    manage_image_cache: role:admin
-    get_task: role:admin
-    get_tasks: role:admin
-    add_task: role:admin
-    modify_task: role:admin
-    deactivate: ''
-    reactivate: ''
-    get_metadef_namespace: rule:metadef_default
-    get_metadef_namespaces: rule:metadef_default
-    modify_metadef_namespace: rule:metadef_admin
-    add_metadef_namespace: rule:metadef_admin
-    delete_metadef_namespace: rule:metadef_admin
-    get_metadef_object: rule:metadef_default
-    get_metadef_objects: rule:metadef_default
-    modify_metadef_object: rule:metadef_admin
-    add_metadef_object: rule:metadef_admin
-    delete_metadef_object: rule:metadef_admin
-    list_metadef_resource_types: rule:metadef_default
-    get_metadef_resource_type: rule:metadef_default
-    add_metadef_resource_type_association: rule:metadef_admin
-    remove_metadef_resource_type_association: rule:metadef_admin
-    get_metadef_property: rule:metadef_default
-    get_metadef_properties: rule:metadef_default
-    modify_metadef_property: rule:metadef_admin
-    add_metadef_property: rule:metadef_admin
-    remove_metadef_property: rule:metadef_admin
-    get_metadef_tag: rule:metadef_default
-    get_metadef_tags: rule:metadef_default
-    modify_metadef_tag: rule:metadef_admin
-    add_metadef_tag: rule:metadef_admin
-    add_metadef_tags: rule:metadef_admin
-    delete_metadef_tag: rule:metadef_admin
-    delete_metadef_tags: rule:metadef_admin
+  policy: {}
   glance_sudoers: |
     # This sudoers file supports rootwrap for both Kolla and LOCI Images.
     Defaults !requiretty
@@ -318,9 +262,12 @@ conf:
     oslo_middleware:
       enable_proxy_headers_parsing: true
     keystone_authtoken:
+      service_token_roles: service
+      service_token_roles_required: true
       auth_type: password
       auth_version: v3
       memcache_security_strategy: ENCRYPT
+      service_type: image
     glance_store:
       cinder_catalog_info: volumev3::internalURL
       rbd_store_chunk_size: 8
@@ -903,6 +850,9 @@ pod:
       - key: node-role.kubernetes.io/master
         operator: Exists
         effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
   useHostNetwork:
     api: false
   mounts:
@@ -941,6 +891,20 @@ pod:
     termination_grace_period:
       api:
         timeout: 30
+  probes:
+    api:
+      glance-api:
+        readiness:
+          enabled: true
+          params:
+            periodSeconds: 15
+            timeoutSeconds: 10
+        liveness:
+          enabled: true
+          params:
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 10
   resources:
     enabled: false
     api:
@@ -1075,4 +1039,11 @@ manifests:
   secret_registry: true
   service_ingress_api: true
   service_api: true
+
+# NOTE: This is for enable helm resource-policy to keep glance-images PVC.
+# set keep_pvc: true when allow helm resource-policy to keep for PVC.
+# This will requires mannual delete for PVC.
+# set keep_pvc: false when disallow helm resource-policy to keep for PVC.
+# This will allow helm to delete the PVC.
+keep_pvc: true
 ...

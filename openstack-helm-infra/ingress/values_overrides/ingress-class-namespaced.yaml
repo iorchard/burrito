@@ -1,0 +1,8 @@
+---
+deployment:
+  mode: namespace
+  type: Deployment
+  cluster:
+    class: "ucp-ingress"
+    controllerClass: "k8s.io/ucp-ingress"
+...

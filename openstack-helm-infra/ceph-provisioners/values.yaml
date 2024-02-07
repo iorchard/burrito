@@ -19,26 +19,25 @@
 deployment:
   ceph: true
   client_secrets: false
-  # Original rbd_provisioner is now DEPRECATED. It will be removed in the
-  # next release; CSI RBD provisioner should be used instead.
-  rbd_provisioner: true
   csi_rbd_provisioner: true
-  cephfs_provisioner: true
+  # Original rbd_provisioner and cephfs_provisioner are now DEPRECATED. They
+  # will be removed in the next release; CSI provisioners should be used
+  # instead.
 
 release_group: null
 
 images:
   pull_policy: IfNotPresent
   tags:
-    ceph_bootstrap: 'docker.io/openstackhelm/ceph-daemon:change_770201_ubuntu_bionic-20210113'
-    ceph_cephfs_provisioner: 'docker.io/openstackhelm/ceph-cephfs-provisioner:ubuntu_bionic-20200521'
-    ceph_config_helper: 'docker.io/openstackhelm/ceph-config-helper:change_770201_ubuntu_bionic-20210113'
+    ceph_bootstrap: 'docker.io/openstackhelm/ceph-daemon:ubuntu_focal_18.2.0-1-20231013'
+    ceph_cephfs_provisioner: 'docker.io/openstackhelm/ceph-cephfs-provisioner:ubuntu_focal_18.2.0-1-20231013'
+    ceph_config_helper: 'docker.io/openstackhelm/ceph-config-helper:ubuntu_focal_18.2.0-1-20231013'
     ceph_rbd_provisioner: 'docker.io/openstackhelm/ceph-rbd-provisioner:change_770201_ubuntu_bionic-20210113'
-    csi_provisioner: 'k8s.gcr.io/sig-storage/csi-provisioner:v3.1.0'
-    csi_snapshotter: 'k8s.gcr.io/sig-storage/csi-snapshotter:v6.0.0'
-    csi_attacher: 'k8s.gcr.io/sig-storage/csi-attacher:v3.4.0'
-    csi_resizer: 'k8s.gcr.io/sig-storage/csi-resizer:v1.4.0'
-    csi_registrar: 'k8s.gcr.io/sig-storage/csi-node-driver-registrar:v2.5.0'
+    csi_provisioner: 'registry.k8s.io/sig-storage/csi-provisioner:v3.1.0'
+    csi_snapshotter: 'registry.k8s.io/sig-storage/csi-snapshotter:v6.0.0'
+    csi_attacher: 'registry.k8s.io/sig-storage/csi-attacher:v3.4.0'
+    csi_resizer: 'registry.k8s.io/sig-storage/csi-resizer:v1.4.0'
+    csi_registrar: 'registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.5.0'
     cephcsi: 'quay.io/cephcsi/cephcsi:v3.6.2'
     dep_check: 'quay.io/airshipit/kubernetes-entrypoint:v1.0.0'
     image_repo_sync: 'docker.io/library/docker:17.07.0'
@@ -371,7 +370,7 @@ bootstrap:
 # and derive the manifest.
 storageclass:
   rbd:
-    provision_storage_class: true
+    provision_storage_class: false
     provisioner: ceph.com/rbd
     ceph_configmap_name: ceph-etc
     metadata:
@@ -410,7 +409,7 @@ storageclass:
       userId: admin
       userSecretName: pvc-ceph-client-key
   cephfs:
-    provision_storage_class: true
+    provision_storage_class: false
     provisioner: ceph.com/cephfs
     metadata:
       name: cephfs
@@ -466,11 +465,9 @@ manifests:
   configmap_bin: true
   configmap_bin_common: true
   configmap_etc: true
-  deployment_rbd_provisioner: true
   # Original rbd_provisioner is now DEPRECATED. It will be removed in the
   # next release; CSI RBD provisioner should be used instead.
   deployment_csi_rbd_provisioner: true
-  deployment_cephfs_provisioner: true
   job_bootstrap: false
   job_cephfs_client_key: true
   job_image_repo_sync: true

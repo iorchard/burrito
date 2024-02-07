@@ -1,13 +1,12 @@
-btx: main (2d4073fb034fac1ce550c7e417bbf29fe24cdf5d)
-ceph-ansible: stable-7.0 (dadddae8cd298fe78f2b98d1c5d07905148af89b)
-kubespray: master (6a70f026628c4f9976f96e135853f094239ca48e)
-ceph: 17.2.7 (b12291d110049b2f35e32e0de30d70e9a4c060d2)
-kubernetes: v1.28.3
-etcd: v3.5.9
-containerd: v1.7.7
-calico: v3.26.3
-nerdctl: v1.6.0
+btx: 2.0.0
+kubespray: master (78eb74c252992acb99dbf7d2a62b04ebce662043)
+ceph: 18.2.1
+kubernetes: v1.28.5
+etcd: v3.5.10
+containerd: v1.7.11
+calico: v3.26.4
+nerdctl: v1.7.1
 helm: v3.13.1
-mariadb: 10.6.11
-openstack: Yoga
-rabbitmq: 3.11.14
+mariadb: 10.11.6
+openstack: 2023.1
+rabbitmq: 3.12.11

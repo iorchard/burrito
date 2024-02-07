@@ -23,24 +23,37 @@ mkdir -p /var/lib/nova/instances
 chown ${NOVA_USER_UID} /var/lib/nova /var/lib/nova/instances
 
 migration_interface="{{- .Values.conf.libvirt.live_migration_interface -}}"
-if [[ -n $migration_interface ]]; then
-    # determine ip dynamically based on interface provided
-    migration_address=$(ip a s $migration_interface | grep 'inet ' | awk '{print $2}' | awk -F "/" '{print $1}' | head -1)
+if [[ -z $migration_interface ]]; then
+    # search for interface with default routing
+    # If there is not default gateway, exit
+    migration_network_cidr="{{- .Values.conf.libvirt.live_migration_network_cidr -}}"
+    if [ -z "${migration_network_cidr}" ] ; then
+        migration_network_cidr="0/0"
+    fi
+    migration_interface=$(ip -4 route list ${migration_network_cidr} | awk -F 'dev' '{ print $2; exit }' | awk '{ print $1 }') || exit 1
 fi
 
-touch /tmp/pod-shared/nova-libvirt.conf
-if [[ -n $migration_address ]]; then
-cat <<EOF>/tmp/pod-shared/nova-libvirt.conf
+migration_address=$(ip a s $migration_interface | grep 'inet ' | awk '{print $2}' | awk -F "/" '{print $1}' | head -1)
+
+if [ -z "${migration_address}" ] ; then
+  echo "Var live_migration_interface is empty"
+  exit 1
+fi
+
+tee > /tmp/pod-shared/nova-libvirt.conf << EOF
 [libvirt]
 live_migration_inbound_addr = $migration_address
 EOF
-fi
 
 hypervisor_interface="{{- .Values.conf.hypervisor.host_interface -}}"
 if [[ -z $hypervisor_interface ]]; then
     # search for interface with default routing
     # If there is not default gateway, exit
-    hypervisor_interface=$(ip -4 route list 0/0 | awk -F 'dev' '{ print $2; exit }' | awk '{ print $1 }') || exit 1
+    hypervisor_network_cidr="{{- .Values.conf.hypervisor.host_network_cidr -}}"
+    if [ -z "${hypervisor_network_cidr}" ] ; then
+        hypervisor_network_cidr="0/0"
+    fi
+    hypervisor_interface=$(ip -4 route list ${hypervisor_network_cidr} | awk -F 'dev' '{ print $2; exit }' | awk '{ print $1 }') || exit 1
 fi
 
 hypervisor_address=$(ip a s $hypervisor_interface | grep 'inet ' | awk '{print $2}' | awk -F "/" '{print $1}' | head -1)

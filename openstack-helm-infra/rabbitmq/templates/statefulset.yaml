@@ -77,14 +77,6 @@ rules:
     resources:
       - services
       - endpoints
-  - apiGroups:
-      - "policy"
-    resources:
-      - podsecuritypolicies
-    verbs:
-      - use
-    resourceNames:
-      - privileged
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -213,6 +205,9 @@ spec:
             {{- if .Values.network.host_namespace }}
               hostPort: {{ add (tuple "oslo_messaging" "internal" "amqp" . | include "helm-toolkit.endpoints.endpoint_port_lookup") 20000 }}
             {{- end }}
+            - name: metrics
+              containerPort: {{ tuple "oslo_messaging" "internal" "metrics" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+              protocol: TCP
           env:
             - name: MY_POD_NAME
               valueFrom:
@@ -285,6 +280,12 @@ spec:
               mountPath: /etc/rabbitmq/rabbitmq.conf
               subPath: rabbitmq.conf
               readOnly: true
+{{- if .Values.conf.rabbit_advanced_config.enabled }}
+            - name: rabbitmq-etc
+              mountPath: /etc/rabbitmq/advanced.config
+              subPath: advanced.config
+              readOnly: true
+{{- end }}
             - name: rabbitmq-etc
               mountPath: /etc/rabbitmq/rabbitmq-env.conf
               subPath: rabbitmq-env.conf
@@ -293,6 +294,12 @@ spec:
             - name: rabbitmq-etc
               mountPath: /etc/rabbitmq/erl_inetrc
               subPath: erl_inetrc
+              readOnly: true
+{{- end }}
+{{- if not .Values.conf.prometheus_exporter.rabbitmq_mgmt_metrics_collector_disabled }}
+            - name: rabbitmq-etc
+              mountPath: /etc/rabbitmq/conf.d/management_agent.disable_metrics_collector.conf
+              subPath: management_agent.disable_metrics_collector.conf
               readOnly: true
 {{- end }}
 {{ dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.secrets.tls.oslo_messaging.server.internal "path" "/etc/rabbitmq/certs" | include "helm-toolkit.snippets.tls_volume_mount" | indent 12 }}
