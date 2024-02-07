@@ -4,6 +4,11 @@
   ansible.builtin.import_playbook: ceph-csi.yml
   tags: ceph-csi
 
+- name: Deploy descheduler playbook
+  any_errors_fatal: true
+  ansible.builtin.import_playbook: descheduler.yml
+  tags: descheduler
+
 - name: Deploy k8s patch playbook
   any_errors_fatal: true
   ansible.builtin.import_playbook: k8spatch.yml
