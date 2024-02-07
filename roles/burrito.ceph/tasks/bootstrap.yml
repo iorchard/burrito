@@ -1,4 +1,10 @@
 ---
+- name: Bootstrap | check ceph nodes are ready
+  ansible.builtin.command: >-
+    cephadm prepare-host
+  become: true
+  when: inventory_hostname in groups['ceph_servers']
+
 - name: Bootstrap | set up insecure local registry for podman
   ansible.builtin.template:
     dest: "{{ registry_conf_dir }}/999-local-registry.conf"
