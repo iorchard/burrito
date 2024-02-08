@@ -339,6 +339,11 @@ calico_vxlan_mode: 'Never'
 # To use node.spec.podCIDR, set this to true.
 calico_ipam_host_local: false
 calico_pool_blocksize: "{{ kube_network_node_prefix }}"
+# override nodeSelector of calico-kube-controllers
+calico_policy_controller_deployment_nodeselector: 'node-role.kubernetes.io/control-plane: ""'
+
+## coredns
+coredns_deployment_nodeselector: 'node-role.kubernetes.io/control-plane: ""'
 
 ## etcd patch variables
 # etcd_nice is a nice value from -20(most favorable) to 19(least favorable).

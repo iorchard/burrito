@@ -1,0 +1,26 @@
+---
+- name: Common tasks for every playbooks
+  import_playbook: boilerplate.yml
+
+- name: Gather facts
+  import_playbook: facts.yml
+
+- name: Install a CNI
+  hosts: k8s_cluster
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: network_plugin, tags: network }
+
+- name: Install Kubernetes apps
+  hosts: kube_control_plane
+  gather_facts: False
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: kubespray-defaults }
+    - { role: kubernetes-apps/policy_controller, tags: policy-controller }
+    - { role: kubernetes-apps/ansible, tags: coredns }
+    - { role: kubernetes-apps/metallb, tags: metallb }
+    - { role: kubernetes-apps/registry, tags: registry }
+...
