@@ -149,9 +149,12 @@
   delegate_to: localhost
   run_once: true
 
-- name: Genesis Registry | pause before going to csi patch
+- name: Genesis Registry | pause before going to addon patches
   ansible.builtin.pause:
     seconds: 10
+
+- name: Genesis Registry | include patch tasks for ceph-csi
+  ansible.builtin.include_tasks: "calico_patch.yml"
 
 - name: Genesis Registry | include patch tasks for ceph-csi
   ansible.builtin.include_tasks: "ceph_patch.yml"

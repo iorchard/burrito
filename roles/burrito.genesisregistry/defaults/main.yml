@@ -19,6 +19,10 @@ genesis_registry:
     - "kube-controller-manager:{{ kube_version }}"
     - "kube-proxy:{{ kube_version }}"
     - "kube-scheduler:{{ kube_version }}"
+    - "calico/cni:{{ calico_version }}"
+    - "calico/kube-controllers:{{ calico_version }}"
+    - "calico/node:{{ calico_version }}"
+    - "calico/pod2daemon-flexvol:{{ calico_version }}"
     - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
     - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
     - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
@@ -64,31 +68,17 @@ k8s_services:
   - {name: "kube-controller-manager", port: 10257}
   - {name: "kube-scheduler", port: 10259}
 
-# csi_rbdplugin daemonset patch variables
-csi_rbdplugin_images:
-  - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
-  - "cephcsi/cephcsi:{{ cephcsi_version }}"
-  - "cephcsi/cephcsi:{{ cephcsi_version }}"
-rbdplugins: |
-  {% for v in csi_rbdplugin_images -%}
-  {op: replace, "path": "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
-  {% endfor -%}
-rbdplugin_patch_list: "{{ rbdplugins.splitlines()|map('from_yaml')|list }}"
+# calico patch variables
+calico_artifacts_dir: "/etc/kubernetes"
+calico_manifests:
+  - "{{ calico_artifacts_dir }}/calico-kube-controllers.yml"
+  - "{{ calico_artifacts_dir }}/calico-node.yml"
 
-# csi_rbdplugin_provisioner deployment patch variables
-csi_rbdplugin_provisioner_images:
-  - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
-  - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
-  - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
-  - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
-  - "cephcsi/cephcsi:{{ cephcsi_version }}"
-  - "cephcsi/cephcsi:{{ cephcsi_version }}"
-  - "cephcsi/cephcsi:{{ cephcsi_version }}"
-provisioner: |
-  {% for v in csi_rbdplugin_provisioner_images -%}
-  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
-  {% endfor -%}
-provisioner_patch_list: "{{ provisioner.splitlines()|map('from_yaml')|list }}"
+# csi_rbdplugin daemonset patch variables
+ceph_csi_artifacts_dir: "{{ ansible_env.HOME }}/ceph-csi-artifacts"
+ceph_csi_manifests:
+  - "{{ ceph_csi_artifacts_dir }}/06-csi-rbdplugin-provisioner.yaml"
+  - "{{ ceph_csi_artifacts_dir }}/07-csi-rbdplugin.yaml"
 
 # trident-csi deployment patch variables
 trident_deploy_images:

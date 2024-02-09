@@ -4,9 +4,10 @@
     path: "{{ item }}"
     regexp: "{{ containerd_insecure_registries.seed_registry }}"
     replace: "{{ containerd_insecure_registries.genesis_registry }}"
+  become: true
   delegate_to: localhost
   run_once: true
-  loop: "{{ ceph_csi_manifests }}"
+  loop: "{{ calico_manifests }}"
 
 - name: Genesis Registry | apply the patch
   kubernetes.core.k8s:
@@ -16,5 +17,5 @@
   become: true
   delegate_to: localhost
   run_once: true
-  loop: "{{ ceph_csi_manifests }}"
+  loop: "{{ calico_manifests }}"
 ...
