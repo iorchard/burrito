@@ -1,0 +1,5 @@
+---
+min_vcpus: 8
+min_memory: 16
+min_disk: 50
+...

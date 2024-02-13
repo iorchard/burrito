@@ -33,12 +33,7 @@ for CFG in ${CFGFILES[@]}; do
 done
 
 if [ ! -d "group_vars" ]; then
-  mkdir -p group_vars/all
-  cp ceph_vars.yml.tpl group_vars/all/ceph_vars.yml
-  cp netapp_vars.yml.tpl group_vars/all/netapp_vars.yml
-  cp powerflex_vars.yml.tpl group_vars/all/powerflex_vars.yml
-  cp hitachi_vars.yml.tpl group_vars/all/hitachi_vars.yml
-  cp primera_vars.yml.tpl group_vars/all/primera_vars.yml
+  cp -a group_vars.sample group_vars
 fi
 
 ./scripts/patch.sh
