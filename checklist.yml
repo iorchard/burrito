@@ -3,6 +3,33 @@
   hosts: all
   any_errors_fatal: true
   tasks:
+    - name: check if nodes have enough vcpus.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ inventory_hostname }} does not have enough vcpus.
+          ({{ ansible_facts['processor_vcpus'] }} < {{ min_vcpus }})
+        that:
+          - ansible_facts['processor_vcpus'] >= min_vcpus
+
+    - name: check if nodes have enough memory.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ inventory_hostname }} does not have enough memory.
+          ({{ ansible_facts['memtotal_mb'] }} < {{ min_memory*1024*0.9 }})
+        that:
+          - ansible_facts['memtotal_mb'] >= (min_memory*1024*0.9)
+
+    - name: check if nodes have enough root filesystem size.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ inventory_hostname }} does not have enough root filesystem.
+          ({{ (ansible_facts['mounts']|selectattr("mount", "equalto", "/")|list)[0].size_total }} < {{ min_disk*(1024|pow(3))*0.9 }})
+        that:
+          - (ansible_facts['mounts']|selectattr("mount", "equalto", "/")|list)[0].size_total >= (min_disk*(1024|pow(3))*0.9)
+
     - name: touch /etc/resolv.conf on every node
       ansible.builtin.file:
         path: /etc/resolv.conf
@@ -124,6 +151,17 @@
           Cannot find the device: {{ item.path }}
         that:
           - ansible_devices.{{ item.path|basename }} is defined
+      loop: "{{ data_devices }}"
+      when: inventory_hostname in groups['osds']
+
+    - name: check if osd block device has enough size.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        fail_msg: >-
+          {{ inventory_hostname }} does not have enough osd size.
+          ({{ (ansible_devices[item.path|basename].sectors|int)*(ansible_devices[item.path|basename].sectorsize|int) }} < {{ (min_osd*(1024|pow(3))*0.9) }})
+        that:
+          - (ansible_devices[item.path|basename].sectors|int)*(ansible_devices[item.path|basename].sectorsize|int) >= (min_osd*(1024|pow(3))*0.9)
       loop: "{{ data_devices }}"
       when: inventory_hostname in groups['osds']
 
