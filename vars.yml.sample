@@ -353,6 +353,7 @@ kube_pod_security_use_default: true
 kube_pod_security_default_enforce: restricted
 
 ## calico
+calico_version: "v3.26.3"
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
