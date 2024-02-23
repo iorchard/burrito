@@ -1,13 +1,31 @@
 #!/bin/bash
 export KUBECONFIG=/etc/kubernetes/kubelet.conf
 
-stop_gnsh() {
+TRIES=10
+function _check_apiserver() {
+  APISERVER=$(kubectl --request-timeout=3s config view -o jsonpath='{.clusters[0].cluster.server}')
+  counter=0
+  until [[ ${counter} -gt ${TRIES} ]]; do
+    curl -sk -m 3 ${APISERVER} -o /dev/null && return 0 || ((counter++))
+    sleep 3
+  done
+  return 1
+}
+function stop_gnsh() {
+  echo "Check if I can connect to kube-apiserver."
+  if _check_apiserver; then
+    echo "Yes, kube-apiserver is reachable."
+  else
+    echo "Abort! kube-apiserver is not reachable."
+    exit 1
+  fi
+
   echo "Show the node status."
   kubectl get node ${HOSTNAME}
   sleep 5
 
   echo "Let's drain my node ${HOSTNAME}"
-  kubectl drain ${HOSTNAME} \
+  kubectl --request-timeout=3s drain ${HOSTNAME} \
     --delete-emptydir-data=true \
     --grace-period=120 \
     --ignore-daemonsets=true \
@@ -17,9 +35,28 @@ stop_gnsh() {
   echo "Graceful Node Shutdown Helper (GNSH) completed a drain process."
 }
 
-start_gnsh() {
+function start_gnsh() {
+  echo "Check if I can connect to kube-apiserver."
+  if _check_apiserver; then
+    echo "Yes, kube-apiserver is reachable."
+  else
+    echo "Abort! kube-apiserver is not reachable."
+    exit 1
+  fi
   echo "Uncordon my node ${HOSTNAME}."
-  kubectl uncordon ${HOSTNAME} || true
+  counter=0
+  until [[ ${counter} -gt ${TRIES} ]]; do
+    kubectl --request-timeout=3s uncordon ${HOSTNAME} || true
+    echo "Check if the node is schedulable."
+    SCHED=$(kubectl get nodes ${HOSTNAME} -o jsonpath='{.spec.unschedulable}')
+    if [[ "x${SCHED}" = "x" ]]; then
+      echo "Yes, ${HOSTNAME} is schedulable."
+      exit 0
+    else
+      echo "No, ${HOSTNAME} is not schedulable."
+      sleep 3
+    fi
+  done
 }
 
 case "$1" in
@@ -29,10 +66,12 @@ case "$1" in
   stop)
     stop_gnsh
     ;;
+  check)
+    _check_apiserver
+    ;;
   *)
-    echo "Usage) $0 {start|stop}"
+    echo "Usage) $0 {start|stop|check}"
     exit 1
     ;;
 esac
 
-exit 0
