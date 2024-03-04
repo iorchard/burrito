@@ -22,4 +22,12 @@
     - role: burrito.gnsh
       when: groups['kube_control_plane']|length > 1
       tags: ['gnsh', 'burrito']
+
+- name: deploy Asklepios auto-healing service
+  hosts: localhost
+  any_errors_fatal: true
+  roles:
+    - role: burrito.asklepios
+      when: groups['kube_control_plane']|length > 1
+      tags: ['asklepios', 'burrito']
 ...
