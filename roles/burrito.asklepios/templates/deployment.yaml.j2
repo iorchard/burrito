@@ -26,7 +26,7 @@ spec:
           command:
             - "/bin/asklepios"
           args:
-            - "-v=0"
+            - "-v={{ asklepios.verbose | ternary(4, 0) }}"
             - "serve"
             - "--config"
             - "/config-dir/config.yaml"

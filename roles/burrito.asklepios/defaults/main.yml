@@ -9,6 +9,7 @@ template_files:
 
 asklepios:
   version: "0.1.2"
+  verbose: false
   sleep: 10
   kickout: 60
   kickin: 60
