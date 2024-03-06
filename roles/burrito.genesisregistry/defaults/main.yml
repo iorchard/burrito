@@ -3,6 +3,10 @@ haproxy_conf_dir: "/etc/haproxy"
 service_conf:
   - {dest: "{{ haproxy_conf_dir }}/conf.d/registry.cfg", owner: "root", group: "haproxy", mode: "0640"}
 
+image_pull_cmd: "{{ bin_dir }}/ctr -n k8s.io images pull --plain-http --platform linux/amd64"
+image_tag_cmd: "{{ bin_dir }}/ctr -n k8s.io images tag --force"
+image_push_cmd: "{{ bin_dir }}/ctr -n k8s.io images push --plain-http --platform linux/amd64"
+
 # hitachi openshift csi driver version
 hitachi_namespace: "hspc-operator-system"
 hspc_operator_version: "v1.12.1"
