@@ -34,7 +34,7 @@ quay.io/metallb/speaker:v0.13.9
 registry.k8s.io/coredns/coredns:v1.11.1
 registry.k8s.io/cpa/cluster-proportional-autoscaler:v1.8.8
 registry.k8s.io/defaultbackend:1.4
-registry.k8s.io/descheduler/descheduler:v0.28.1
+registry.k8s.io/descheduler/descheduler:v0.29.0
 registry.k8s.io/dns/k8s-dns-node-cache:1.22.28
 registry.k8s.io/ingress-nginx/controller:v1.8.2
 registry.k8s.io/kube-apiserver:v1.29.2
