@@ -53,7 +53,7 @@
 
 - name: Genesis Registry | pull images from seed registry
   ansible.builtin.shell: >-
-    nerdctl pull \
+    {{ image_pull_cmd }} \
       {{ containerd_insecure_registries.seed_registry }}/{{ item }}
   become: true
   delegate_to: localhost
