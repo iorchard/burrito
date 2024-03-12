@@ -239,12 +239,16 @@ spec:
 {{- end }}
           readinessProbe:
             initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 9
             timeoutSeconds: 10
             exec:
               command:
               - /tmp/rabbitmq-readiness.sh
           livenessProbe:
             initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 9
             timeoutSeconds: 10
             exec:
               command:

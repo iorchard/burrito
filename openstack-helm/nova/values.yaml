@@ -2053,13 +2053,15 @@ pod:
           enabled: True
           params:
             initialDelaySeconds: 30
-            periodSeconds: 60
+            periodSeconds: 30
+            failureThreshold: 2
             timeoutSeconds: 15
         readiness:
           enabled: True
           params:
             initialDelaySeconds: 30
-            periodSeconds: 60
+            periodSeconds: 30
+            failureThreshold: 2
             timeoutSeconds: 15
     conductor:
       default:

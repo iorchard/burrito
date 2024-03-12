@@ -222,7 +222,8 @@ endpoints:
       glance:
         username: glance
         password: {{ glance.password }}
-    statefulset: null
+    statefulset:
+      replicas: {{ pod.quorum_replicas }}
 pod:
   useHostNetwork:
     api: "{{ (glance.storage == 'cinder') | ternary('true', 'false') }}"

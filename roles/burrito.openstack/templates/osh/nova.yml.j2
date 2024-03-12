@@ -298,7 +298,8 @@ endpoints:
       nova:
         username: nova
         password: {{ nova.password }}
-    statefulset: null
+    statefulset:
+      replicas: {{ pod.quorum_replicas }}
   identity:
     auth:
       admin:

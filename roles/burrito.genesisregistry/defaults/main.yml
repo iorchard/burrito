@@ -18,6 +18,7 @@ genesis_registry:
   secret: "{{ lookup('community.general.random_string', length=12, base64=True) }}"
   conf: "/etc/genesis_registry.conf"
   common:
+    - "jijisa/asklepios:{{ asklepios.version }}"
     - "library/registry:{{ registry_version }}"
     - "kube-apiserver:{{ kube_version }}"
     - "kube-controller-manager:{{ kube_version }}"
@@ -77,6 +78,11 @@ calico_artifacts_dir: "/etc/kubernetes"
 calico_manifests:
   - "{{ calico_artifacts_dir }}/calico-kube-controllers.yml"
   - "{{ calico_artifacts_dir }}/calico-node.yml"
+
+# asklepios deployment patch variables
+asklepios_artifacts_dir: "{{ ansible_env.HOME }}/asklepios-artifacts"
+asklepios_manifests:
+  - "{{ asklepios_artifacts_dir }}/deployment.yaml"
 
 # csi_rbdplugin daemonset patch variables
 ceph_csi_artifacts_dir: "{{ ansible_env.HOME }}/ceph-csi-artifacts"

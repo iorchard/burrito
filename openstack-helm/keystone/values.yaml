@@ -411,13 +411,15 @@ pod:
           enabled: true
           params:
             initialDelaySeconds: 15
-            periodSeconds: 60
+            periodSeconds: 30
+            failureThreshold: 2
             timeoutSeconds: 15
         liveness:
           enabled: true
           params:
             initialDelaySeconds: 50
-            periodSeconds: 60
+            periodSeconds: 30
+            failureThreshold: 2
             timeoutSeconds: 15
 jobs:
   fernet_setup:

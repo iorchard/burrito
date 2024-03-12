@@ -134,7 +134,7 @@ btx_charts:
 # oslo_messaging_rabbit config values
 rabbit_retry_interval: 1
 rabbit_retry_backoff: 2
-rabbit_interval_max: 300
+rabbit_interval_max: 30
 rabbit_quorum_queue: True
 heartbeat_timeout_threshold: 60
 heartbeat_rate: 2
