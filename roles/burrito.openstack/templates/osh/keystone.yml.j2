@@ -138,7 +138,8 @@ endpoints:
       keystone:
         username: keystone
         password: {{ keystone.password }}
-    statefulset: null
+    statefulset:
+      replicas: {{ pod.quorum_replicas }}
 tls:
   identity: true
   oslo_messaging: true

@@ -287,7 +287,8 @@ endpoints:
       neutron:
         username: neutron
         password: {{ neutron.password }}
-    statefulset: null
+    statefulset:
+      replicas: {{ pod.quorum_replicas }}
   identity:
     name: keystone
     auth:
