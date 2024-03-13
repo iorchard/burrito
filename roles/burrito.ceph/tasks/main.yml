@@ -30,4 +30,7 @@
 
 - name: Main | import ceph client tasks
   ansible.builtin.import_tasks: "client.yml"
+
+- name: Main | import ceph status check tasks
+  ansible.builtin.import_tasks: "status.yml"
 ...
