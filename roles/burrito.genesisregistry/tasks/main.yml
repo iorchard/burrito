@@ -158,6 +158,7 @@
 
 - name: Genesis Registry | include patch tasks for asklepios
   ansible.builtin.include_tasks: "asklepios_patch.yml"
+  when: groups['kube_control_plane']|length > 1
 
 - name: Genesis Registry | include patch tasks for ceph-csi
   ansible.builtin.include_tasks: "ceph_patch.yml"
