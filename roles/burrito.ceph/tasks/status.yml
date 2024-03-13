@@ -1,0 +1,11 @@
+---
+- name: status | get ceph cluster status
+  ansible.builtin.command: "ceph health"
+  become: true
+  register: _status
+  until: _status.stdout == ceph_health_ok
+  retries: "{{ ceph_health_retries }}"
+  delay: "{{ ceph_health_delay }}"
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+...
