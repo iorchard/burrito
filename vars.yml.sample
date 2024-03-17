@@ -564,7 +564,7 @@ cinder_pvc_conversion:
   primera: false
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
-  default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first }}"
+  default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first|split(',')|first }}"
   password: "{{ vault_cinder_password }}"
   volume_deploy:
     type: "{{ storage_backends|map('extract', cinder_vol_deploy_type_map)|first }}"
