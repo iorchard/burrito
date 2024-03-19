@@ -1,4 +1,4 @@
-btx: 2.0.0
+btx: 2.0.1
 kubespray: master (04e40f2e6fbd7f255d35cf3c9b10b79308572604)
 ceph: 18.2.1
 kubernetes: v1.29.2

@@ -1,6 +1,6 @@
 docker.io/jijisa/asklepios:0.1.2
 docker.io/jijisa/barbican:2023.1-ubuntu_jammy
-docker.io/jijisa/btx:2.0.0
+docker.io/jijisa/btx:2.0.1
 docker.io/jijisa/cinder:2023.1-ubuntu_jammy
 docker.io/jijisa/glance:2023.1-ubuntu_jammy
 docker.io/jijisa/heat:2023.1-ubuntu_jammy
