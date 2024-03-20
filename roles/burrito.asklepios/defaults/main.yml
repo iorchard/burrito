@@ -1,0 +1,22 @@
+---
+artifacts_dir: "{{ ansible_env.HOME }}/asklepios-artifacts"
+pod:
+  replicas: 1
+
+template_files:
+  - {dest: "{{ artifacts_dir }}/configmap.yaml"}
+  - {dest: "{{ artifacts_dir }}/deployment.yaml"}
+
+asklepios:
+  version: "0.1.2"
+  verbose: false
+  sleep: 10
+  kickout: 60
+  kickin: 60
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 6
+  timeoutSeconds: 10
+  terminationGracePeriodSeconds: 10
+  tolerationSeconds: 20
+...

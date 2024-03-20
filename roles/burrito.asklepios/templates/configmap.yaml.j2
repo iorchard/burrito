@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: asklepios-configmap
+  namespace: kube-system
+data:
+  config.yaml: |
+    sleep: {{ asklepios.sleep }}
+    kickout: {{ asklepios.kickout }}
+    kickin: {{ asklepios.kickin }}

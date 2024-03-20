@@ -4,6 +4,14 @@
   ansible.builtin.import_playbook: ceph-csi.yml
   tags: ceph-csi
 
+- name: deploy Asklepios auto-healing service
+  hosts: localhost
+  any_errors_fatal: true
+  roles:
+    - role: burrito.asklepios
+      when: groups['kube_control_plane']|length > 1
+      tags: asklepios
+
 - name: Deploy cri patch playbook
   any_errors_fatal: true
   ansible.builtin.import_playbook: cripatch.yml

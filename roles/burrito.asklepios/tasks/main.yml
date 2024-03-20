@@ -1,0 +1,36 @@
+---
+- name: asklepios | delete artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: absent
+
+- name: asklepios | create artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: directory
+
+- name: asklepios | copy static files
+  ansible.builtin.copy:
+    dest: "{{ artifacts_dir }}/{{ item | basename }}"
+    src: "{{ item }}"
+    mode: "0644"
+  with_fileglob:
+    - "files/*"
+
+- name: asklepios | template files
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.dest | basename }}.j2"
+    mode: "0644"
+  loop: "{{ template_files }}"
+
+- name: asklepios | apply manifests
+  kubernetes.core.k8s:
+    src: "{{ item }}"
+    state: present
+    wait: true
+    wait_timeout: 300
+  with_fileglob:
+    - "{{ artifacts_dir }}/*.yaml"
+  become: true
+...

@@ -21,5 +21,5 @@
   roles:
     - role: burrito.gnsh
       when: groups['kube_control_plane']|length > 1
-      tags: ['gnsh', 'burrito']
+      tags: ['gnsh', 'burrito', 'never']
 ...
