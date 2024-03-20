@@ -98,6 +98,8 @@ def check_agent_status(transport):
         sys.stderr.write("Health probe caught exception sending message to"
                          " agent")
         sys.exit(0)
+    finally:
+        transport.cleanup()
 
 
 def sriov_readiness_check():
