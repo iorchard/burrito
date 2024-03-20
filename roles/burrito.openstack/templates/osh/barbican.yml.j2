@@ -98,7 +98,8 @@ endpoints:
       barbican:
         username: barbican
         password: {{ barbican.password }}
-    statefulset: null
+    statefulset:
+      replicas: {{ pod.quorum_replicas }}
   ingress:
     port:
       ingress:

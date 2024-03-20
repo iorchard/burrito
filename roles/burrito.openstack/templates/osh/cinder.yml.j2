@@ -360,7 +360,8 @@ endpoints:
       cinder:
         username: cinder
         password: {{ cinder.password }}
-    statefulset: null
+    statefulset:
+      replicas: {{ pod.quorum_replicas }}
   identity:
     auth:
       admin:
