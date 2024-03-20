@@ -594,4 +594,18 @@ btx:
 ### dasel binary - used by k8spatch.
 dasel_version: v2.4.1
 dasel_download_url: "https://github.com/TomWright/dasel/releases/download/{{ dasel_version }}/dasel_linux_amd64"
+
+### asklepios
+asklepios:
+  version: "0.1.2"
+  verbose: false
+  sleep: 10
+  kickout: 60
+  kickin: 60
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+  timeoutSeconds: 10
+  terminationGracePeriodSeconds: 10
+  tolerationSeconds: 20
 ...
