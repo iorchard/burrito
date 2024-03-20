@@ -1,3 +1,4 @@
+docker.io/jijisa/asklepios:0.1.2
 docker.io/jijisa/barbican:yoga-ubuntu_focal
 docker.io/jijisa/btx:1.2.3
 docker.io/jijisa/cinder:skb-yoga-ubuntu_jammy
