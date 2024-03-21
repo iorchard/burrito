@@ -8,6 +8,6 @@ template_files:
 
 # container image version
 descheduler_version: "v0.29.0"
-descheduler_interval: "5m"
+descheduler_interval: "3m"
 descheduler_log_level: "3"
 ...
