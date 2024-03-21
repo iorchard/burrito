@@ -2012,7 +2012,7 @@ endpoints:
 
 pod:
   probes:
-    rpc_timeout: 30
+    rpc_timeout: 60
     rpc_retries: 2
     compute:
       default:
