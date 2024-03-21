@@ -2012,20 +2012,22 @@ endpoints:
 
 pod:
   probes:
-    rpc_timeout: 60
+    rpc_timeout: 30
     rpc_retries: 2
     compute:
       default:
         liveness:
           enabled: True
           params:
-            periodSeconds: 90
-            timeoutSeconds: 70
+            failureThresold: 2
+            periodSeconds: 30
+            timeoutSeconds: 20
         readiness:
           enabled: True
           params:
-            periodSeconds: 90
-            timeoutSeconds: 70
+            failureThresold: 2
+            periodSeconds: 30
+            timeoutSeconds: 20
         startup:
           enabled: True
           params:
@@ -2068,15 +2070,17 @@ pod:
         liveness:
           enabled: True
           params:
-            initialDelaySeconds: 120
-            periodSeconds: 90
-            timeoutSeconds: 70
+            failureThreshold: 2
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 20
         readiness:
           enabled: True
           params:
-            initialDelaySeconds: 80
-            periodSeconds: 90
-            timeoutSeconds: 70
+            failureThreshold: 2
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 20
     novncproxy:
       default:
         liveness:
@@ -2096,15 +2100,17 @@ pod:
         liveness:
           enabled: True
           params:
-            initialDelaySeconds: 120
-            periodSeconds: 90
-            timeoutSeconds: 70
+            failureThreshold: 2
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 20
         readiness:
           enabled: True
           params:
-            initialDelaySeconds: 80
-            periodSeconds: 90
-            timeoutSeconds: 70
+            failureThreshold: 2
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 20
     compute-spice-proxy:
       default:
         liveness:
