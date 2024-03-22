@@ -81,7 +81,7 @@
   delegate_to: localhost
   run_once: true
 
-- name: OpenStack | debug
+- name: OpenStack | show osh_infra_charts to install
   ansible.builtin.debug:
     msg: "{{ osh_infra_charts }}"
   delegate_to: localhost
@@ -150,6 +150,18 @@
   delegate_to: localhost
   run_once: true
   tags: osh
+
+- name: OpenStack | add barbican to osh_charts if install_barbican is true
+  ansible.builtin.set_fact:
+    osh_charts: "{{ install_barbican|ternary(osh_charts|union(['barbican']), osh_charts) }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: OpenStack | show osh_charts to install
+  ansible.builtin.debug:
+    msg: "{{ osh_charts }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: OpenStack | templating osh values
   ansible.builtin.template:
