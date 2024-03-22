@@ -8,4 +8,5 @@ openstack:
 image:
   repo: {{ docker_image_repo }}/jijisa/btx
   tag: {{ btx.version }}
+  pullPolicy: IfNotPresent
 ...
