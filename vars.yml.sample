@@ -283,7 +283,7 @@ tls_cipher_suites:
   - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
 
-enable_alwayspullimages: false
+enable_alwayspullimages: true
 kube_apiserver_admission_plugins:
   - EventRateLimit
   - NodeRestriction
