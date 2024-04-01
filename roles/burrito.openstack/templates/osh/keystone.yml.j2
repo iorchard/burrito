@@ -43,6 +43,7 @@ conf:
       rabbit_quorum_queue: {{ rabbit_quorum_queue }}
       heartbeat_timeout_threshold: {{ heartbeat_timeout_threshold }}
       heartbeat_rate: {{ heartbeat_rate }}
+      heartbeat_in_pthread: true
   rabbitmq: null
 {% raw %}
   wsgi_keystone: |
