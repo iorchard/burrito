@@ -182,6 +182,7 @@ conf:
       rabbit_quorum_queue: {{ rabbit_quorum_queue }}
       heartbeat_timeout_threshold: {{ heartbeat_timeout_threshold }}
       heartbeat_rate: {{ heartbeat_rate }}
+      heartbeat_in_pthread: true
     DEFAULT:
       instance_usage_audit: false
       cert: /etc/nova/certs/tls.crt
