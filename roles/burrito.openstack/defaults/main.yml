@@ -126,7 +126,6 @@ osh_charts:
   - nova
   - cinder
   - horizon
-  - barbican
 
 btx_charts:
   - btx
