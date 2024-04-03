@@ -6,7 +6,7 @@ docker.io/jijisa/glance:2023.1-ubuntu_jammy
 docker.io/jijisa/heat:2023.1-ubuntu_jammy
 docker.io/jijisa/horizon:2023.1-ubuntu_jammy
 docker.io/jijisa/keystone:2023.1-ubuntu_jammy
-docker.io/jijisa/mariadb:10.11.6-ubuntu_jammy
+docker.io/jijisa/mariadb:10.11.7-ubuntu_jammy
 docker.io/jijisa/neutron:2023.1-ubuntu_jammy
 docker.io/jijisa/nova:2023.1-ubuntu_jammy
 docker.io/jijisa/placement:2023.1-ubuntu_jammy
