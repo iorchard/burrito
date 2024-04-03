@@ -2017,15 +2017,15 @@ pod:
     compute:
       default:
         liveness:
-          enabled: True
+          enabled: true
           params:
-            failureThresold: 2
+            failureThreshold: 10
             periodSeconds: 30
             timeoutSeconds: 20
         readiness:
           enabled: True
           params:
-            failureThresold: 2
+            failureThreshold: 10
             periodSeconds: 30
             timeoutSeconds: 20
         startup:
@@ -2100,14 +2100,14 @@ pod:
         liveness:
           enabled: True
           params:
-            failureThreshold: 2
+            failureThreshold: 10
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 20
         readiness:
           enabled: True
           params:
-            failureThreshold: 2
+            failureThreshold: 10
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 20
