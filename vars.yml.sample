@@ -303,12 +303,13 @@ tls_cipher_suites:
   - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
   - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
 
-kube_apiserver_enable_admission_plugins:
-  - AlwaysPullImages
+enable_alwayspullimages: true
+kube_apiserver_admission_plugins:
   - EventRateLimit
   - NodeRestriction
   - ServiceAccount
   - PodSecurity
+kube_apiserver_enable_admission_plugins: "{{ enable_alwayspullimages|ternary(kube_apiserver_admission_plugins|union(['AlwaysPullImages']), kube_apiserver_admission_plugins) }}"
 kube_apiserver_admission_control_config_file: true
 kube_apiserver_admission_event_rate_limits:
   limit1:
@@ -325,6 +326,8 @@ kube_controller_feature_gates: ["RotateKubeletServerCertificate=true"]
 ## kube-scheduler
 kube_scheduler_bind_address: 127.0.0.1
 ## kubelet
+kubelet_config_extra_args:
+  serializeImagePulls: false
 kubelet_authorization_mode_webhook: true
 kubelet_authentication_token_webhook: true
 kube_read_only_port: 0
@@ -581,6 +584,7 @@ horizon:
   timezone: "Asia/Seoul"
 
 # barbican
+install_barbican: false
 barbican:
   password: "{{ vault_barbican_password }}"
   kek: "{{ vault_barbican_kek | b64encode }}"
