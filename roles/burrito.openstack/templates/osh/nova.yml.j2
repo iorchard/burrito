@@ -418,8 +418,8 @@ pod:
   replicas:
     api_metadata: {{ pod.replicas }}
     osapi: {{ pod.replicas }}
-    conductor: {{ pod.replicas }}
-    scheduler: {{ pod.replicas }}
+    conductor: 1
+    scheduler: 1
     novncproxy: {{ pod.replicas }}
   mounts:
     nova_novncproxy:
