@@ -12,7 +12,6 @@ labels:
 ---
 service_type: mon
 placement:
-  count: 3
   hosts:
     {% for h in groups['mons'] %}
     - {{ h }}
@@ -22,7 +21,6 @@ networks:
 ---
 service_type: mgr
 placement:
-  count: 3
   hosts:
     {% for h in groups['mgrs'] %}
     - {{ h }}
