@@ -601,11 +601,12 @@ dasel_download_url: "https://github.com/TomWright/dasel/releases/download/{{ das
 
 ### asklepios
 asklepios:
-  version: "0.1.2"
+  version: "0.2.0"
   verbose: false
   sleep: 10
   kickout: 60
   kickin: 60
+  balancer: false
   initialDelaySeconds: 5
   periodSeconds: 10
   failureThreshold: 3
