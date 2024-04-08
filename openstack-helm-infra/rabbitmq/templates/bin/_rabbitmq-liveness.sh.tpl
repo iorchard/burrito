@@ -19,5 +19,5 @@ set -e
 if [ -f /tmp/rabbit-disable-liveness-probe ]; then
    exit 0
 else
-   exec rabbitmq-diagnostics -q check_port_connectivity
+   exec rabbitmq-diagnostics -q check_running
 fi
