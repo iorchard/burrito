@@ -26,16 +26,6 @@
   delegate_to: localhost
   run_once: true
 
-- name: netapp | copy manifest files
-  ansible.builtin.copy:
-    dest: "{{ artifacts_dir }}/setup/{{ item | basename }}"
-    src: "{{ item }}"
-    mode: "0644"
-  with_fileglob:
-    - "files/setup/*"
-  delegate_to: localhost
-  run_once: true
-
 - name: netapp | templating config files
   ansible.builtin.template:
     dest: "{{ item.dest }}"

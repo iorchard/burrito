@@ -9,7 +9,7 @@ https://github.com/databus23/helm-diff/releases/download/v3.9.2/helm-diff-linux-
 https://github.com/distribution/distribution/releases/download/v2.8.3/registry_2.8.3_linux_amd64.tar.gz
 https://github.com/etcd-io/etcd/releases/download/v3.5.10/etcd-v3.5.10-linux-amd64.tar.gz
 https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.29.0/crictl-v1.29.0-linux-amd64.tar.gz
-https://github.com/NetApp/trident/releases/download/v22.10.0/trident-installer-22.10.0.tar.gz
+https://github.com/NetApp/trident/releases/download/v24.02.0/trident-installer-24.02.0.tar.gz
 https://github.com/opencontainers/runc/releases/download/v1.1.12/runc.amd64
 https://github.com/projectcalico/calico/archive/v3.26.4.tar.gz
 https://github.com/projectcalico/calico/releases/download/v3.26.4/calicoctl-linux-amd64

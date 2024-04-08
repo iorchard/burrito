@@ -8,7 +8,9 @@ metadata:
     app: controller.csi.trident.netapp.io
     kubectl.kubernetes.io/default-container: trident-main
 spec:
+  progressDeadlineSeconds: 600
   replicas: 1
+  revisionHistoryLimit: 10
   strategy:
     type: Recreate
   selector:
@@ -19,39 +21,42 @@ spec:
       labels:
         app: controller.csi.trident.netapp.io
     spec:
-      serviceAccount: trident-controller
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - arm64
+                - amd64
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                - linux
       containers:
-      - name: trident-main
-        image: {{ docker_image_repo }}/netapp/trident:{{ trident_version }}
-        ports:
-        - containerPort: 8443
-        - containerPort: 8001
+      - args:
+        - --crd_persistence
+        - --k8s_pod
+        - --https_rest
+        - --https_port=8443
+        - --csi_node_name=$(KUBE_NODE_NAME)
+        - --csi_endpoint=$(CSI_ENDPOINT)
+        - --csi_role=controller
+        - --log_format=text
+        - --log_level=info
+        - --log_workflows=
+        - --log_layers=
+        - --disable_audit_log=true
+        - --address=127.0.0.1
+        - --http_request_timeout=1m30s
+        - --enable_force_detach=false
+        - --metrics
         command:
         - /trident_orchestrator
-        args:
-        - "--crd_persistence"
-        - "--k8s_pod"
-        - "--https_rest"
-        - "--https_port=8443"
-        - "--csi_node_name=$(KUBE_NODE_NAME)"
-        - "--csi_endpoint=$(CSI_ENDPOINT)"
-        - "--csi_role=controller"
-        - "--log_format=text"
-        - "--address=127.0.0.1"
-        - "--http_request_timeout=1m30s"
-        - "--metrics"
-        #- -debug
-        livenessProbe:
-          exec:
-            command:
-            - tridentctl
-            - -s
-            - "127.0.0.1:8000"
-            - version
-          failureThreshold: 2
-          initialDelaySeconds: 120
-          periodSeconds: 120
-          timeoutSeconds: 90
         env:
         - name: KUBE_NODE_NAME
           valueFrom:
@@ -61,100 +66,159 @@ spec:
         - name: CSI_ENDPOINT
           value: unix://plugin/csi.sock
         - name: TRIDENT_SERVER
-          value: "127.0.0.1:8000"
+          value: 127.0.0.1:8000
+        image: {{ docker_image_repo }}/netapp/trident:{{ trident_version }}
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - tridentctl
+            - -s
+            - 127.0.0.1:8000
+            - version
+          failureThreshold: 2
+          initialDelaySeconds: 120
+          periodSeconds: 120
+          successThreshold: 1
+          timeoutSeconds: 90
+        name: trident-main
+        ports:
+        - containerPort: 8443
+          protocol: TCP
+        - containerPort: 8001
+          protocol: TCP
+        resources: {}
+        securityContext:
+          capabilities:
+            drop:
+            - all
+          runAsNonRoot: false
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         volumeMounts:
-        - name: socket-dir
-          mountPath: /plugin
-        - name: certs
-          mountPath: /certs
+        - mountPath: /plugin
+          name: socket-dir
+        - mountPath: /certs
+          name: certs
           readOnly: true
-      - name: trident-autosupport
-        image: {{ docker_image_repo }}/netapp/trident-autosupport:{{ trident_version[:5] }}
+      - args:
+        - --k8s-pod
+        - --log-format=text
+        - --trident-silence-collector=false
         command:
         - /usr/local/bin/trident-autosupport
-        args:
-        - "--k8s-pod"
-        - "--log-format=text"
-        - "--trident-silence-collector=false"
-        
-        
-        
-        
-        #- -debug
+        image: {{ docker_image_repo }}/netapp/trident-autosupport:{{ trident_version[:5] }}
+        imagePullPolicy: IfNotPresent
+        name: trident-autosupport
         resources:
           limits:
             memory: 1Gi
+        securityContext:
+          capabilities:
+            drop:
+            - all
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         volumeMounts:
-        - name: asup-dir
-          mountPath: /asup
-      - name: csi-provisioner
+        - mountPath: /asup
+          name: asup-dir
+      - args:
+        - --v=2
+        - --timeout=600s
+        - --csi-address=$(ADDRESS)
+        - --retry-interval-start=8s
+        - --retry-interval-max=30s
+        env:
+        - name: ADDRESS
+          value: /var/lib/csi/sockets/pluginproxy/csi.sock
         image: {{ kube_image_repo }}/sig-storage/csi-provisioner:{{ csi_provisioner_version }}
-        args:
-        - "--v=2"
-        - "--timeout=600s"
-        - "--csi-address=$(ADDRESS)"
-        - "--retry-interval-start=8s"
-        - "--retry-interval-max=30s"
-        
+        imagePullPolicy: IfNotPresent
+        name: csi-provisioner
+        resources: {}
+        securityContext:
+          capabilities:
+            drop:
+            - all
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy/
+          name: socket-dir
+      - args:
+        - --v=2
+        - --timeout=60s
+        - --retry-interval-start=10s
+        - --csi-address=$(ADDRESS)
         env:
         - name: ADDRESS
           value: /var/lib/csi/sockets/pluginproxy/csi.sock
-        volumeMounts:
-        - name: socket-dir
-          mountPath: /var/lib/csi/sockets/pluginproxy/
-      - name: csi-attacher
         image: {{ kube_image_repo }}/sig-storage/csi-attacher:{{ csi_attacher_version }}
-        args:
-        - "--v=2"
-        - "--timeout=60s"
-        - "--retry-interval-start=10s"
-        - "--csi-address=$(ADDRESS)"
+        imagePullPolicy: IfNotPresent
+        name: csi-attacher
+        resources: {}
+        securityContext:
+          capabilities:
+            drop:
+            - all
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy/
+          name: socket-dir
+      - args:
+        - --v=2
+        - --timeout=300s
+        - --csi-address=$(ADDRESS)
         env:
         - name: ADDRESS
           value: /var/lib/csi/sockets/pluginproxy/csi.sock
-        volumeMounts:
-        - name: socket-dir
-          mountPath: /var/lib/csi/sockets/pluginproxy/
-      - name: csi-resizer
         image: {{ kube_image_repo }}/sig-storage/csi-resizer:{{ csi_resizer_version }}
-        args:
-        - "--v=2"
-        - "--timeout=300s"
-        - "--csi-address=$(ADDRESS)"
+        imagePullPolicy: IfNotPresent
+        name: csi-resizer
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy/
+          name: socket-dir
+      - args:
+        - --v=2
+        - --timeout=300s
+        - --csi-address=$(ADDRESS)
         env:
         - name: ADDRESS
           value: /var/lib/csi/sockets/pluginproxy/csi.sock
-        volumeMounts:
-        - name: socket-dir
-          mountPath: /var/lib/csi/sockets/pluginproxy/
-      - name: csi-snapshotter
         image: {{ kube_image_repo }}/sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}
-        args:
-        - "--v=2"
-        - "--timeout=300s"
-        - "--csi-address=$(ADDRESS)"
-        env:
-        - name: ADDRESS
-          value: /var/lib/csi/sockets/pluginproxy/csi.sock
+        imagePullPolicy: IfNotPresent
+        name: csi-snapshotter
+        resources: {}
+        securityContext:
+          capabilities:
+            drop:
+            - all
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
         volumeMounts:
-        - name: socket-dir
-          mountPath: /var/lib/csi/sockets/pluginproxy/
-      nodeSelector:
-        kubernetes.io/os: linux
-        kubernetes.io/arch: amd64
-        node-role.kubernetes.io/control-plane: ""
-      tolerations: []
+        - mountPath: /var/lib/csi/sockets/pluginproxy/
+          name: socket-dir
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: trident-controller
+      serviceAccountName: trident-controller
+      terminationGracePeriodSeconds: 30
       volumes:
-      - name: socket-dir
-        emptyDir:
+      - emptyDir: {}
+        name: socket-dir
       - name: certs
         projected:
+          defaultMode: 420
           sources:
           - secret:
               name: trident-csi
           - secret:
               name: trident-encryption-keys
-      - name: asup-dir
-        emptyDir:
-          medium: ""
+      - emptyDir:
           sizeLimit: 1Gi
+        name: asup-dir
