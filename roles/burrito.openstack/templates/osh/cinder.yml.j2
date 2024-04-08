@@ -1,15 +1,15 @@
 ---
 images:
   tags:
-    db_init: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    db_init: "{{ docker_image_repo }}/jijisa/heat:skb-yoga-ubuntu_jammy"
     cinder_db_sync: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
-    db_drop: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    db_drop: "{{ docker_image_repo }}/jijisa/heat:skb-yoga-ubuntu_jammy"
     rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.11-management"
-    ks_user: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    ks_service: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
-    ks_endpoints: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    ks_user: "{{ docker_image_repo }}/jijisa/heat:skb-yoga-ubuntu_jammy"
+    ks_service: "{{ docker_image_repo }}/jijisa/heat:skb-yoga-ubuntu_jammy"
+    ks_endpoints: "{{ docker_image_repo }}/jijisa/heat:skb-yoga-ubuntu_jammy"
     cinder_api: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
-    bootstrap: "{{ docker_image_repo }}/jijisa/heat:yoga-ubuntu_focal"
+    bootstrap: "{{ docker_image_repo }}/jijisa/heat:skb-yoga-ubuntu_jammy"
     cinder_scheduler: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
     cinder_volume: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
     cinder_volume_usage_audit: "{{ docker_image_repo }}/jijisa/cinder:skb-yoga-ubuntu_jammy"
@@ -101,7 +101,7 @@ pod:
   replicas:
     api: {{ pod.replicas }}
     backup: {{ pod.replicas }}
-    scheduler: {{ pod.replicas }}
+    scheduler: 1
     volume: {{ pod.replicas }}
 
 bootstrap:
@@ -207,6 +207,7 @@ conf:
         app_name: rbd
   cinder:
     DEFAULT:
+      cluster: burrito_cinder_volume_cluster
       rpc_response_timeout: 300
       verify_glance_signatures: disabled
       glance_ca_certificates_file: /etc/cinder/certs/ca.crt
@@ -253,6 +254,7 @@ conf:
       rabbit_quorum_queue: {{ rabbit_quorum_queue }}
       heartbeat_timeout_threshold: {{ heartbeat_timeout_threshold }}
       heartbeat_rate: {{ heartbeat_rate }}
+      heartbeat_in_pthread: true
     service_user:
       send_service_user_token: true
       auth_type: password
