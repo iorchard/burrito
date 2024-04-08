@@ -99,11 +99,11 @@ spec:
               scheme: {{ tuple "volumev3" "service" "api" . | include "helm-toolkit.endpoints.keystone_endpoint_scheme_lookup" | upper }}
               path: /
               port: {{ tuple "volumev3" "service" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+            timeoutSeconds: 3
 {{- if .Values.conf.enable_iscsi }}
             failureThreshold: 6
             periodSeconds: 10
             successThreshold: 1
-            timeoutSeconds: 1
 {{- end }}
           livenessProbe:
             httpGet:
@@ -114,7 +114,7 @@ spec:
             failureThreshold: 6
             periodSeconds: 10
             successThreshold: 1
-            timeoutSeconds: 1
+            timeoutSeconds: 3
           volumeMounts:
             - name: pod-tmp
               mountPath: /tmp
