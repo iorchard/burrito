@@ -103,7 +103,7 @@ pod:
   replicas:
     api: {{ pod.replicas }}
     backup: {{ pod.replicas }}
-    scheduler: {{ pod.replicas }}
+    scheduler: 1
     volume: {{ pod.replicas }}
 
 bootstrap:
@@ -214,6 +214,7 @@ conf:
         app_name: rbd
   cinder:
     DEFAULT:
+      cluster: burrito_cinder_volume_cluster
       rpc_response_timeout: 300
       verify_glance_signatures: disabled
       glance_ca_certificates_file: /etc/cinder/certs/ca.crt
