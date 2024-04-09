@@ -347,6 +347,8 @@ kubelet_csr_approver_values:
     repository: "{{ docker_image_repo }}/postfinance/kubelet-csr-approver"
     tag: "v{{ kubelet_csr_approver_chart_version }}"
   bypassDnsResolution: true
+  replicas: "{{ pod.replicas }}"
+  leaderElection: "{{ (pod.replicas == 2)|ternary(true, false) }}"
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
 
@@ -365,9 +367,6 @@ calico_ipam_host_local: false
 calico_pool_blocksize: "{{ kube_network_node_prefix }}"
 # override nodeSelector of calico-kube-controllers
 calico_policy_controller_deployment_nodeselector: 'node-role.kubernetes.io/control-plane: ""'
-
-## coredns
-coredns_deployment_nodeselector: 'node-role.kubernetes.io/control-plane: ""'
 
 ## etcd patch variables
 # etcd_nice is a nice value from -20(most favorable) to 19(least favorable).
