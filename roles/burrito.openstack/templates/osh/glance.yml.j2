@@ -36,8 +36,8 @@ conf:
       bind_host: 127.0.0.1
       debug: true
       show_image_direct_url: true
-      #enabled_backends: "{{ glance.enabled_backends | zip(glance.enabled_backends) | map('join', ':')|join(',') }}"
-      enabled_backends: "{{ glance.enabled_backends | zip(glance.enabled_backends) | map('join', ':')|first }}"
+      show_multiple_locations: {{ ('cinder' in glance.enabled_backends)|ternary('true', 'false') }}
+      enabled_backends: {{ glance.enabled_backends | zip(glance.enabled_backends) | map('join', ':')|first }}
     keystone_authtoken:
       service_token_roles: admin
       service_token_roles_required: true
