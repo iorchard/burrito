@@ -3,7 +3,6 @@ inventory = ./hosts
 nocolor = true
 host_key_checking = false
 deprecation_warnings = false
-jinja2_native = true
 callback_whitelist = profile_tasks
 force_valid_group_names = ignore
 vault_password_file = .vaultpass
