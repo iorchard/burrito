@@ -9,13 +9,14 @@ TOP_PATH=${CURRENT_DIR}/..
 declare -A d_tag=(
   [calico]="network,policy-controller"
   [coredns]="coredns"
+  [kubelet-csr-approver]="kubelet-csr-approver"
   [metallb]="metallb"
   [registry]="registry"
 )
 display_help() {
   echo "Usage: $0 <k8s_component>" >&2
   echo "    <component>"
-  echo "    calico, coredns, metallb, registry"
+  echo "    calico, coredns, kubelet-csr-approver, metallb, registry"
 }
 install() {
   if [ ! ${d_tag[$NAME]} ]; then
