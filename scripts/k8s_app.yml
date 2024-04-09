@@ -21,6 +21,7 @@
     - { role: kubespray-defaults }
     - { role: kubernetes-apps/policy_controller, tags: policy-controller }
     - { role: kubernetes-apps/ansible, tags: coredns }
+    - { role: kubernetes-apps/kubelet-csr-approver, tags: kubelet-csr-approver }
     - { role: kubernetes-apps/metallb, tags: metallb }
     - { role: kubernetes-apps/registry, tags: registry }
 ...
