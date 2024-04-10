@@ -28,7 +28,7 @@ volume_deployment:
 
 pod:
   useHostNetwork:
-    volume: "{{ enable_iscsi }}"
+    volume: {{ enable_iscsi }}
   security_context:
     cinder_api:
       container:
