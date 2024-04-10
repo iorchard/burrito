@@ -27,6 +27,8 @@ volume_deployment:
     size: {{ cinder.volume_deploy.size }}
 
 pod:
+  useHostNetwork:
+    volume: {{ enable_iscsi }}
   security_context:
     cinder_api:
       container:
@@ -90,7 +92,7 @@ pod:
           - name: cinder-tmp
             emptyDir: {}
 {% endif %}
-{% if "hitachi" in storage_backends %}
+{% if enable_iscsi %}
     cinder_volume:
       container:
         cinder_volume:
@@ -140,7 +142,7 @@ network:
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: "https"
 conf:
-  enable_iscsi: {{ ("hitachi" in storage_backends)|ternary('true', 'false') }}
+  enable_iscsi: {{ enable_iscsi }}
   enable_powerflex: {{ ("powerflex" in storage_backends)|ternary('true', 'false') }}
   db_acl:
     enabled: true
