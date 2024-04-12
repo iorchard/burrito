@@ -406,9 +406,6 @@ csi_resizer_version: "v1.9.0"
 csi_snapshotter_version: "v6.3.0"
 registry_ready_timeout: 300
 
-# burrito.netapp role variables
-trident_version: "22.10.0"
-
 # burrito.powerflex role variables
 pfx_version: "v2.6.0"
 pfx_snapshot_controller_version: "v6.2.1"
@@ -445,7 +442,7 @@ rabbitmq:
 
 enable_iscsi_map:
   ceph: false
-  netapp: false
+  netapp: true
   powerflex: false
   hitachi: true
   primera: true
@@ -459,13 +456,13 @@ keystone:
 # glance
 glance_store_types:
   ceph: 'rbd'
-  netapp: 'file'
+  netapp: 'cinder'
   powerflex: 'cinder'
   hitachi: 'cinder'
   primera: 'cinder'
 glance_storage:
   ceph: 'rbd'
-  netapp: 'pvc'
+  netapp: 'cinder'
   powerflex: 'cinder'
   hitachi: 'cinder'
   primera: 'cinder'

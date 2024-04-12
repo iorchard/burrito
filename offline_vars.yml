@@ -67,7 +67,6 @@ nerdctl_download_url: "{{ files_repo }}/github.com/containerd/nerdctl/releases/d
 rhel_enable_repos: false
 
 ### netapp
-trident_version: "24.02.0"
 trident_download_url: "{{ files_repo }}/github.com/NetApp/trident/releases/download/v{{ trident_version }}/trident-installer-{{ trident_version }}.tar.gz"
 
 ### dasel binary - used by k8spatch
