@@ -477,12 +477,12 @@ keystone:
 # glance
 glance_store_types:
   ceph: 'rbd'
-  netapp: 'file'
+  netapp: 'cinder'
   powerflex: 'cinder'
   hitachi: 'cinder'
 glance_storage:
   ceph: 'rbd'
-  netapp: 'pvc'
+  netapp: 'cinder'
   powerflex: 'cinder'
   hitachi: 'cinder'
 glance_nginx_deploy_types:
