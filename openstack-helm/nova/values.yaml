@@ -1459,7 +1459,7 @@ conf:
       #handlers: stdout
       #qualname: root
     logger_nova:
-      level: DEBUG
+      level: INFO
       handlers:
         - stdout
       qualname: nova
