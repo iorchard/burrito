@@ -97,6 +97,7 @@ horizon:
   timezone: "UTC"
 
 ## barbican
+install_barbican: false
 barbican:
   password: ~
   kek: ~
