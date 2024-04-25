@@ -21,6 +21,6 @@ entries:
     - https://github.com/postfinance/kubelet-csr-approver
     type: application
     urls:
-    - https://postfinance.github.io/kubelet-csr-approver/kubelet-csr-approver-1.0.6.tgz
+    - http://files.cluster.local:8001/files/postfinance.github.io/kubelet-csr-approver/kubelet-csr-approver-1.0.6.tgz
     version: 1.0.6
 
