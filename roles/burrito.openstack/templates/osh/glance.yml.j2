@@ -224,6 +224,8 @@ endpoints:
     statefulset:
       replicas: {{ pod.quorum_replicas }}
 pod:
+  useHostNetwork:
+    api: "{{ (glance.storage == 'cinder') | ternary('true', 'false') }}"
   security_context:
     glance:
       pod:
