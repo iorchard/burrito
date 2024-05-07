@@ -14,9 +14,9 @@ localrepo:
 docker_image_repo: ~
 
 files_src: "/mnt/files"
-files_dst: "/usr/share/nginx/html/files"
+files_dst: "/usr/share/nginx/html/"
 pkg_src: "/mnt/BaseOS"
-pkg_dst: "/usr/share/nginx/html/BaseOS"
+pkg_dst: "/usr/share/nginx/html/"
 keepalived_vip: ~
 balance: roundrobin
 inter: 2s
