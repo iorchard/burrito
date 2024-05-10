@@ -220,7 +220,7 @@ conf:
       vencrypt_ca_certs: /etc/pki/nova-novncproxy/ca-cert.pem
       novncproxy_base_url: https://{{ keepalived_vip_svc|ternary(keepalived_vip_svc, keepalived_vip) }}:30608/vnc_auto.html
     libvirt:
-      volume_use_multipath: {{ enable_iscsi }}
+      volume_use_multipath: {{ enable_multipath }}
       connection_uri: "qemu+tcp://127.0.0.1/system"
       images_type: {{ (storage_backends[0] == 'ceph')|ternary('rbd', 'qcow2') }}
 {% if "ceph" in storage_backends %}
