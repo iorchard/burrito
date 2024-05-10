@@ -466,8 +466,14 @@ enable_iscsi_map:
   netapp: true
   powerflex: false
   hitachi: true
-  primera: true
 enable_iscsi: "{{ storage_backends|map('extract', enable_iscsi_map)|list is any }}"
+enable_multipath_map:
+  ceph: false
+  netapp: false
+  powerflex: false
+  hitachi: true
+enable_multipath: "{{ storage_backends|map('extract', enable_multipath_map)|list is all }}"
+
 
 # keystone
 os_admin_password: "{{ vault_openstack_admin_password }}"
