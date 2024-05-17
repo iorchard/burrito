@@ -29,7 +29,14 @@ set -ex
   {{- end }}
 {{- end }}
 
+# override heartbeat_in_pthread variable
+tee > /tmp/oslo_messaging_rabbit.conf << EOF
+[oslo_messaging_rabbit]
+heartbeat_in_pthread = false
+EOF
+
 exec cinder-volume \
      --config-file /etc/cinder/cinder.conf \
+     --config-file /tmp/oslo_messaging_rabbit.conf \
      --config-file /etc/cinder/conf/backends.conf \
      --config-file /tmp/pod-shared/internal_tenant.conf

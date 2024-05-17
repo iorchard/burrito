@@ -15,5 +15,13 @@ limitations under the License.
 */}}
 
 set -ex
+
+# override heartbeat_in_pthread variable
+tee > /tmp/oslo_messaging_rabbit.conf << EOF
+[oslo_messaging_rabbit]
+heartbeat_in_pthread = false
+EOF
+
 exec cinder-scheduler \
-      --config-file /etc/cinder/cinder.conf
+      --config-file /etc/cinder/cinder.conf \
+      --config-file /tmp/oslo_messaging_rabbit.conf
