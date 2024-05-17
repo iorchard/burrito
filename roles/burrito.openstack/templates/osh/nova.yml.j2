@@ -199,11 +199,10 @@ conf:
       block_device_allocate_retries_interval: 10
       vif_plugging_timeout: 1200
       allow_resize_to_same_host: true
-      notification_format: versioned
     devices:
       enabled_vgpu_types: 
     notifications:
-      bdms_in_notifications: true
+      notification_format: versioned
     service_user:
       send_service_user_token: true
       auth_type: password
@@ -238,7 +237,7 @@ conf:
     filter_scheduler:
       ram_weight_multiplier: 4.0
       available_filters: nova.scheduler.filters.all_filters
-      enabled_filters: AvailabilityZoneFilter, ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter
+      enabled_filters: ComputeFilter, ComputeCapabilitiesFilter, ImagePropertiesFilter, ServerGroupAntiAffinityFilter, ServerGroupAffinityFilter
     quota:
       instances: -1
       cores: -1
