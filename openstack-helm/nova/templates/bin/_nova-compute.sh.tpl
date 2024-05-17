@@ -16,8 +16,15 @@ limitations under the License.
 
 set -ex
 
+# override heartbeat_in_pthread variable
+tee > /tmp/oslo_messaging_rabbit.conf << EOF
+[oslo_messaging_rabbit]
+heartbeat_in_pthread = false
+EOF
+
 exec nova-compute \
       --config-file /etc/nova/nova.conf \
+      --config-file /tmp/oslo_messaging_rabbit.conf \
 {{- if .Values.console.address_search_enabled }}
       --config-file /tmp/pod-shared/nova-console.conf \
 {{- end }}
