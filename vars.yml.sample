@@ -261,7 +261,7 @@ preinstall_selinux_state: disabled
 sysctl_file_path: "/etc/sysctl.d/10-k8s.conf"
 
 # ipam settings for kubernetes
-kube_pods_subnet: 10.200.0.0/13
+kube_pods_subnet: 10.233.64.0/18
 kube_network_node_prefix: 24
 kubelet_max_pods: 250
 
@@ -406,6 +406,9 @@ csi_resizer_version: "v1.9.0"
 csi_snapshotter_version: "v6.3.0"
 registry_ready_timeout: 300
 
+# burrito.netapp role variables
+trident_version: "24.02.0"
+
 # burrito.powerflex role variables
 pfx_version: "v2.6.0"
 pfx_snapshot_controller_version: "v6.2.1"
@@ -447,6 +450,13 @@ enable_iscsi_map:
   hitachi: true
   primera: true
 enable_iscsi: "{{ storage_backends|map('extract', enable_iscsi_map)|list is any }}"
+enable_multipath_map:
+  ceph: false
+  netapp: false
+  powerflex: false
+  hitachi: true
+  primera: true
+enable_multipath: "{{ storage_backends|map('extract', enable_multipath_map)|list is all }}"
 
 # keystone
 os_admin_password: "{{ vault_openstack_admin_password }}"
@@ -583,7 +593,7 @@ barbican:
 
 ### btx
 btx:
-  version: "2.0.1"
+  version: "2.0.2"
   pvc:
     size: "200Gi"
 

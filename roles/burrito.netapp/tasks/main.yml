@@ -19,6 +19,13 @@
   delegate_to: localhost
   run_once: true
 
+- name: netapp | remove netapp artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: absent
+  delegate_to: localhost
+  run_once: true
+
 - name: netapp | create netapp artifacts directory
   ansible.builtin.file:
     path: "{{ artifacts_dir }}/setup"
