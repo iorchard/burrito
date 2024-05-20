@@ -16,8 +16,15 @@ limitations under the License.
 
 set -ex
 
+# override heartbeat_in_pthread variable
+tee > /tmp/oslo_messaging_rabbit.conf << EOF
+[oslo_messaging_rabbit]
+heartbeat_in_pthread = false
+EOF
+
 exec nova-compute \
       --config-file /etc/nova/nova.conf \
+      --config-file /tmp/oslo_messaging_rabbit.conf \
       --config-file /tmp/pod-shared/nova-console.conf \
       --config-file /tmp/pod-shared/nova-libvirt.conf \
 {{- if and ( empty .Values.conf.nova.DEFAULT.host ) ( .Values.pod.use_fqdn.compute ) }}

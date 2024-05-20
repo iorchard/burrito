@@ -16,5 +16,12 @@ limitations under the License.
 
 set -xe
 
+# override heartbeat_in_pthread variable
+tee > /tmp/oslo_messaging_rabbit.conf << EOF
+[oslo_messaging_rabbit]
+heartbeat_in_pthread = false
+EOF
+
 exec nova-scheduler \
-      --config-file /etc/nova/nova.conf
+      --config-file /etc/nova/nova.conf \
+      --config-file /tmp/oslo_messaging_rabbit.conf
