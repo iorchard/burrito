@@ -10,5 +10,5 @@ if [ -z ${OLD} ] || [ -z ${NEW} ]; then
   echo
   exit 1
 fi
-git log --no-merges --pretty=format:"%s; (%ae)" ${OLD}~...${NEW} | \
+git log --no-merges --pretty=format:"%s; (%ae)" ${OLD}...${NEW} | \
   sed 's/^\* //g;s/\*/;/g;s/^/* /g'
