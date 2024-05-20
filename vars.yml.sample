@@ -281,7 +281,7 @@ preinstall_selinux_state: disabled
 sysctl_file_path: "/etc/sysctl.d/10-k8s.conf"
 
 # ipam settings for kubernetes
-kube_pods_subnet: 10.200.0.0/13
+kube_pods_subnet: 10.233.64.0/18
 kube_network_node_prefix: 24
 kubelet_max_pods: 250
 
@@ -473,7 +473,6 @@ enable_multipath_map:
   powerflex: false
   hitachi: true
 enable_multipath: "{{ storage_backends|map('extract', enable_multipath_map)|list is all }}"
-
 
 # keystone
 os_admin_password: "{{ vault_openstack_admin_password }}"
