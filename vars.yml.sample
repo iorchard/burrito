@@ -45,18 +45,25 @@ ha_level: "moderato"
 k8s_ha_level: "moderato"
 
 ### storage
-# storage backends: ceph and(or) netapp
+# storage backends
 # If there are multiple backends, the first one is the default backend.
+# Warning) Never use lvm backend for production service!!!
+# lvm backend is for test or demo only.
+# lvm backend cannot be used as a primary backend
+#   since we does not support it for k8s storageclass yet.
+# lvm backend is only used by openstack cinder volume.
 storage_backends:
   - ceph
   - netapp
   - powerflex
   - hitachi
+  - lvm
 
 # ceph: set ceph configuration in group_vars/all/ceph_vars.yml
 # netapp: set netapp configuration in group_vars/all/netapp_vars.yml
 # powerflex: set powerflex configuration in group_vars/all/powerflex_vars.yml
 # hitachi: set hitachi configuration in group_vars/all/hitachi_vars.yml
+# lvm: set LVM configuration in group_vars/all/lvm_vars.yml
 
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
@@ -445,6 +452,7 @@ pvc_access_modes_map:
   netapp: 'ReadWriteMany'
   powerflex: 'ReadWriteOnce'
   hitachi: 'ReadWriteOnce'
+  lvm: 'ReadWriteOnce'
 
 
 # ingress
@@ -466,12 +474,14 @@ enable_iscsi_map:
   netapp: true
   powerflex: false
   hitachi: true
+  lvm: true
 enable_iscsi: "{{ storage_backends|map('extract', enable_iscsi_map)|list is any }}"
 enable_multipath_map:
   ceph: false
   netapp: false
   powerflex: false
   hitachi: true
+  lvm: false
 enable_multipath: "{{ storage_backends|map('extract', enable_multipath_map)|list is all }}"
 
 # keystone
@@ -485,21 +495,25 @@ glance_store_types:
   netapp: 'cinder'
   powerflex: 'cinder'
   hitachi: 'cinder'
+  lvm: 'cinder'
 glance_storage:
   ceph: 'rbd'
   netapp: 'cinder'
   powerflex: 'cinder'
   hitachi: 'cinder'
+  lvm: 'cinder'
 glance_nginx_deploy_types:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'StatefulSet'
   hitachi: 'StatefulSet'
+  lvm: 'StatefulSet'
 glance_pvc_nginx_client_tmp:
   ceph: false
   netapp: true
   powerflex: false
   hitachi: false
+  lvm: false
 glance:
   storage: "{{ storage_backends|map('extract', glance_storage)|list|first }}"
   enabled_backends: "{{ storage_backends|map('extract', glance_store_types)|unique }}"
@@ -545,6 +559,7 @@ nova_pvc_instances:
   netapp: true
   powerflex: false
   hitachi: false
+  lvm: false
 nova:
   vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
   hypervisor_host_interface: "{{ mgmt_iface_name }}"
@@ -567,16 +582,19 @@ cinder_backends_map:
   netapp: "{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}"
   powerflex: 'powerflex'
   hitachi: 'hitachi'
+  lvm: 'lvm'
 cinder_vol_deploy_type_map:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
   powerflex: 'StatefulSet'
   hitachi: 'StatefulSet'
+  lvm: 'StatefulSet'
 cinder_pvc_conversion:
   ceph: false
   netapp: true
   powerflex: false
   hitachi: false
+  lvm: false
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first|split(',')|first }}"

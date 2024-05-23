@@ -26,7 +26,20 @@ volume_deployment:
     access_modes: {{ cinder.volume_deploy.access_modes }}
     size: {{ cinder.volume_deploy.size }}
 
+{% if "lvm" in storage_backends %}
+labels:
+  volume:
+    node_selector_key: kubernetes.io/hostname
+    node_selector_value: {{ groups['kube_control_plane'][0] }}
+{% endif %}
+
 pod:
+  replicas:
+    api: {{ pod.replicas }}
+    backup: {{ pod.replicas }}
+    scheduler: 1
+    volume: {% if "lvm" in storage_backends %}1{% else %}{{ pod.replicas }}{% endif %}
+
   useHostNetwork:
     volume: {{ enable_iscsi }}
   security_context:
@@ -56,6 +69,16 @@ pod:
             add:
               - SYS_ADMIN
           readOnlyRootFilesystem: false
+{% endif %}
+{% if enable_iscsi %}
+    cinder_volume:
+      container:
+        cinder_volume:
+          runAsUser: 0
+          privileged: true
+          readOnlyRootFilesystem: false
+{% endif %}
+{% if "powerflex" in storage_backends %}
   mounts:
     cinder_volume:
       cinder_volume:
@@ -92,19 +115,23 @@ pod:
           - name: cinder-tmp
             emptyDir: {}
 {% endif %}
-{% if enable_iscsi %}
+{% if "lvm" in storage_backends %}
+  mounts:
     cinder_volume:
-      container:
-        cinder_volume:
-          runAsUser: 0
-          privileged: true
-          readOnlyRootFilesystem: false
+      cinder_volume:
+        volumeMounts:
+          - name: lvmconf
+            mountPath: /etc/lvm/lvm.conf
+            readOnly: true
+          - name: etctarget
+            mountPath: /etc/target
+        volumes:
+          - name: lvmconf
+            hostPath:
+              path: /etc/lvm/cinder-volume-lvm.conf
+          - name: etctarget
+            emptyDir: {}
 {% endif %}
-  replicas:
-    api: {{ pod.replicas }}
-    backup: {{ pod.replicas }}
-    scheduler: 1
-    volume: {{ pod.replicas }}
 
 bootstrap:
   volume_types:
@@ -135,6 +162,12 @@ bootstrap:
       volume_backend_name: {{ cinder_backends_map.hitachi }}
       access_type: "private"
 {% endif %}
+{% if "lvm" in storage_backends %}
+    lvm:
+      volume_backend_name: {{ cinder_backends_map.lvm }}
+      access_type: "private"
+{% endif %}
+
 
 network:
   api:
@@ -341,6 +374,17 @@ conf:
       hitachi_group_create: False
       hitachi_group_delete: False
       hitachi_rest_name_only_discovery: True
+{% endif %}
+{% if "lvm" in storage_backends %}
+    lvm:
+      volume_driver: {{ lvm_volume_driver }}
+      volume_group: {{ lvm_vg_name }}
+      volume_backend_name: lvm
+      target_protocol: iscsi
+      target_helper: lioadm
+      image_volume_cache_enabled: True
+      image_upload_use_cinder_backend: True
+      image_upload_use_internal_tenant: True
 {% endif %}
 
 endpoints:

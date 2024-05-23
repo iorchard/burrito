@@ -64,7 +64,7 @@ console:
       vncserver_proxyclient_interface: {{ nova.vncserver_proxyclient_interface }}
 
 conf:
-  enable_iscsi: {{ ("hitachi" in storage_backends)|ternary('true', 'false') }}
+  enable_iscsi: {{ enable_iscsi }}
   db_acl:
     enabled: true
 {% raw %}
