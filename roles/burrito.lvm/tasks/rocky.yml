@@ -1,0 +1,25 @@
+---
+- name: Rocky Linux | install packages on control nodes
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ packages }}"
+  when: inventory_hostname in groups['controller-node']
+
+- name: Rocky Linux | install packages on compute nodes
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ compute_packages }}"
+  when: inventory_hostname in groups['compute-node']
+...

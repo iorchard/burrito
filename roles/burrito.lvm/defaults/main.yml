@@ -1,0 +1,10 @@
+---
+lvm_kernel_modules:
+  - dm_thin_pool
+  - dm_snapshot
+  - target_core_mod
+lvm_conf:
+  - {dest: "/etc/lvm/cinder-volume-lvm.conf"}
+lvm_vg_name: "cinder-volume"
+lvm_devices: "/dev/sdb"
+...

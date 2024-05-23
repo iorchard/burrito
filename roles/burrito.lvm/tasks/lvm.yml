@@ -1,0 +1,27 @@
+---
+- name: LVM | load kernel modules
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+    persistent: present
+  become: true
+  loop: "{{ lvm_kernel_modules }}"
+
+- name: LVM | copy lvm configuration for cinder-volume
+  ansible.builtin.copy:
+    dest: "{{ item.dest }}"
+    src: "{{ ansible_os_family | lower }}{{ item.dest }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  loop: "{{ lvm_conf }}"
+
+- name: LVM | create volume group
+  community.general.lvg:
+    vg: "{{ lvm_vg_name }}"
+    pvs: "{{ lvm_devices }}"
+  become: true
+  delegate_to: "{{ groups['controller-node'][0] }}"
+  run_once: true
+...
