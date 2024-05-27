@@ -1,0 +1,9 @@
+---
+- name: deploy LVM backend
+  hosts: controller-node[0]:compute-node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.lvm
+      when: '"lvm" in storage_backends'
+      tags: ['lvm']
+...

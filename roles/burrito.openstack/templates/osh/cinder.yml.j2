@@ -26,7 +26,20 @@ volume_deployment:
     access_modes: {{ cinder.volume_deploy.access_modes }}
     size: {{ cinder.volume_deploy.size }}
 
+{% if "lvm" in storage_backends %}
+labels:
+  volume:
+    node_selector_key: kubernetes.io/hostname
+    node_selector_value: {{ groups['kube_control_plane'][0] }}
+{% endif %}
+
 pod:
+  replicas:
+    api: {{ pod.replicas }}
+    backup: {{ pod.replicas }}
+    scheduler: 1
+    volume: {% if "lvm" in storage_backends %}1{% else %}{{ pod.replicas }}{% endif %}
+
   useHostNetwork:
     volume: {{ enable_iscsi }}
   security_context:
@@ -100,11 +113,23 @@ pod:
           privileged: true
           readOnlyRootFilesystem: false
 {% endif %}
-  replicas:
-    api: {{ pod.replicas }}
-    backup: {{ pod.replicas }}
-    scheduler: 1
-    volume: {{ pod.replicas }}
+{% if "lvm" in storage_backends %}
+  mounts:
+    cinder_volume:
+      cinder_volume:
+        volumeMounts:
+          - name: lvmconf
+            mountPath: /etc/lvm/lvm.conf
+            readOnly: true
+          - name: etctarget
+            mountPath: /etc/target
+        volumes:
+          - name: lvmconf
+            hostPath:
+              path: /etc/lvm/cinder-volume-lvm.conf
+          - name: etctarget
+            emptyDir: {}
+{% endif %}
 
 bootstrap:
   volume_types:
@@ -138,6 +163,11 @@ bootstrap:
 {% if "primera" in storage_backends %}
     primera:
       volume_backend_name: {{ cinder_backends_map.primera }}
+      access_type: "private"
+{% endif %}
+{% if "lvm" in storage_backends %}
+    lvm:
+      volume_backend_name: {{ cinder_backends_map.lvm }}
       access_type: "private"
 {% endif %}
 
@@ -365,6 +395,17 @@ conf:
       hpe3par_snapshot_expiration: 72
       max_over_scription_raio: 20.0
       reserved_percentage: 15
+{% endif %}
+{% if "lvm" in storage_backends %}
+    lvm:
+      volume_driver: {{ lvm_volume_driver }}
+      volume_group: {{ lvm_vg_name }}
+      volume_backend_name: lvm
+      target_protocol: iscsi
+      target_helper: lioadm
+      image_volume_cache_enabled: True
+      image_upload_use_cinder_backend: True
+      image_upload_use_internal_tenant: True
 {% endif %}
 
 endpoints:
