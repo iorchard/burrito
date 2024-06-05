@@ -1,4 +1,7 @@
 ---
+- name: Purge | import common tasks
+  ansible.builtin.import_tasks: "common.yml"
+
 - name: Purge | check if ceph cluster is accessible
   ansible.builtin.shell: >-
     cephadm --timeout=3 shell -- ceph fsid
@@ -43,4 +46,28 @@
     cephadm rm-cluster --force --zap-osds --fsid {{ _fsid }}
   become: true
   when: inventory_hostname in groups['ceph_servers']
+
+- name: Purge | remove packages on ceph servers
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: absent
+  become: true
+  loop: "{{ packages }}"
+  when: inventory_hostname in groups['ceph_servers']
+
+- name: Purge | remove packages on ceph clients
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: absent
+  become: true
+  loop: "{{ client_pkgs }}"
+  when: inventory_hostname in groups['clients']
+
+- name: Purge | remove online packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ online_pkgs }}"
+  become: true
+  when: not offline
 ...
