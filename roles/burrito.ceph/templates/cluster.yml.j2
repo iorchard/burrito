@@ -29,7 +29,6 @@ networks:
   - {{ public_network }}
 ---
 service_type: osd
-service_id: default_osd
 placement:
   hosts:
     {% for h in groups['osds'] %}
