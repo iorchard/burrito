@@ -19,10 +19,6 @@ vrrp_sync_group VSG {
     VI_BURRITO_MGMT
     {{ keepalived_svc_exists | ternary("VI_BURRITO_SVC", "") }}
   }
-  track_script {
-    check_proxy
-  }
-  notify "/etc/keepalived/keepalived_state.sh"
 }
 vrrp_instance VI_BURRITO_MGMT {
   state BACKUP
@@ -45,6 +41,10 @@ vrrp_instance VI_BURRITO_MGMT {
   virtual_ipaddress {
     {{ keepalived_vip }}
   }
+  track_script {
+    check_proxy
+  }
+  notify "/etc/keepalived/keepalived_state.sh"
 }
 {% if keepalived_svc_exists %}
 vrrp_instance VI_BURRITO_SVC {
@@ -68,5 +68,9 @@ vrrp_instance VI_BURRITO_SVC {
   virtual_ipaddress {
     {{ keepalived_vip_svc }}
   }
+  track_script {
+    check_proxy
+  }
+  notify "/etc/keepalived/keepalived_state.sh"
 }
 {% endif %}
