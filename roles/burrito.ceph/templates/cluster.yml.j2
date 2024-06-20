@@ -4,9 +4,19 @@
 service_type: host
 hostname: {{ h }}
 addr: {{ hostvars[h]['ansible_' + storage_iface_name].ipv4.address }}
-{% if h in groups['mons'] %}
 labels:
+{% if h in groups['mons'] %}
   - _admin
+  - mon
+{% endif %}
+{% if h in groups['mgrs'] %}
+  - mgr
+{% endif %}
+{% if h in groups['osds'] %}
+  - osd
+{% endif %}
+{% if h in groups['rgws'] %}
+  - rgw
 {% endif %}
 {% endfor %}
 ---
