@@ -1,5 +1,5 @@
 ---
-- name: netapp | Install the NFS tools
+- name: netapp | install the NFS tools
   ansible.builtin.package:
     name: "nfs-utils"
     state: "present"
@@ -7,6 +7,17 @@
   until: not _pkg.failed
   retries: 3
   delay: 3
+  become: true
+
+- name: netapp | get the machine-id
+  ansible.builtin.slurp:
+    src: "/etc/machine-id"
+  register: mid_encoded
+
+- name: netapp | create nfs module configuration
+  ansible.builtin.copy:
+    content: "options nfs nfs4_unique_id={{ inventory_hostname }}-{{ mid_encoded.content | b64decode }}"
+    dest: /etc/modprobe.d/nfsclient.conf
   become: true
 
 - name: netapp | create trident namespace
