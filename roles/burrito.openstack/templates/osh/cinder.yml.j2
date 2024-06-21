@@ -144,6 +144,7 @@ bootstrap:
       volume_backend_name: {{ n.name }}
       access_type: "private"
       dataLIF: "{{ n.dataLIF }}"
+      "image_service:store_id": "{{ glance_store_types.netapp }}"
       shares:
 {% for share in n.shares %}
         - "{{ share }}"
@@ -154,21 +155,25 @@ bootstrap:
     powerflex:
       volume_backend_name: {{ cinder_backends_map.powerflex }}
       access_type: "private"
+      "image_service:store_id": "{{ glance_store_types.powerflex }}"
 {% endif %}
 {% if "hitachi" in storage_backends %}
     hitachi:
       volume_backend_name: {{ cinder_backends_map.hitachi }}
       access_type: "private"
+      "image_service:store_id": "{{ glance_store_types.hitachi }}"
 {% endif %}
 {% if "primera" in storage_backends %}
     primera:
       volume_backend_name: {{ cinder_backends_map.primera }}
       access_type: "private"
+      "image_service:store_id": "{{ glance_store_types.primera }}"
 {% endif %}
 {% if "lvm" in storage_backends %}
     lvm:
       volume_backend_name: {{ cinder_backends_map.lvm }}
       access_type: "private"
+      "image_service:store_id": "{{ glance_store_types.lvm }}"
 {% endif %}
 
 network:
@@ -332,6 +337,8 @@ conf:
       nas_secure_file_operations: {{ n.nas_secure_file_operations }}
       nas_secure_file_permissions: {{ n.nas_secure_file_permissions }}
       image_volume_cache_enabled: True
+      image_upload_use_cinder_backend: True
+      image_upload_use_internal_tenant: True
 {% endfor %}
 {% endif %}
 {% if "powerflex" in storage_backends %}
