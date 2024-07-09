@@ -28,6 +28,16 @@
   delegate_to: localhost
   run_once: true
 
+- name: Setup | templating files (for offline installation)
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.dest | basename }}.j2"
+    mode: "0600"
+  loop: "{{ offline_template_files }}"
+  delegate_to: localhost
+  run_once: true
+  when: offline
+
 - name: Setup | create namespace
   kubernetes.core.k8s:
     state: present
@@ -59,7 +69,7 @@
   delegate_to: localhost
   run_once: true
 
-- name: Setup | create a configmap
+- name: Setup | create a configmap (for offline installation)
   kubernetes.core.k8s:
     state: present
     resource_definition:
@@ -73,6 +83,7 @@
   become: true
   delegate_to: localhost
   run_once: true
+  when: offline
 
 - name: Setup | add node labels
   kubernetes.core.k8s:
