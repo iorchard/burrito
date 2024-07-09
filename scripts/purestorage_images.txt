@@ -1,0 +1,8 @@
+docker.io/portworx/oci-monitor:3.1.2
+docker.io/portworx/px-operator:24.1.0
+registry.k8s.io/pause:3.1
+registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.9.0
+registry.k8s.io/sig-storage/csi-provisioner:v3.6.1
+registry.k8s.io/sig-storage/csi-resizer:v1.9.1
+registry.k8s.io/sig-storage/csi-snapshotter:v6.3.1
+registry.k8s.io/sig-storage/snapshot-controller:v6.3.1

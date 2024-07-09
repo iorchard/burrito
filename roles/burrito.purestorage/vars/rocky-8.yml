@@ -1,0 +1,10 @@
+---
+packages:
+  - device-mapper-multipath
+  - sg3_utils
+  - lsscsi
+  - sysfsutils
+  - libstoragemgmt
+#  - libstoragemgmt-udev
+  - iscsi-initiator-utils
+...

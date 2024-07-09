@@ -178,5 +178,9 @@
 
 - name: Genesis Registry | include patch tasks for primera
   ansible.builtin.include_tasks: "primera_patch.yml"
-  when: storage_backends[0] == 'primera'
+  when: storage_backends[0] == 'primera
+
+- name: Genesis Registry | include patch tasks for purestorage
+  ansible.builtin.include_tasks: "purestorage_patch.yml"
+  when: storage_backends[0] == 'purestorage'
 ...
