@@ -5,6 +5,9 @@ packages:
   - lsscsi
   - sysfsutils
   - libstoragemgmt
-#  - libstoragemgmt-udev
+  - libstoragemgmt-udev
   - iscsi-initiator-utils
+
+libstoragemgmt_udev_file: "/usr/lib/udev/rules.d/90-scsi-ua.rules"
+libstoragemgmt_udev_rule: 'ACTION=="change", SUBSYSTEM=="scsi", ENV{SDEV_UA}=="CAPACITY_DATA_HAS_CHANGED", TEST=="rescan", ATTR{rescan}="x"'
 ...

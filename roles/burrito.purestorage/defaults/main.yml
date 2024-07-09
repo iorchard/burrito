@@ -4,6 +4,7 @@ artifacts_dir: "{{ ansible_env.HOME }}/purestorage-artifacts"
 service_conf:
   - {dest: "/etc/multipath.conf", owner: "root", group: "root", mode: "0600"}
 systemd_service_name:
+  - systemd-udevd.service
   - multipathd.service
 
 template_files:

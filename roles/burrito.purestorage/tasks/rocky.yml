@@ -9,4 +9,13 @@
   delay: 3
   become: true
   loop: "{{ packages }}"
+
+- name: purestorage | Enable udev rule
+  ansible.builtin.lineinfile:
+    path: "{{ libstoragemgmt_udev_file }}"
+    search_string: 'CAPACITY_DATA_HAS_CHANGED'
+    line: "{{ libstoragemgmt_udev_rule }}"
+  become: true
+  notify:
+    - systemctl restart service
 ...
