@@ -4,7 +4,7 @@ purestorage_mgmt_ip: "192.168.100.233"
 # pureuser's API token. 
 # You can create a token with 'pureadmin create pureuser --api-token' command
 # on Flash Array.
-purestorage_api_token: "c428e9a5-ff82-6841-79a8-fd18aa2fa109"
+purestorage_api_token: ""
 # transport protocol: iscsi, fc, or nvme
 purestorage_transport_protocol: "fc"
 
