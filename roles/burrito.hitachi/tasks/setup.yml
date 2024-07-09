@@ -1,5 +1,5 @@
 ---
-- name: ceph-csi | copy ceph-csi static files
+- name: Setup | copy static files
   ansible.builtin.copy:
     dest: "{{ item.dest }}"
     src: "{{ ansible_os_family | lower }}{{ item.dest }}"
