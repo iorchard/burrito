@@ -10,11 +10,11 @@ metadata:
     portworx.io/pvc-controller-secure-port: "10262"
     portworx.io/disable-storage-class: "true"
 spec:
-  image: {{ docker_image_repo }}/portworx/oci-monitor:{{ portworx_oci_monitor_version }}
-  {% if offline %}
-  customImageRegistry: {{ containerd_insecure_registries.seed_registry }}
-  {% end %}
+  image: portworx/oci-monitor:{{ portworx_oci_monitor_version }}
   imagePullPolicy: Always
+  {% if offline -%}
+  customImageRegistry: {{ containerd_insecure_registries.seed_registry }}
+  {% endif -%}
   updateStrategy:
     type: RollingUpdate
     rollingUpdate:
