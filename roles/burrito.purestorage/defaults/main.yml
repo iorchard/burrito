@@ -31,7 +31,7 @@ check_kvdb_health:
   delay: 10
 
 uninstall_files:
-  - {dest: "{{ artifacts_dir }}/portworx_storageclass.yml"}
-  - {dest: "{{ artifacts_dir }}/portworx_storagecluster.yml"}
-  - {dest: "{{ artifacts_dir }}/portworx_operator.yml"}
+  - "{{ artifacts_dir }}/portworx_storageclass.yml"
+  - "{{ artifacts_dir }}/portworx_storagecluster.yml"
+  - "{{ artifacts_dir }}/portworx_operator.yml"
 ...

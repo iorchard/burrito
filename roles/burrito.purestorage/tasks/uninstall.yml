@@ -3,6 +3,8 @@
   kubernetes.core.k8s:
     state: absent
     src: "{{ item }}"
+    wait: true
+    wait_timeout: 300
   become: true
   delegate_to: localhost
   run_once: true
