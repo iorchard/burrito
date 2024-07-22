@@ -21,6 +21,15 @@ purestorage_api_token: ~
 
 purestorage_namespace: "portworx"
 
+check_node_health:
+  url: "http://127.0.0.1:9001/v1/cluster/nodehealth"
+  retries: 60
+  delay: 10
+check_kvdb_health:
+  url: "http://127.0.0.1:9019/version"
+  retries: 30
+  delay: 10
+
 uninstall_files:
   - {dest: "{{ artifacts_dir }}/portworx_storageclass.yml"}
   - {dest: "{{ artifacts_dir }}/portworx_storagecluster.yml"}

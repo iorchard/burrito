@@ -64,7 +64,6 @@
         namespace: "{{ purestorage_namespace }}"
       data:
         pure.json: "{{ lookup('file', '{{ artifacts_dir }}/pure.json') | b64encode }}"
-#        pure.json: "{{ lookup('template', 'pure.json.j2') | b64encode }}"
   become: true
   delegate_to: localhost
   run_once: true
@@ -108,4 +107,27 @@
     - "{{ artifacts_dir }}/*.yml"
   delegate_to: localhost
   run_once: true
+
+- name: Setup | wait until px cluster is operational
+  ansible.builtin.uri:
+    url: "{{ check_node_health.url }}"
+    method: GET
+    timeout: 3
+  failed_when: false
+  register: _return
+  until: _return.status == 200
+  retries: "{{ check_node_health.retries }}"
+  delay: "{{ check_node_health.delay }}"
+
+- name: Setup | wait until portworx kvdb is running
+  ansible.builtin.uri:
+    url: "{{ check_kvdb_health.url }}"
+    method: GET
+    timeout: 3
+  failed_when: false
+  register: _return
+  until: _return.status == 200
+  retries: "{{ check_kvdb_health.retries }}"
+  delay: "{{ check_kvdb_health.delay }}"
+  when: inventory_hostname in groups['kube_control_plane']
 ...
