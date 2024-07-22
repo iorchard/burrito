@@ -5,21 +5,26 @@ set -e
 CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
 REPO_PORT=8001
 REGISTRY_PORT=5000
+REGISTRY_CERT_DIR="/etc/ssl/registry"
 EXIT_CODE=0
 U=
 MGMT_IP=
 
 function check() {
-  read -p "Enter management network interface name: " MGMT_IFACE
-  # check MGMT_IFACE exists
-  if ! ip -br a s dev ${MGMT_IFACE}; then
-    echo "Cannot find the network interface name: $MGMT_IFACE"
-    exit 1
+  if [ -f ${CURRENT_DIR}/.mgmt_ip ]; then
+    MGMT_IP=$(head -1 ${CURRENT_DIR}/.mgmt_ip)
+  else
+    read -p "Enter management network interface name: " MGMT_IFACE
+    # check MGMT_IFACE exists
+    if ! ip -br a s dev ${MGMT_IFACE}; then
+      echo "Cannot find the network interface name: $MGMT_IFACE"
+      exit 1
+    fi
+    # get mgmt iface ip address
+    MGMT_IP=$(ip -br a s dev ${MGMT_IFACE} | awk '{print $3}' |cut -d'/' -f1)
+    # save MGMT_IP to .mgmt_ip
+    echo ${MGMT_IP} > ${CURRENT_DIR}/.mgmt_ip
   fi
-  # get mgmt iface ip address
-  MGMT_IP=$(ip -br a s dev ${MGMT_IFACE} | awk '{print $3}' |cut -d'/' -f1)
-  # save MGMT_IP to .mgmt_ip
-  echo ${MGMT_IP} > ${CURRENT_DIR}/.mgmt_ip
 }
 function _pids() {
   if [ ! -f ${CURRENT_DIR}/.mgmt_ip ]; then
@@ -70,7 +75,7 @@ function registry_down() {
   if [ -n "${REGISTRY_PID}" ]; then
     U=$(ps -q ${REGISTRY_PID} -o user=)
     if [ "x${U}" != "xhaproxy" ]; then
-      kill ${REGISTRY_PID}
+      sudo kill ${REGISTRY_PID}
       echo "Stopped local registry."
     else
       echo "I can do nothing: Local registry is already taken over by haproxy."
@@ -130,13 +135,51 @@ EOF
     fi   
   fi
 }
+function create_seed_registry_cert() {
+  if [ -f ${REGISTRY_CERT_DIR}/ca.pem -a \
+       -f ${REGISTRY_CERT_DIR}/seed-registry-key.pem -a \
+       -f ${REGISTRY_CERT_DIR}/seed-registry.pem \
+     ]; then
+    return
+  fi
+  certtool --generate-privkey | sudo tee ${REGISTRY_CERT_DIR}/ca-key.pem
+  cat <<EOF | sudo tee ${REGISTRY_CERT_DIR}/ca.info
+cn = "Registry"
+expiration_days = 3650
+ca
+cert_signing_key
+EOF
+  sudo certtool --generate-self-signed --bits=4096 \
+        --load-privkey ${REGISTRY_CERT_DIR}/ca-key.pem \
+        --template ${REGISTRY_CERT_DIR}/ca.info \
+        --outfile ${REGISTRY_CERT_DIR}/ca.pem
+  sudo certtool --generate-privkey \
+        --outfile ${REGISTRY_CERT_DIR}/seed-registry-key.pem
+  cat <<EOF | sudo tee ${REGISTRY_CERT_DIR}/seed-registry.info
+organization = "Seed Registry"
+cn = "seed-registry"
+expiration_days = 3650
+tls_www_server
+encryption_key
+signing_key
+EOF
+  sudo certtool --generate-certificate \
+        --load-privkey ${REGISTRY_CERT_DIR}/seed-registry-key.pem \
+        --load-ca-certificate ${REGISTRY_CERT_DIR}/ca.pem \
+        --load-ca-privkey ${REGISTRY_CERT_DIR}/ca-key.pem \
+        --template ${REGISTRY_CERT_DIR}/seed-registry.info \
+        --outfile ${REGISTRY_CERT_DIR}/seed-registry.pem
+}
 function registry_up() {
-  # Create a random registry secret
-  REGISTRY_SECRET=$(head /dev/urandom |tr -dc A-Za-z0-9 |head -c 16)
   # down the registry if it is running.
   registry_down
+  # create TLS certificate
+  sudo mkdir -p $REGISTRY_CERT_DIR
+  create_seed_registry_cert
+  # Create a random registry secret
+  REGISTRY_SECRET=$(head /dev/urandom |tr -dc A-Za-z0-9 |head -c 16)
   # Run registry server
-  cat <<EOF > /tmp/config.yml
+  cat <<EOF > /tmp/seed_registry.conf
 version: 0.1
 log:
   fields:
@@ -151,11 +194,12 @@ http:
   headers:
     X-Content-Type-Options: [nosniff]
   secret: ${REGISTRY_SECRET}
+  tls:
+    certificate: ${REGISTRY_CERT_DIR}/seed-registry.pem
+    key: ${REGISTRY_CERT_DIR}/seed-registry-key.pem
 health:
   storagedriver:
-    enabled: true
-    interval: 10s
-    threshold: 3
+    enabled: false
 compatibility:
   schema1:
     enabled: true
@@ -163,7 +207,7 @@ EOF
   pushd /usr/bin
     sudo tar xzf /mnt/files/github.com/distribution/distribution/releases/download/v*/registry*.tar.gz registry
   popd
-  nohup /usr/bin/registry serve /tmp/config.yml &>/tmp/registry.log &
+  nohup sudo /usr/bin/registry serve /tmp/seed_registry.conf &>/tmp/registry.log &
 }
 function USAGE() {
   echo "USAGE: $0 [-h|-d|-u]" 1>&2

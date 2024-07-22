@@ -1,0 +1,75 @@
+---
+- name: TLS | check if CA certificate exists
+  ansible.builtin.stat:
+    path: "{{ tls_ca.crt }}"
+  register: p
+  failed_when: p.stat.isreg is defined and p.stat.isreg == False
+
+- name: TLS | create temporary certificate directory
+  ansible.builtin.file:
+    path: "{{ tls_tmp_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: TLS | create server certificate directory
+  ansible.builtin.file:
+    path: "{{ tls_dir }}"
+    state: directory
+    mode: "0755"
+  become: true
+
+- name: TLS | create private key for genesis registry
+  community.crypto.openssl_privatekey:
+    path: "{{ tls_server.key }}"
+    select_crypto_backend: cryptography
+    type: RSA
+    size: 4096
+  become: true
+
+- name: TLS | create CSR for server certificate
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: "{{ tls_server.key }}"
+    organization_name: "{{ tls_subj.organization_name }}"
+    common_name: "{{ tls_subj.common_name }}"
+    use_common_name_for_san: false
+    subject_alt_name: "{{ tls_san }}"
+  become: true
+  register: server_csr
+
+- name: TLS | check if server certificate exists
+  ansible.builtin.stat:
+    path: "{{ tls_server.crt }}"
+  register: server_cert_exists
+
+- name: TLS | read server certificate if exists
+  ansible.builtin.slurp:
+    src: "{{ tls_server.crt }}"
+  register: server_certificate
+  when:
+    - server_cert_exists.stat.exists
+
+- name: TLS | sign server certificate with CA
+  community.crypto.x509_certificate_pipe:
+    content: "{{ (server_certificate.content | b64decode) if server_cert_exists.stat.exists else omit }}"
+    csr_content: "{{ server_csr.csr }}"
+    provider: ownca
+    ownca_path: "{{ tls_ca.crt }}"
+    ownca_privatekey_path: "{{ tls_ca.key }}"
+    ownca_not_after: "{{ tls_days }}"
+    ownca_not_before: "+0s"
+  become: true
+  register: server_cert
+
+- name: TLS | write server certificate file on server
+  ansible.builtin.copy:
+    dest: "{{ tls_server.crt }}"
+    content: "{{ server_cert.certificate }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  when: server_cert is changed
+
+- name: TLS | restart offline_services.sh script
+  ansible.builtin.shell: ./scripts/offline_services.sh -u registry
+...

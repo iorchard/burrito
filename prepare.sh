@@ -7,7 +7,7 @@ CFGFILES=(ansible.cfg hosts vars.yml)
 
 if [ x"$OPT" = x"offline" ]; then
   ./scripts/offline_services.sh --up
-  sudo dnf -y install python39
+  sudo dnf -y install python39 gnutls-utils
   python3.9 -m venv ~/.envs/burrito
   . ~/.envs/burrito/bin/activate
   pip install --no-index --find-links /mnt/pypi /mnt/pypi/{pip,wheel}-*
@@ -17,7 +17,8 @@ if [ x"$OPT" = x"offline" ]; then
     [ -f pfx_req.yml ] && ansible-galaxy install --force -r pfx_req.yml || :
   popd
 else
-  sudo dnf -y install git python3 python39 python3-cryptography epel-release
+  sudo dnf -y install git python3 python39 python3-cryptography epel-release \
+    gnutls-utils
   python3.9 -m venv ~/.envs/burrito
   . ~/.envs/burrito/bin/activate
   python -m pip install -U pip
