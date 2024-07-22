@@ -1,7 +1,8 @@
 version: {{ portworx_version }}
 components:
-  csiNodeDriverRegistrar: {{ kube_image_repo }}/sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}
-  csiProvisioner: {{ kube_image_repo }}/sig-storage/csi-provisioner:{{ csi_provisioner_version }}
-  csiResizer: {{ kube_image_repo }}/sig-storage/csi-resizer:{{ csi_resizer_version }}
-  csiSnapshotter: {{ kube_image_repo }}/sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}
-  csiSnapshotController: {{ kube_image_repo }}/sig-storage/snapshot-controller:{{ snapshot_contoller_version }}
+  csiNodeDriverRegistrar: /sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}
+  csiProvisioner: /sig-storage/csi-provisioner:{{ csi_provisioner_version }}
+  csiResizer: /sig-storage/csi-resizer:{{ csi_resizer_version }}
+  csiSnapshotter: /sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}
+  csiSnapshotController: /sig-storage/snapshot-controller:{{ snapshot_contoller_version }}
+  pause: /pause:{{ portworx_pause_version }}
