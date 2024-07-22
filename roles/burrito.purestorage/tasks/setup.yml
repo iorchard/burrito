@@ -78,7 +78,7 @@
         name: px-versions
         namespace: "{{ purestorage_namespace }}"
       data:
-        versions.yaml: "{{ lookup('file', '{{ artifacts_dir }}/versions.yaml') | b64encode }}"
+        versions.yaml: "{{ lookup('file', '{{ artifacts_dir }}/versions.yaml') }}"
   become: true
   delegate_to: localhost
   run_once: true
