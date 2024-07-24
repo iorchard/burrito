@@ -17,13 +17,6 @@
   ansible.builtin.import_playbook: nova_vnc_cert/site.yml
   tags: novavnc-burrito
 
-- name: setup cert-manager
-  hosts: localhost
-  any_errors_fatal: true
-  roles:
-    - { role: burrito.cert-manager, tags: ['cert-manager', 'burrito']}
-  tags: k8s-burrito
-
 - name: setup system
   hosts: k8s_cluster
   any_errors_fatal: true
