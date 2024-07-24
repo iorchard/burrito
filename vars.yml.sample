@@ -374,6 +374,7 @@ etcd_ionice_priority: 0
 
 # Registry deployment
 registry_version: "2.8.3"
+registry_tls_secret: "registry-tls"
 registry_enabled: "{{ offline|ternary(true, false) }}"
 registry_namespace: kube-system
 registry_storage_class: "{{ storage_backends[0] }}"
