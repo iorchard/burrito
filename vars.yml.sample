@@ -256,7 +256,7 @@ docker_image_repo: "docker.io"
 quay_image_repo: "quay.io"
 download_run_once: false
 bin_dir: /usr/bin
-kube_version: v1.29.2
+kube_version: v1.30.3
 kube_proxy_strict_arp: true
 kubeconfig_localhost: true
 kubectl_localhost: true
@@ -354,7 +354,7 @@ kube_pod_security_use_default: true
 kube_pod_security_default_enforce: restricted
 
 ## calico
-calico_version: "v3.26.4"
+calico_version: "v3.27.3"
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
