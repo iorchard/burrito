@@ -1,0 +1,32 @@
+--- kubespray/playbooks/cluster.yml	2024-07-24 16:32:10.314194439 +0900
++++ patches/kubespray/playbooks/cluster.yml	2024-07-24 16:31:07.120167489 +0900
+@@ -70,7 +70,7 @@
+     - { role: kubespray-defaults }
+     - { role: win_nodes/kubernetes_patch, tags: ["master", "win_nodes"] }
+ 
+-- name: Install Kubernetes apps
++- name: Install Kubernetes apps - part1
+   hosts: kube_control_plane
+   gather_facts: False
+   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+@@ -82,6 +82,20 @@
+     - { role: kubernetes-apps/policy_controller, tags: policy-controller }
+     - { role: kubernetes-apps/ingress_controller, tags: ingress-controller }
+     - { role: kubernetes-apps/external_provisioner, tags: external-provisioner }
++
++- name: Install cert-manager ca issuer
++  hosts: localhost
++  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
++  roles:
++    - { role: burrito.cert-manager, tags: burrito-cert-manager }
++
++- name: Install Kubernetes apps - part2
++  hosts: kube_control_plane
++  gather_facts: False
++  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
++  environment: "{{ proxy_disable_env }}"
++  roles:
++    - { role: kubespray-defaults }
+     - { role: kubernetes-apps, tags: apps }
+ 
+ - name: Apply resolv.conf changes now that cluster DNS is up

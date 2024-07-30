@@ -15,6 +15,9 @@
   become: true
   when: inventory_hostname != groups['kube_control_plane'][0]
 
+- name: Genesis Registry | include tls tasks
+  ansible.builtin.include_tasks: "tls.yml"
+
 - name: Genesis Registry | copy systemd service file
   ansible.builtin.copy:
     dest: "{{ item.dest }}"
@@ -25,6 +28,12 @@
   loop:
     - {dest: "/etc/systemd/system/genesis_registry.service"}
   become: true
+
+- name: Genesis Regsitry | create a registry secret
+  ansible.builtin.set_fact:
+    registry_secret: "{{ lookup('community.general.random_string', length=12, base64=True) }}"
+  delegate_to: localhost
+  run_once: true
 
 - name: Genesis Registry | templating template files
   ansible.builtin.template:
@@ -42,7 +51,8 @@
 
 - name: Genesis Registry | check service is available
   ansible.builtin.uri:
-    url: "http://{{ genesis_registry.addr }}"
+    url: "https://{{ genesis_registry.addr }}"
+    validate_certs: false
     method: GET
     timeout: 3
   failed_when: false
@@ -179,4 +189,8 @@
 - name: Genesis Registry | include patch tasks for primera
   ansible.builtin.include_tasks: "primera_patch.yml"
   when: storage_backends[0] == 'primera'
+
+- name: Genesis Registry | include patch tasks for purestorage
+  ansible.builtin.include_tasks: "purestorage_patch.yml"
+  when: storage_backends[0] == 'purestorage'
 ...

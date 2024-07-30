@@ -1,0 +1,27 @@
+---
+- name: confirm whether user really meant to uninstall purestorage csi driver
+  hosts: localhost
+  gather_facts: false
+  vars_prompt:
+    - name: ireallymeanit
+      prompt: Are you sure you want to uninstall purestorage csi driver (No | Yes, I really mean it)?
+      private: false
+  tasks:
+    - name: exit playbook, if user did not mean to purge the cluster
+      fail:
+        msg: >
+          "Exiting the playbook, purestorage csi driver was NOT uninstalled.
+           To uninstall it, enter 'Yes, I really mean it' on the prompt.
+      when: ireallymeanit != 'Yes, I really mean it'
+
+- name: Uninstall purestorage csi driver
+  hosts: localhost
+  any_errors_fatal: true
+  tasks:
+    - name: uninstall purestorage csi driver
+      tags:
+        - purestorage_uninstall
+      include_role:
+        name: burrito.purestorage
+        tasks_from: uninstall
+...

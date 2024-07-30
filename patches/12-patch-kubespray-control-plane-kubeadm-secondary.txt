@@ -1,6 +1,24 @@
---- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2023-09-12 17:33:26.138128680 +0900
-+++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2023-09-12 17:32:38.913128680 +0900
-@@ -77,3 +77,20 @@
+--- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2024-07-29 15:20:26.347152835 +0900
++++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2024-07-25 17:29:38.818291091 +0900
+@@ -34,7 +34,7 @@
+   template:
+     src: "kubeadm-controlplane.{{ kubeadmConfig_api_version }}.yaml.j2"
+     dest: "{{ kube_config_dir }}/kubeadm-controlplane.yaml"
+-    mode: "0640"
++    mode: 0640
+     backup: yes
+   when:
+     - inventory_hostname != first_kube_control_plane
+@@ -77,7 +77,7 @@
+     dest: "{{ kube_config_dir }}/cluster-info-discovery-kubeconfig.yaml"
+     content: "{{ kubeconfig_file_discovery.stdout }}"
+     owner: "root"
+-    mode: "0644"
++    mode: 0644
+   when:
+     - inventory_hostname != first_kube_control_plane
+     - kubeadm_use_file_discovery
+@@ -98,3 +98,20 @@
    when:
      - inventory_hostname != first_kube_control_plane
      - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
