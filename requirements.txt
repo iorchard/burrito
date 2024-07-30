@@ -1,5 +1,5 @@
-ansible==10.2.0
-ansible-core==2.17.2
+ansible==9.8.0
+ansible-core==2.16.9
 attrs==23.2.0
 cachetools==5.4.0
 certifi==2024.7.4
