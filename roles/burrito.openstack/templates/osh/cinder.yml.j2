@@ -175,6 +175,12 @@ bootstrap:
       access_type: "private"
       "image_service:store_id": "{{ glance_store_types.lvm }}"
 {% endif %}
+{% if "purestorage" in storage_backends %}
+    purestorage:
+      volume_backend_name: {{ cinder_backends_map.purestorage }}
+      access_type: "private"
+      "image_service:store_id": "{{ glance_store_types.purestorage }}"
+{% endif %}
 
 network:
   api:
@@ -308,7 +314,7 @@ conf:
 {% if "ceph" in storage_backends %}
     rbd1:
       volume_driver: cinder.volume.drivers.rbd.RBDDriver
-      volume_backend_name: rbd1
+      volume_backend_name: "{{ cinder_backends_map.ceph }}"
       rbd_ceph_conf: "/etc/ceph/ceph.conf"
       rbd_flatten_volume_from_snapshot: false
       rbd_max_clone_depth: 5
@@ -344,7 +350,7 @@ conf:
 {% if "powerflex" in storage_backends %}
     powerflex:
       volume_driver: cinder.volume.drivers.dell_emc.powerflex.driver.PowerFlexDriver
-      volume_backend_name: powerflex
+      volume_backend_name: "{{ cinder_backends_map.powerflex }}"
       san_ip: "{{ keepalived_vip }}"
       powerflex_storage_pools: "{{ protection_domain_name }}:{{ storage_pool_name }}"
       san_login: admin
@@ -357,7 +363,7 @@ conf:
 {% if "hitachi" in storage_backends %}
     hitachi:
       volume_driver: cinder.volume.drivers.hitachi.hbsd_fc.HBSDFCDriver
-      volume_backend_name: hitachi
+      volume_backend_name: "{{ cinder_backends_map.hitachi }}"
       san_ip: "{{ hitachi_san_ip }}"
       san_login: "{{ hitachi_san_login }}"
       san_password: "{{ hitachi_san_password }}"
@@ -384,7 +390,7 @@ conf:
 {% if "primera" in storage_backends %}
     primera:
       volume_driver: "{{ primera_volume_driver }}"
-      volume_backend_name: primera
+      volume_backend_name: "{{ cinder_backends_map.primera }}"
       san_ip: "{{ primera_ip }}"
       san_login: "{{ primera_username }}"
       san_password: "{{ primera_password }}"
@@ -407,12 +413,25 @@ conf:
     lvm:
       volume_driver: {{ lvm_volume_driver }}
       volume_group: {{ lvm_vg_name }}
-      volume_backend_name: lvm
+      volume_backend_name: "{{ cinder_backends_map.lvm }}"
       target_protocol: iscsi
       target_helper: lioadm
       image_volume_cache_enabled: True
       image_upload_use_cinder_backend: True
       image_upload_use_internal_tenant: True
+{% endif %}
+{% if "purestorage" in storage_backends %}
+    purestorage:
+      volume_driver: {{ purestorage_volume_driver }}
+      volume_backend_name: "{{ cinder_backends_map.purestorage }}"
+      san_ip: {{ purestorage_mgmt_ip }}
+      pure_api_token: {{ purestorage_api_token }}
+      use_multipath_for_image_xfer: True
+      image_volume_cache_enabled: True
+      image_upload_use_cinder_backend: True
+      image_upload_use_internal_tenant: True
+      pure_eradicate_on_delete: {{ pure_eradicate_on_delete }}
+      pure_automatic_max_oversubscription_ratio: {{ pure_automatic_max_oversubscription_ratio }}
 {% endif %}
 
 endpoints:

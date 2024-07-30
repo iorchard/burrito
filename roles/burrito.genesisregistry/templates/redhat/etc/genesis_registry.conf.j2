@@ -11,12 +11,13 @@ http:
   addr: {{ genesis_registry.addr }}
   headers:
     X-Content-Type-Options: [nosniff]
-  secret: {{ genesis_registry.secret }}
+  secret: {{ registry_secret }}
+  tls:
+    certificate: {{ tls_server.crt }}
+    key: {{ tls_server.key }}
 health:
   storagedriver:
-    enabled: true
-    interval: 10s
-    threshold: 3
+    enabled: false
 compatibility:
   schema1:
     enabled: true

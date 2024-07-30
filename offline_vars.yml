@@ -8,23 +8,24 @@ containerd_insecure_registries:
   "local_registry": "{{ keepalived_vip }}:{{ registry_service_nodeport }}"
   "seed_registry": "{{ keepalived_vip }}:{{ seed_registry_port }}"
   "genesis_registry": "{{ keepalived_vip }}:{{ genesis_registry_port }}"
+containerd_use_config_path: true
 containerd_registries_mirrors:
   - prefix: "{{ containerd_insecure_registries.local_registry }}"
-    protocol: "http"
+    protocol: "https"
     mirrors:
-      - host: "http://{{ containerd_insecure_registries.local_registry }}"
+      - host: "https://{{ containerd_insecure_registries.local_registry }}"
         capabilities: ["pull", "resolve", "push"]
         skip_verify: true
   - prefix: "{{ containerd_insecure_registries.seed_registry }}"
-    protocol: "http"
+    protocol: "https"
     mirrors:
-      - host: "http://{{ containerd_insecure_registries.seed_registry }}"
-        capabilities: ["pull", "resolve"]
+      - host: "https://{{ containerd_insecure_registries.seed_registry }}"
+        capabilities: ["pull", "resolve", "push"]
         skip_verify: true
   - prefix: "{{ containerd_insecure_registries.genesis_registry }}"
-    protocol: "http"
+    protocol: "https"
     mirrors:
-      - host: "http://{{ containerd_insecure_registries.genesis_registry }}"
+      - host: "https://{{ containerd_insecure_registries.genesis_registry }}"
         capabilities: ["pull", "resolve", "push"]
         skip_verify: true
 

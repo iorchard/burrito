@@ -1,0 +1,10 @@
+--- kubespray/roles/kubernetes-apps/registry/tasks/main.yml	2024-07-24 16:39:54.711392329 +0900
++++ patches/kubespray/roles/kubernetes-apps/registry/tasks/main.yml	2024-07-24 16:40:41.272412170 +0900
+@@ -40,6 +40,7 @@
+       - { name: registry-sa, file: registry-sa.yml, type: sa }
+       - { name: registry-svc, file: registry-svc.yml, type: svc }
+       - { name: registry-secrets, file: registry-secrets.yml, type: secrets }
++      - { name: registry-certs, file: registry-certs.yml, type: certs }
+       - { name: registry-cm, file: registry-cm.yml, type: cm }
+       - { name: registry-rs, file: registry-rs.yml, type: rs }
+ 

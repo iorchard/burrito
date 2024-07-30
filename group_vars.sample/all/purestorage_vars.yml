@@ -1,0 +1,32 @@
+---
+# pure storage management ip address
+purestorage_mgmt_ip: "192.168.100.233"
+# pureuser's API token. 
+# You can create a token with 'pureadmin create pureuser --api-token' command
+# on Flash Array.
+purestorage_api_token: ""
+# transport protocol: iscsi, fc, or nvme
+purestorage_transport_protocol: "fc"
+
+########################
+# Do Not Edit below!!! #
+########################
+# version information
+portworx_version: "3.1.2"
+portworx_oci_monitor_version: "{{ portworx_version }}"
+portworx_px_operator_version: "24.1.0"
+portworx_pause_version: "3.1"
+snapshot_contoller_version: "v6.3.1" 
+
+# cinder volume driver
+# iscsi: cinder.volume.drivers.pure.PureISCSIDriver
+# FC: cinder.volume.drivers.pure.PureFCDriver
+# NVMe: cinder.volume.drivers.pure.PureNVMEDriver 
+purestorage_volume_driver_map:
+  iscsi: "cinder.volume.drivers.pure.PureISCSIDriver"
+  fc: "cinder.volume.drivers.pure.PureFCDriver"
+  nvme: "cinder.volume.drivers.pure.PureNVMEDriver"
+purestorage_volume_driver: "{{ purestorage_volume_driver_map[purestorage_transport_protocol] }}"
+pure_eradicate_on_delete: false
+pure_automatic_max_oversubscription_ratio: true
+...

@@ -1,0 +1,9 @@
+---
+- name: deploy pure storage portworx
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.purestorage
+      when: '"purestorage" in storage_backends'
+      tags: ['purestorage']
+...

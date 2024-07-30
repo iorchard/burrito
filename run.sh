@@ -21,6 +21,7 @@ function USAGE() {
   echo "hitachi    - play hitachi tasks. (when hitachi in storage backend)"
   echo "primera    - play primera tasks. (when primera in storage backend)"
   echo "lvm        - play lvm tasks. (when lvm in storage backend)"
+  echo "purestorage - play purestorage tasks. (when purestorage in storage backend)"
   echo "patch      - play kubernetes security patch tasks."
   echo "registry   - play local registry setup tasks. (offline install only)"
   echo "landing    - play localrepo/genesis registry setup tasks."
@@ -28,6 +29,7 @@ function USAGE() {
   echo "-- operation playbooks --"
   echo "ceph_purge - play ceph storage cluster purge tasks."
   echo "primera_uninstall - play primera csi driver uninstall tasks."
+  echo "purestorage_uninstall - play purestorage csi driver uninstall tasks."
   echo "scale      - play kubernetes node addition tasks."
   echo
   echo "ansible_parameters"

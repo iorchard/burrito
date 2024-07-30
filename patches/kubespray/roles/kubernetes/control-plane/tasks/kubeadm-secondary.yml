@@ -1,6 +1,7 @@
 ---
 - name: Set kubeadm_discovery_address
   set_fact:
+    # noqa: jinja[spacing]
     kubeadm_discovery_address: >-
       {%- if "127.0.0.1" in kube_apiserver_endpoint or "localhost" in kube_apiserver_endpoint -%}
       {{ first_kube_control_plane_address }}:{{ kube_apiserver_port }}
@@ -46,7 +47,7 @@
     timeout: 180
 
 
-- name: check already run
+- name: Check already run
   debug:
     msg: "{{ kubeadm_already_run.stat.exists }}"
 
@@ -61,6 +62,26 @@
     - inventory_hostname != first_kube_control_plane
     - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
     - not kube_external_ca_mode
+
+- name: Get kubeconfig for join discovery process
+  command: "{{ kubectl }} -n kube-public get cm cluster-info -o jsonpath='{.data.kubeconfig}'"
+  register: kubeconfig_file_discovery
+  run_once: true
+  delegate_to: "{{ groups['kube_control_plane'] | first }}"
+  when:
+    - kubeadm_use_file_discovery
+    - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
+
+- name: Copy discovery kubeconfig
+  copy:
+    dest: "{{ kube_config_dir }}/cluster-info-discovery-kubeconfig.yaml"
+    content: "{{ kubeconfig_file_discovery.stdout }}"
+    owner: "root"
+    mode: 0644
+  when:
+    - inventory_hostname != first_kube_control_plane
+    - kubeadm_use_file_discovery
+    - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
 
 - name: Joining control plane node to the cluster.
   command: >-

@@ -1,0 +1,22 @@
+---
+- name: Uninstall | uninstall storagecluster and operator
+  kubernetes.core.k8s:
+    state: absent
+    src: "{{ item }}"
+    wait: true
+    wait_timeout: 300
+  become: true
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ uninstall_files }}"
+
+- name: Uninstall | Delete namespace
+  kubernetes.core.k8s:
+    state: absent
+    name: "{{ purestorage_namespace }}"
+    api_version: v1
+    kind: Namespace
+  become: true
+  delegate_to: localhost
+  run_once: true
+...

@@ -1,6 +1,22 @@
 ---
 offline: false
 local_repo_url: ~
+
+## seed registry tls
+tls_tmp_dir: "/tmp/seed_registry"
+tls_dir: "/etc/ssl/registry"
+tls_ca:
+  key: "{{ tls_dir }}/ca-key.pem"
+  crt: "{{ tls_dir }}/ca.pem"
+tls_server:
+  key: "{{ tls_dir }}/seed-registry-key.pem"
+  crt: "{{ tls_dir }}/seed-registry.pem"
+tls_subj: 
+  organization_name: "Seed Registry"
+  common_name: "seed-registry"
+tls_days: "+3650d"
+tls_san: "IP:{{ keepalived_vip }},{% for s in groups['kube_control_plane'] %}IP:{{ hostvars[s].ip }}{% if not loop.last %},{% endif %}{% endfor %}"
+
 # deploy_ssh_key: (boolean) create ssh keypairs and copy it to other nodes.
 # default: false
 deploy_ssh_key: false

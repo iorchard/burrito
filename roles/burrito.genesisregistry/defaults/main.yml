@@ -1,11 +1,27 @@
 ---
+# TLS
+tls_tmp_dir: "/tmp/genesis_registry"
+tls_dir: "/etc/ssl/registry"
+tls_ca:
+  key: "{{ tls_dir }}/ca-key.pem"
+  crt: "{{ tls_dir }}/ca.pem"
+tls_server:
+  key: "{{ tls_dir }}/genesis-registry-key.pem"
+  crt: "{{ tls_dir }}/genesis-registry.pem"
+tls_subj: 
+  organization_name: "Genesis Registry"
+  common_name: "genesis-registry"
+tls_days: "+3650d"
+tls_san: "IP:{{ keepalived_vip }},{% for s in groups['kube_control_plane'] %}IP:{{ hostvars[s].ip }}{% if not loop.last %},{% endif %}{% endfor %}"
+
+# haproxy
 haproxy_conf_dir: "/etc/haproxy"
 service_conf:
   - {dest: "{{ haproxy_conf_dir }}/conf.d/registry.cfg", owner: "root", group: "haproxy", mode: "0640"}
 
-image_pull_cmd: "{{ bin_dir }}/ctr -n k8s.io images pull --plain-http --platform linux/amd64"
+image_pull_cmd: "{{ bin_dir }}/ctr -n k8s.io images pull -k"
 image_tag_cmd: "{{ bin_dir }}/ctr -n k8s.io images tag --force"
-image_push_cmd: "{{ bin_dir }}/ctr -n k8s.io images push --plain-http --platform linux/amd64"
+image_push_cmd: "{{ bin_dir }}/ctr -n k8s.io images push -k"
 
 # hitachi openshift csi driver version
 hitachi_namespace: "hspc-operator-system"
@@ -57,6 +73,12 @@ genesis_registry:
     - "hpestorage/volume-group-provisioner:{{ primera_volume_group_provisioner_version }}"
     - "hpestorage/volume-group-snapshotter:{{ primera_volume_group_snapshotter_version }}"
     - "hpestorage/volume-mutator:{{ primera_volume_mutator_version }}"
+  purestorage:
+    - "portworx/oci-monitor:{{ portworx_oci_monitor_version }}"
+    - "portworx/px-enterprise:{{ portworx_version }}"
+    - "portworx/px-operator:{{ portworx_px_operator_version }}"
+    - "pause:{{ portworx_pause_version }}"
+    - "sig-storage/snapshot-controller:{{ snapshot_contoller_version }}"
   addr: "{{ hostvars[inventory_hostname].ip }}:{{ genesis_registry_port }}"
 
 genesis_images: "{{ genesis_registry.common + genesis_registry[storage_backends[0]] }}"
@@ -176,4 +198,10 @@ primera_artifacts_dir: "{{ ansible_env.HOME }}/primera-artifacts"
 primera_manifests:
   - "{{ primera_artifacts_dir }}/csi-driver/3par-primera-csp.yaml"
   - "{{ primera_artifacts_dir }}/csi-driver/hpe-csi-k8s.yaml"
+
+# purestorage 
+purestorage_artifacts_dir: "{{ ansible_env.HOME }}/purestorage-artifacts"
+purestorage_manifests:
+  - "{{ purestorage_artifacts_dir }}/portworx_operator.yml"
+  - "{{ purestorage_artifacts_dir }}/portworx_storagecluster.yml"
 ...
