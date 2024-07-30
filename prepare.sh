@@ -6,8 +6,8 @@ OPT=${1:-"online"}
 CFGFILES=(ansible.cfg hosts vars.yml)
 
 if [ x"$OPT" = x"offline" ]; then
-  sudo dnf -y install python3.11 gnutls-utils
   ./scripts/offline_services.sh --up
+  sudo dnf -y install python3.11
   python3.11 -m venv ~/.envs/burrito
   . ~/.envs/burrito/bin/activate
   pip install --no-index --find-links /mnt/pypi /mnt/pypi/{pip,wheel}-*
