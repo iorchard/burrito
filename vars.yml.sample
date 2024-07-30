@@ -390,6 +390,8 @@ containerd_registries_mirrors:
         capabilities: ["pull", "resolve"]
         skip_verify: false
 
+# metallb
+metallb_namespace: "metallb-system"
 metallb_config:
   controller:
     nodeselector:
