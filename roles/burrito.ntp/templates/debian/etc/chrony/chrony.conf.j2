@@ -1,0 +1,20 @@
+{% if ntp_servers|length == 0 %}
+{% for h in groups['kube_control_plane'] %}
+{% if inventory_hostname != h %}
+server {{ hostvars[h].ip }}
+{% endif %}
+{% endfor %}
+{% else %}
+{% for ntp_server in ntp_servers %}
+server {{ ntp_server }}
+{% endfor %}
+{% endif %}
+
+driftfile /var/lib/chrony/chrony.drift
+logdir /var/log/chrony
+local stratum 8 orphan
+manual
+rtcsync
+allow {{ ntp_allowed_cidr }}
+bindaddress {{ hostvars[inventory_hostname].ip }}
+binddevice {{ mgmt_iface_name }}
