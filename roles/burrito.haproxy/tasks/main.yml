@@ -16,9 +16,6 @@
       paths:
         - "."
 
-#- name: Main | include tls tasks
-#  ansible.builtin.include_tasks: "tls.yml"
-
 - name: Main | include setup tasks
   ansible.builtin.include_tasks: "setup.yml"
 ...

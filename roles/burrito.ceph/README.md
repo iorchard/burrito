@@ -6,10 +6,11 @@ Ansible role to install ceph for Burrito
 Requirements
 ------------
 
-This role requires Ansible 2.14 or higher.
+This role requires Ansible 2.16 or higher.
 
 This role supports:
 
+  - Debian 12 (bookworm)
   - Rocky Linux 8.x
 
 Role Variables

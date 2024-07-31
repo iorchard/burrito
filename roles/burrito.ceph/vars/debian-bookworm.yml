@@ -1,0 +1,24 @@
+---
+ceph_release: "reef"
+ceph_version: "v18.2.4"
+online_pkgs:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gpg
+
+prereq_pkgs:
+  - chrony
+  - lvm2
+
+# ceph apt repo keyring
+ceph_keyring_dir: "/etc/apt/keyrings"
+ceph_keyring:
+  url: "https://download.ceph.com/keys/release.asc"
+  file: "{{ ceph_keyring_dir }}/ceph-keyring.gpg"
+
+# ceph apt repo
+ceph_repos:
+  - repo: "deb [signed-by={{ ceph_keyring.file }}] https://download.ceph.com/debian-{{ ceph_release }}/ bookworm main"
+    filename: "ceph"
+...
