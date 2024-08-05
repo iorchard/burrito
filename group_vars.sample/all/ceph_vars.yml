@@ -1,4 +1,5 @@
 ---
+ceph_osd_use_all: true
 data_devices:
   - path: /dev/sdb
   - path: /dev/sdc
