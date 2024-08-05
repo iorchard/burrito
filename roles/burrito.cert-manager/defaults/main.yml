@@ -7,7 +7,7 @@ cert_manager_ca: {
   csr: "{{ cert_manager_dir }}/ca-csr.pem", 
   crt: "{{ cert_manager_dir }}/ca-cert.pem",
   info: "{{ cert_manager_dir }}/ca.info", 
-  cn: "SKBroadband",
+  cn: "Cert Manager",
 }
 kubectl_cmd: "kubectl"
 ...

@@ -1,0 +1,12 @@
+---
+- name: Debian | Install packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ packages }}"
+...

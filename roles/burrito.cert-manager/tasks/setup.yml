@@ -1,0 +1,22 @@
+---
+- name: Setup | include pre-check tasks
+  ansible.builtin.include_tasks: "pre_check.yml"
+
+- name: Setup | create temporary certificate directory
+  ansible.builtin.file:
+    path: "{{ cert_manager_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Setup | include CA certificate tasks
+  ansible.builtin.include_tasks: "ca_cert.yml"
+  when: ca_key_pair_result.rc != 0
+
+- name: Setup | include cert-manager tasks
+  ansible.builtin.include_tasks: "cert_manager.yml"
+
+- name: Setup | remove temporary certificate directory
+  file:
+    path: "{{ cert_manager_dir }}"
+    state: absent
+...
