@@ -12,6 +12,9 @@
   notify:
     - systemctl restart service
 
+- name: Setup | flush handlers
+  ansible.builtin.meta: flush_handlers
+
 - name: Setup | create artifacts directory
   ansible.builtin.file:
     path: "{{ artifacts_dir }}"
