@@ -177,9 +177,9 @@ ntp_allowed_cidr: "{{ mgmt_netmask | ansible.utils.ipaddr('net') }}"
 
 ### keepalived role variables
 keepalived_interface: "{{ mgmt_iface_name }}"
-# make keepalived service vip optional.
-# keepalived service interface vip for future use (default: no setup).
+keepalived_interface_prefix: "{{ hostvars[inventory_hostname]['ansible_' + mgmt_iface_name].ipv4.prefix }}"
 keepalived_interface_svc: "{{ svc_iface_name }}"
+keepalived_interface_svc_prefix: "{{ hostvars[inventory_hostname]['ansible_' + svc_iface_name].ipv4.prefix }}"
 
 ### ceph
 # ceph network cidr - recommend the same cidr for public/cluster networks.
@@ -338,6 +338,7 @@ kubelet_rotate_server_certificates: true
 kubelet_feature_gates: ["RotateKubeletServerCertificate=true"]
 kubelet_seccomp_default: true
 kubelet_systemd_hardening: true
+kubelet_secure_addresses: "localhost link-local {{ kube_pods_subnet }} {{ keepalived_vip }} {{ kube_node_addresses }}"
 kubelet_csr_approver_repository_url: https://postfinance.github.io/kubelet-csr-approver
 kubelet_csr_approver_chart_version: 1.0.6
 kubelet_csr_approver_values:
