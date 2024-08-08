@@ -5,12 +5,5 @@ online_pkgs:
 
 prereq_pkgs:
   - chrony
-
-client_pkgs:
-  - ceph-common
-
-packages:
-  - cephadm
-  - ceph-common
-  - podman
+  - lvm2
 ...

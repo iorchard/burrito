@@ -1,28 +1,21 @@
 ---
-- name: Main | include pre-check tasks
-  ansible.builtin.include_tasks: "pre_check.yml"
+- name: Main | import common tasks
+  ansible.builtin.import_tasks: "common.yml"
 
-- name: Main | install gnutls-utils
-  ansible.builtin.package:
-    name: "gnutls-utils"
-    state: present
-  become: true
+- name: Main | include os specific tasks
+  ansible.builtin.include_tasks: "{{ lookup('first_found', _params) }}"
+  vars:
+    _params:
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_release | lower }}.yml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
+      paths:
+        - "."
 
-- name: Main | create temporary certificate directory
-  ansible.builtin.file:
-    path: "{{ cert_manager_dir }}"
-    state: directory
-    mode: "0700"
-
-- name: Main | include CA certificate tasks
-  ansible.builtin.include_tasks: "ca_cert.yml"
-  when: ca_key_pair_result.rc != 0
-
-- name: Main | include cert-manager tasks
-  ansible.builtin.include_tasks: "cert_manager.yml"
-
-- name: Main | remove temporary certificate directory
-  file:
-    path: "{{ cert_manager_dir }}"
-    state: absent
+- name: Main | include setup tasks
+  ansible.builtin.include_tasks: "setup.yml"
 ...

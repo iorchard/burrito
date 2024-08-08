@@ -1,4 +1,0 @@
-#!/bin/bash
-set -e
-/usr/bin/pidof haproxy
-/usr/bin/pidof nutcracker

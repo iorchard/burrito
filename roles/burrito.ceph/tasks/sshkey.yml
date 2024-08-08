@@ -12,5 +12,5 @@
     state: present
     manage_dir: true
     key: "{{ ssh_public_key.content | b64decode }}"
-  when: inventory_hostname not in groups['clients']
+  when: inventory_hostname in groups['ceph_servers']
 ...

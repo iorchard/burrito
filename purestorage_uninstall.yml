@@ -9,9 +9,9 @@
   tasks:
     - name: exit playbook, if user did not mean to purge the cluster
       fail:
-        msg: >
-          "Exiting the playbook, purestorage csi driver was NOT uninstalled.
-           To uninstall it, enter 'Yes, I really mean it' on the prompt.
+        msg: >-
+          Exiting the playbook, purestorage csi driver was NOT uninstalled.
+          To uninstall it, enter 'Yes, I really mean it' on the prompt.
       when: ireallymeanit != 'Yes, I really mean it'
 
 - name: Uninstall purestorage csi driver

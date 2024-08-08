@@ -47,7 +47,7 @@
     mode: "0600"
   when: inventory_hostname in groups['kube_control_plane']
 
-- name: RGW | add a bucket for cloudpc
+- name: RGW | add a bucket
   command: >-
     s3cmd mb s3://{{ item }}
   loop: "{{ ceph_rgw_buckets }}"

@@ -10,27 +10,28 @@ function USAGE() {
   echo "playbook_name"
   echo "============="
   echo "-- installation playbooks --"
-  echo "vault      - create an ansible vault."
-  echo "ping       - ping to all nodes."
-  echo "preflight  - play common tasks, i.e. yum repo settings."
-  echo "ha         - play ha stack tasks, HAProxy/KeepAlived."
-  echo "ceph       - play ceph tasks. (when ceph in storage backend)"
-  echo "k8s        - play kubernetes installation tasks."
-  echo "netapp     - play netapp tasks. (when netapp in storage backend)"
-  echo "powerflex  - play powerflex tasks. (when powerflex in storage backend)"
-  echo "hitachi    - play hitachi tasks. (when hitachi in storage backend)"
-  echo "primera    - play primera tasks. (when primera in storage backend)"
-  echo "lvm        - play lvm tasks. (when lvm in storage backend)"
-  echo "purestorage - play purestorage tasks. (when purestorage in storage backend)"
-  echo "patch      - play kubernetes security patch tasks."
-  echo "registry   - play local registry setup tasks. (offline install only)"
-  echo "landing    - play localrepo/genesis registry setup tasks."
-  echo "burrito    - play openstack installation tasks."
+  echo "vault       - create an ansible vault"
+  echo "ping        - ping to all nodes"
+  echo "preflight   - play common tasks, i.e. yum repo settings"
+  echo "ceph        - play ceph tasks (when ceph in storage backend)"
+  echo "ha          - play ha stack tasks, HAProxy/KeepAlived"
+  echo "k8s         - play kubernetes installation tasks"
+  echo "netapp      - play netapp tasks (when netapp in storage backend)"
+  echo "powerflex   - play powerflex tasks (when powerflex in storage backend)"
+  echo "hitachi     - play hitachi tasks (when hitachi in storage backend)"
+  echo "primera     - play primera tasks (when primera in storage backend)"
+  echo "lvm         - play lvm tasks (when lvm in storage backend)"
+  echo "purestorage - play purestorage tasks (when purestorage in storage backend)"
+  echo "patch       - play kubernetes security patch tasks"
+  echo "registry    - play local registry tasks (offline only)"
+  echo "landing     - play localrepo/genesisregistry tasks (offline only)"
+  echo "burrito     - play openstack installation tasks"
+  echo
   echo "-- operation playbooks --"
-  echo "ceph_purge - play ceph storage cluster purge tasks."
-  echo "primera_uninstall - play primera csi driver uninstall tasks."
-  echo "purestorage_uninstall - play purestorage csi driver uninstall tasks."
-  echo "scale      - play kubernetes node addition tasks."
+  echo "ceph_purge            - play ceph storage cluster purge tasks"
+  echo "primera_uninstall     - play primera csi driver uninstall tasks"
+  echo "purestorage_uninstall - play purestorage/portworx  uninstall tasks"
+  echo "scale                 - play kubernetes node addition tasks"
   echo
   echo "ansible_parameters"
   echo "=================="
@@ -46,6 +47,10 @@ PLAYBOOK=$1
 shift
 
 OFFLINE_VARS=
+OS_VARS=
+
+[ -f /etc/os-release ] && . /etc/os-release || (echo 'Cannot find /etc/os-release'; exit 1)
+[ -f ${ID}_vars.yml ] && OS_VARS="--extra-vars=@${ID}_vars.yml" || :
 
 if [[ "${PLAYBOOK}" = "vault" ]]; then
   . ~/.envs/burrito/bin/activate
@@ -87,4 +92,4 @@ fi
 
 . ~/.envs/burrito/bin/activate
 ansible-playbook --user=${USER} --extra-vars=@vars.yml \
-  ${OFFLINE_VARS} ${FLAGS} ${PLAYBOOK}.yml
+  ${OFFLINE_VARS} ${OS_VARS} ${FLAGS} ${PLAYBOOK}.yml

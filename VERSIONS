@@ -1,10 +1,10 @@
-btx: 2.0.1
-kubespray: master (04e40f2e6fbd7f255d35cf3c9b10b79308572604)
+btx: 2.0.2
+kubespray: master (468c5641b2548318ba1f9ded215dc0e05a2c6f78)
 ceph: 18.2.1
-kubernetes: v1.29.2
-etcd: v3.5.10
-containerd: v1.7.13
-calico: v3.26.4
+kubernetes: v1.30.3
+etcd: v3.5.12
+containerd: v1.7.16
+calico: v3.27.3
 helm: v3.14.2
 mariadb: 10.11.7
 openstack: 2023.1

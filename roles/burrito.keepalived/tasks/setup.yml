@@ -1,14 +1,13 @@
 ---
-- name: Setup | copy check_proxy script
+- name: Setup | copy static script files
   ansible.builtin.copy:
     dest: "{{ item.dest }}"
-    src: "{{ ansible_os_family | lower }}{{ item.dest }}"
+    src: "files/{{ item.dest }}"
     owner: "{{ item.owner }}"
     group: "{{ item.group }}"
     mode: "{{ item.mode }}"
   loop: "{{ service_script }}"
   become: true
-  changed_when: true
   notify:
     - systemctl restart service
 
@@ -21,10 +20,12 @@
 - name: Setup | template keepalived configuration
   ansible.builtin.template:
     dest: "{{ item.dest }}"
-    src: "{{ ansible_os_family | lower }}{{ item.dest + '.j2' }}"
+    src: "templates{{ item.dest + '.j2' }}"
     owner: "{{ item.owner }}"
     group: "{{ item.group }}"
     mode: "{{ item.mode }}"
   loop: "{{ service_conf }}"
   become: true
+  notify:
+    - systemctl restart service
 ...

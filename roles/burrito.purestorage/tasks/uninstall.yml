@@ -1,4 +1,7 @@
 ---
+- name: Main | import common tasks
+  ansible.builtin.import_tasks: "common.yml"
+
 - name: Uninstall | uninstall storagecluster and operator
   kubernetes.core.k8s:
     state: absent
@@ -19,4 +22,11 @@
   become: true
   delegate_to: localhost
   run_once: true
+
+- name: Uninstall | Remove packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: absent
+  become: true
+  loop: "{{ packages }}"
 ...

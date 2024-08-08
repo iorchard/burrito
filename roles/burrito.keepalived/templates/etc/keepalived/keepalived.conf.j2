@@ -39,7 +39,7 @@ vrrp_instance VI_BURRITO_MGMT {
   advert_int 1
   nopreempt
   virtual_ipaddress {
-    {{ keepalived_vip }}
+    {{ keepalived_vip }}/{{ keepalived_interface_prefix }} label {{ keepalived_interface }}:mgmtvip
   }
   track_script {
     check_proxy
@@ -66,7 +66,7 @@ vrrp_instance VI_BURRITO_SVC {
   advert_int 1
   nopreempt
   virtual_ipaddress {
-    {{ keepalived_vip_svc }}
+    {{ keepalived_vip_svc }}/{{ keepalived_interface_svc_prefix }} label {{ keepalived_interface_svc }}:svcvip
   }
   track_script {
     check_proxy

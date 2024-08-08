@@ -36,4 +36,8 @@
         ca:
           secretName: ca-key-pair
   become: true
+  register: result
+  retries: 3
+  delay: 5
+  until: not result.failed
 ...
