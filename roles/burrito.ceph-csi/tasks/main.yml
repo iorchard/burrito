@@ -63,8 +63,7 @@
     state: present
     wait: true
     wait_timeout: 300
-  with_fileglob:
-    - "{{ artifacts_dir }}/[0-9]*"
+  loop: "{{ manifest_files }}"
   become: true
 
 - name: ceph-csi | set auth_client_required to cephx

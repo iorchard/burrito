@@ -1,15 +1,18 @@
 galaxy_info:
-  namespace: pbos
+  namespace: burrito
   role_name: keepalived
   author: "Heechul Kim <jijisa@iorchard.net>"
-  description: Ansible Role to Install Keepalived for PBOS
+  description: Ansible Role to Install Keepalived for Burrito
   company: iOrchard, Inc.
   license: Apache-2.0
-  min_ansible_version: "2.11"
+  min_ansible_version: "2.16"
   platforms:
     - name: Debian
       versions:
-        - bullseye
+        - bookworm
+    - name: Rocky Linux
+      versions:
+        - 8
   galaxy_tags:
     - system
 

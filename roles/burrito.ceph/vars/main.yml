@@ -1,3 +1,11 @@
 ---
 pkg_state: "latest"
+
+client_pkgs:
+  - ceph-common
+
+packages:
+  - cephadm
+  - ceph-common
+  - podman
 ...

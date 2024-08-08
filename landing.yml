@@ -1,4 +1,15 @@
 ---
+- name: check installation type (online/offline)
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: exit playbook if installation type is online
+      fail:
+        msg: >-
+          Exiting the playbook since you are installing burrito online.
+          This playbook is only for offline installation.
+      when: not offline
+
 - name: deploy genesis registry and local repository
   hosts: kube_control_plane
   any_errors_fatal: true
@@ -14,12 +25,4 @@
     - role: burrito.localrepo
       when: offline
       tags: ['localrepo', 'burrito']
-
-- name: deploy Graceful Node Shutdown Helper (GNSH)
-  hosts: k8s_cluster
-  any_errors_fatal: true
-  roles:
-    - role: burrito.gnsh
-      when: groups['kube_control_plane']|length > 1
-      tags: ['gnsh', 'burrito', 'never']
 ...

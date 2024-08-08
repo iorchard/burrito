@@ -1,5 +1,6 @@
 ---
+haproxy_confd: "{{ haproxy_conf_dir }}/conf.d"
 files_conf:
-  - {dest: "/etc/rsyslog.d/haproxy.conf", owner: "root", group: "root", mode: "0644"}
   - {dest: "{{ haproxy_conf_dir }}/haproxy.cfg", owner: "root", group: "{{ service_name }}", mode: "0640"}
+  - {dest: "/etc/default/haproxy", owner: "root", group: "root", mode: "0644"}
 ...

@@ -1,4 +1,15 @@
 ---
+- name: check installation type (online/offline)
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: exit playbook if installation type is online
+      fail:
+        msg: >-
+          Exiting the playbook since you are installing burrito online.
+          This playbook is only for offline installation.
+      when: not offline
+
 - name: Pull, tag and push images to local registry
   hosts: localhost
   gather_facts: true

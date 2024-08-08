@@ -1,0 +1,68 @@
+---
+- name: Debian | Install online packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  loop: "{{ online_pkgs }}"
+  become: true
+  when: not offline
+
+- name: Debian | Install prerequisite packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  loop: "{{ prereq_pkgs }}"
+  become: true
+
+- name: Debian | Install repo keyring
+  ansible.builtin.apt_key:
+    url: "{{ ceph_keyring.url }}"
+    keyring: "{{ ceph_keyring.file }}"
+    state: present
+  become: true
+  when: not offline
+
+- name: Debian | Add repository
+  ansible.builtin.apt_repository:
+    repo: "{{ item.repo }}"
+    state: present
+    mode: "0644"
+    filename: "{{ item.filename }}"
+    update_cache: true
+    validate_certs: true
+  become: true
+  loop: "{{ ceph_repos }}"
+  when: not offline
+
+- name: Debian | Install packages on ceph servers
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ packages }}"
+  when: inventory_hostname in groups['ceph_servers']
+
+- name: Debian | Install packages on ceph clients
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ client_pkgs }}"
+  when: inventory_hostname in groups['clients']
+...

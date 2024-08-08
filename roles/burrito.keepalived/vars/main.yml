@@ -1,1 +1,19 @@
 ---
+pkg_state: "latest"
+
+packages:
+  - "keepalived"
+  - "psmisc"
+
+keepalived_conf_dir: "/etc/keepalived"
+
+service_script:
+  - {dest: "{{ keepalived_conf_dir }}/check_proxy", owner: "root", group: "root", mode: "0700"}
+  - {dest: "{{ keepalived_conf_dir }}/keepalived_state.sh", owner: "root", group: "root", mode: "0700"}
+
+service_conf:
+  - {dest: "{{ keepalived_conf_dir }}/keepalived.conf", owner: "root", group: "root", mode: "0640"}
+
+systemd_service_name:
+  - keepalived.service
+...

@@ -45,7 +45,11 @@ placement:
     - {{ h }}
     {% endfor %}
 data_devices:
+  {% if ceph_osd_use_all %}
+  all: true
+  {% else %}
   paths: {{ data_devices }}
+  {% endif %}
 ---
 service_type: rgw
 service_id: default_rgw

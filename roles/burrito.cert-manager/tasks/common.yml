@@ -1,9 +1,9 @@
 ---
-- name: Main | import common tasks
-  ansible.builtin.import_tasks: "common.yml"
+- name: Common | include default variables
+  ansible.builtin.include_vars: "../vars/main.yml"
 
-- name: Main | include os specific tasks
-  ansible.builtin.include_tasks: "{{ lookup('first_found', _params) }}"
+- name: Common | include os specific variables
+  ansible.builtin.include_vars: "{{ lookup('first_found', _params) }}"
   vars:
     _params:
       files:
@@ -14,8 +14,5 @@
         - "{{ ansible_distribution | lower }}.yml"
         - "{{ ansible_os_family | lower }}.yml"
       paths:
-        - "."
-
-- name: Main | include setup tasks
-  ansible.builtin.include_tasks: "setup.yml"
+        - "../vars"
 ...

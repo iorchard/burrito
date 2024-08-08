@@ -2,4 +2,15 @@
 pkg_state: "latest"
 haproxy_conf_dir: "/etc/haproxy"
 
+packages:
+  - rsyslog
+  - haproxy
+
+templates_conf:
+    - {dest: "{{ haproxy_conf_dir }}/conf.d/ceph.cfg", owner: "root", group: "{{ service_name }}", mode: "0640"}
+    - {dest: "{{ haproxy_conf_dir }}/conf.d/kube-apiserver.cfg", owner: "root", group: "{{ service_name }}", mode: "0640"}
+
+systemd_service_name:
+  - rsyslog.service
+  - haproxy.service
 ...

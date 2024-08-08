@@ -1,0 +1,38 @@
+---
+- name: Debian | Install ntp package
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ packages }}"
+
+- name: Debian | Configure ntp server on controllers
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ ansible_os_family | lower }}{{ item.dest + '.j2' }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  loop: "{{ service_conf }}"
+  notify:
+    - systemctl restart service
+  when: inventory_hostname in groups['kube_control_plane']
+
+- name: Debian | Configure ntp client on others
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ ansible_os_family | lower }}{{ item.dest + '.client.j2' }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  become: true
+  loop: "{{ service_conf }}"
+  notify:
+    - systemctl restart service
+  when: inventory_hostname not in groups['kube_control_plane']
+...
