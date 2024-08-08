@@ -1,0 +1,6 @@
+---
+# Debian has AppArmor enabled.
+kube_apiserver_feature_gates: ["AppArmor=true"]
+kube_controller_feature_gates: ["RotateKubeletServerCertificate=true", "AppArmor=true"]
+kube_scheduler_feature_gates: ["AppArmor=true"]
+...
