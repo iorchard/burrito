@@ -11,7 +11,7 @@ ceph_health_delay: 10
 # haproxy
 haproxy_conf_dir: "/etc/haproxy"
 service_conf:
-  - {dest: "{{ haproxy_conf_dir }}/conf.d/ceph_rgw.cfg", owner: "root", group: "haproxy", mode: "0640"}
+  - {dest: "{{ haproxy_conf_dir }}/conf.d/ceph.cfg", owner: "root", group: "haproxy", mode: "0640"}
 balance: roundrobin
 inter: 2s
 rise: 2
