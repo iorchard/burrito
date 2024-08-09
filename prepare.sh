@@ -15,15 +15,15 @@ function get_package_manager() {
   case $ID in
     debian)
       COMMON_PKGS="$COMMON_PKGS python3-venv"
-      PKG_MGR=$(type -p apt)
-      PYTHON_CMD=$(type -p python3)
+      PKG_MGR="apt"
+      PYTHON_CMD="python3"
       sudo $PKG_MGR update
       ;;
     rocky)
       OFFLINE_PKGS="python3.11"
       ONLINE_PKGS="python3.11 epel-release"
-      PKG_MGR=$(type -p dnf)
-      PYTHON_CMD=$(type -p python3.11)
+      PKG_MGR="dnf"
+      PYTHON_CMD="python3.11"
       ;;
     *)
       echo "Unsupported linux distro."
@@ -32,7 +32,6 @@ function get_package_manager() {
   esac
 }
 get_package_manager
-echo $PKG_MGR
 
 if [ x"$OPT" = x"offline" ]; then
   ./scripts/offline_services.sh --up
