@@ -33,4 +33,7 @@
 
 - name: Main | import ceph status check tasks
   ansible.builtin.import_tasks: "status.yml"
+
+- name: Main | import radosgw haproxy setup tasks
+  ansible.builtin.import_tasks: "haproxy.yml"
 ...
