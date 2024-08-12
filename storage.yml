@@ -1,0 +1,60 @@
+---
+- name: gather facts for mon servers
+  hosts: mons
+
+- name: deploy ceph-csi
+  hosts: localhost
+  any_errors_fatal: true
+  roles:
+    - role: burrito.ceph-csi
+      when: '"ceph" in storage_backends'
+      tags: ['ceph-csi']
+
+- name: deploy netapp trident
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.netapp
+      when: '"netapp" in storage_backends'
+      tags: ['netapp']
+
+- name: deploy powerflex
+  hosts: all
+  any_errors_fatal: true
+  roles:
+    - role: burrito.powerflex
+      when: '"powerflex" in storage_backends'
+      tags: ['powerflex']
+
+- name: deploy hitachi csi drivers
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.hitachi
+      when: '"hitachi" in storage_backends'
+      tags: ['hitachi']
+
+- name: deploy primera csi drivers
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.primera
+      when: '"primera" in storage_backends'
+      tags: ['primera']
+
+- name: deploy LVM backend
+  hosts: controller-node[0]:compute-node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.lvm
+      when: '"lvm" in storage_backends'
+      tags: ['lvm']
+
+- name: deploy pure storage portworx
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.purestorage
+      when: '"purestorage" in storage_backends'
+      tags: ['purestorage']
+...
