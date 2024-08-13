@@ -249,6 +249,15 @@
         - "'sds' in groups"
         - inventory_hostname in groups['sds']
 
+    - name: check if purestorage api server is reachable
+      ansible.builtin.uri:
+        url: "https://{{ purestorage_mgmt_ip }}/"
+        validate_certs: false
+        timeout: 5
+        status_code: 200
+      when:
+        - "'purestorage' in storage_backends"
+
     - name: check if all hosts are reachable
       ansible.builtin.ping:
         data: pong
