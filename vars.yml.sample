@@ -136,6 +136,7 @@ kubelet_shutdown_grace_period_critical_pods: "{{ k8s_ha[k8s_ha_level].kubelet_sh
 # use haproxy as external loadbalancer for kube-apiserver
 apiserver_loadbalancer_domain_name: "lb-apiserver.kubernetes.local"
 kube_apiserver_bind_address: "{{ ip }}"
+kube_apiserver_address: "{{ keepalived_vip | default(ip) }}"
 kube_apiserver_port: 6443
 loadbalancer_apiserver:
   address: "{{ keepalived_vip }}"
