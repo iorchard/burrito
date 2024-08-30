@@ -54,6 +54,8 @@ else
   ansible-galaxy install -r pfx_requirements.yml
 fi
 
+./scripts/patch.sh
+
 for CFG in ${CFGFILES[@]}; do
   if [ ! -f "${CFG}" ]; then
     cp ${CFG}.sample ${CFG}
@@ -64,4 +66,3 @@ if [ ! -d "group_vars" ]; then
   cp -a group_vars.sample group_vars
 fi
 
-./scripts/patch.sh
