@@ -57,6 +57,15 @@ if [[ "${PLAYBOOK}" = "ping" ]]; then
   ansible -m ping --extra-vars=@vars.yml all
   exit 0
 fi
+if [[ "${PLAYBOOK}" = "ceph_purge" ]]; then
+  if [ -f .offline_flag ]; then
+    OFFLINE_VARS="--extra-vars=@offline_vars.yml"
+  fi
+  . ~/.envs/burrito/bin/activate
+  ansible-playbook --user=${USER} --extra-vars=@vars.yml \
+    ${OFFLINE_VARS} ${OS_VARS} ${FLAGS} ${PLAYBOOK}.yml
+  exit 0
+fi
 if [ -f .offline_flag ]; then
   # check offline services status
   if ${CURRENT_DIR}/scripts/offline_services.sh -s &>/dev/null; then
