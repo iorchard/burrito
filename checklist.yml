@@ -253,10 +253,37 @@
       ansible.builtin.uri:
         url: "https://{{ purestorage_mgmt_ip }}/"
         validate_certs: false
-        timeout: 5
+        timeout: 3
         status_code: 200
       when:
         - "'purestorage' in storage_backends"
+
+    - name: check if netapp managementLIF is reachable
+      ansible.builtin.uri:
+        url: "https://{{ item.managementLIF }}/api/cluster?fields=version"
+        url_username: "{{ item.username }}"
+        url_password: "{{ item.password }}"
+        validate_certs: false
+        timeout: 3
+        status_code: 200
+      no_log: true
+      loop: "{{ netapp }}"
+      when:
+        - "'netapp' in storage_backends"
+        - inventory_hostname in groups['kube_node']
+
+    - name: check if netapp dataLIF is reachable
+      ansible.builtin.wait_for:
+        host: "{{ item.dataLIF }}"
+        port: 2049
+        connect_timeout: 2
+        sleep: 1
+        timeout: 5
+      no_log: true
+      loop: "{{ netapp }}"
+      when:
+        - "'netapp' in storage_backends"
+        - inventory_hostname in groups['kube_node']
 
     - name: check if all hosts are reachable
       ansible.builtin.ping:
