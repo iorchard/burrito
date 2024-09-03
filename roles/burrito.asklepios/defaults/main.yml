@@ -7,6 +7,11 @@ template_files:
   - {dest: "{{ artifacts_dir }}/configmap.yaml"}
   - {dest: "{{ artifacts_dir }}/deployment.yaml"}
 
+manifest_files:
+  - "{{ artifacts_dir }}/configmap.yaml"
+  - "{{ artifacts_dir }}/rbac.yaml"
+  - "{{ artifacts_dir }}/deployment.yaml"
+
 asklepios:
   version: "0.2.0"
   verbose: false
