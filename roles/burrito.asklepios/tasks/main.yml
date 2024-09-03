@@ -30,7 +30,6 @@
     state: present
     wait: true
     wait_timeout: 300
-  with_fileglob:
-    - "{{ artifacts_dir }}/*.yaml"
+  loop: "{{ manifest_files }}"
   become: true
 ...
