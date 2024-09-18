@@ -1,5 +1,11 @@
 ---
+# Use the all unused devices for osd disks on the host. Default: true
+# If you want to use the specific devices, set this to false and
+# specify device names in data_devices.
 ceph_osd_use_all: true
+
+# Set the osd data devices.
+# This variable is ignored if ceph_osd_use_all is true.
 data_devices:
   - path: /dev/sdb
   - path: /dev/sdc
