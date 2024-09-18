@@ -1,4 +1,7 @@
 ---
+# kubespray binary dir to /usr/local/bin
+bin_dir: "/usr/local/bin"
+
 # Debian has AppArmor enabled.
 kube_apiserver_feature_gates: ["AppArmor=true"]
 kube_controller_feature_gates: ["RotateKubeletServerCertificate=true", "AppArmor=true"]
