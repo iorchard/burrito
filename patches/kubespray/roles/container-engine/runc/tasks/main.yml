@@ -16,7 +16,7 @@
     name: "{{ runc_package_name }}"
     state: absent
   when:
-    - not (is_ostree or (ansible_distribution == "Flatcar Container Linux by Kinvolk") or (ansible_distribution == "Flatcar") or (ansible_distribution == "Rocky"))
+    - not (is_ostree or (ansible_distribution == "Flatcar Container Linux by Kinvolk") or (ansible_distribution == "Flatcar"))
     - inventory_hostname not in groups['ceph_servers']
 
 - name: Runc | Download runc binary
@@ -36,7 +36,6 @@
     path: /usr/bin/runc
     state: absent
   when: 
-    - not (ansible_distribution == "Rocky")
     - inventory_hostname not in groups['ceph_servers']
     - runc_bin_dir != "/usr/bin"
   ignore_errors: true  # noqa ignore-errors
