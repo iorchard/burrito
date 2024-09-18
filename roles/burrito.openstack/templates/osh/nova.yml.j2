@@ -22,6 +22,8 @@ images:
     nova_spiceproxy: "{{ docker_image_repo }}/jijisa/nova:2023.1-ubuntu_jammy"
     nova_spiceproxy_assets: "{{ docker_image_repo }}/jijisa/nova:2023.1-ubuntu_jammy"
     nova_service_cleaner: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:latest-ubuntu_focal"
+    nova_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:latest-ubuntu_focal"
+
 
 volume:
   class_name: "{{ storageclass_name }}"
