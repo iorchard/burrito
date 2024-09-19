@@ -56,6 +56,5 @@ template_files:
   - {dest: "{{ artifacts_dir }}/external-snapshotter/snapshot-controller/setup-snapshot-controller.yaml"}
   - {dest: "{{ artifacts_dir }}/vxflexos-config.yml"}
   - {dest: "{{ artifacts_dir }}/vxflexos-values.yml"}
-  - {dest: "{{ artifacts_dir }}/csi-vxflexos/templates/_helpers.tpl"}
   - {dest: "{{ artifacts_dir }}/vxflexos-storageclass.yml"}
 ...
