@@ -435,7 +435,7 @@ registry_ready_timeout: 300
 trident_version: "24.02.0"
 
 # burrito.powerflex role variables
-pfx_version: "v2.6.0"
+pfx_version: "v2.11.0"
 pfx_snapshot_controller_version: "v6.2.1"
 
 # burrito.openstack role variables
@@ -497,7 +497,7 @@ keystone:
 glance_store_types:
   ceph: 'rbd'
   netapp: 'cinder'
-  powerflex: 'cinder'
+  powerflex: 'file'
   hitachi: 'cinder'
   primera: 'cinder'
   lvm: 'cinder'
@@ -505,7 +505,7 @@ glance_store_types:
 glance_storage:
   ceph: 'rbd'
   netapp: 'cinder'
-  powerflex: 'cinder'
+  powerflex: 'file'
   hitachi: 'cinder'
   primera: 'cinder'
   lvm: 'cinder'
