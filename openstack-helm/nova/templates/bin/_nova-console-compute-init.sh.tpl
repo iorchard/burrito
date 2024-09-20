@@ -41,7 +41,8 @@ if [ -z "${client_address}" ] ; then
     # determine client ip dynamically based on interface provided
     client_address=$(ip a s $client_interface | grep 'inet ' | awk '{print $2}' | awk -F "/" '{print $1}' | head -1)
 fi
-
+# override listen_ip to client_address to listen on the mgmt interface only.
+listen_ip=${client_address}
 if [ -z "${listen_ip}" ] ; then
     # The server component listens on all IP addresses and the proxy component
     # only listens on the management interface IP address of the compute node.

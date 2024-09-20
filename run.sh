@@ -5,33 +5,34 @@ set -e
 CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
 
 function USAGE() {
-  echo "USAGE: $0 [playbook_name] <ansible_parameters>" 1>&2
-  echo
-  echo "playbook_name"
-  echo "============="
-  echo "-- installation playbooks --"
-  echo "vault       - create an ansible vault"
-  echo "ping        - ping to all nodes"
-  echo "preflight   - play common tasks, i.e. yum repo settings"
-  echo "ha          - play ha stack tasks, HAProxy/KeepAlived"
-  echo "ceph        - play ceph tasks (when ceph in storage backend)"
-  echo "k8s         - play kubernetes installation tasks"
-  echo "storage     - play k8s storage csi tasks"
-  echo "patch       - play kubernetes security patch tasks"
-  echo "registry    - play local registry tasks (offline only)"
-  echo "landing     - play localrepo/genesisregistry tasks (offline only)"
-  echo "burrito     - play openstack installation tasks"
-  echo
-  echo "-- operation playbooks --"
-  echo "ceph_purge            - play ceph storage cluster purge tasks"
-  echo "primera_uninstall     - play primera csi driver uninstall tasks"
-  echo "purestorage_uninstall - play purestorage/portworx  uninstall tasks"
-  echo "scale                 - play kubernetes node addition tasks"
-  echo
-  echo "ansible_parameters"
-  echo "=================="
-  echo "ex) --tags=ceph-csi"
-  echo 
+cat <<EOF 1>&2
+USAGE: $0 [playbook_name] <ansible_parameters>
+
+playbook_name
+=============
+-- installation playbooks --
+vault       - create an ansible vault
+ping        - ping to all nodes
+preflight   - play common tasks, i.e. repo settings
+ha          - play ha stack tasks, HAProxy/KeepAlived
+ceph        - play ceph tasks (when ceph in storage backend)
+k8s         - play kubernetes installation tasks
+storage     - play k8s storage csi tasks
+patch       - play kubernetes security patch tasks
+registry    - play local registry tasks (offline only)
+landing     - play localrepo/genesisregistry tasks (offline only)
+burrito     - play openstack installation tasks
+
+-- operation playbooks --
+ceph_purge            - play ceph storage cluster purge tasks
+primera_uninstall     - play primera csi driver uninstall tasks
+purestorage_uninstall - play purestorage/portworx  uninstall tasks
+scale                 - play kubernetes node addition tasks
+
+ansible_parameters
+==================
+ex) --tags=ceph-csi
+EOF
 }
 if [ $# -lt 1 ]; then
   USAGE
@@ -44,7 +45,7 @@ shift
 OFFLINE_VARS=
 OS_VARS=
 
-[ -f /etc/os-release ] && . /etc/os-release || (echo 'Cannot find /etc/os-release'; exit 1)
+[ -f /etc/os-release ] && . /etc/os-release || (echo 'Cannot find /etc/os-release.' 1>&2; exit 1)
 [ -f ${ID}_vars.yml ] && OS_VARS="--extra-vars=@${ID}_vars.yml" || :
 
 if [[ "${PLAYBOOK}" = "vault" ]]; then
@@ -71,8 +72,13 @@ if [ -f .offline_flag ]; then
   if ${CURRENT_DIR}/scripts/offline_services.sh -s &>/dev/null; then
     OFFLINE_VARS="--extra-vars=@offline_vars.yml"
   else
-    echo "The offline flag is up but offline services are not up."
-    echo "Run offline services - ${CURRENT_DIR}/scripts/offline_services.sh -u"
+    cat <<EOF 1>&2
+
+Abort) The offline flag is up but offline services are not up.
+Run offline services before running ${PLAYBOOK}
+(${CURRENT_DIR}/scripts/offline_services.sh -u).
+
+EOF
     ${CURRENT_DIR}/scripts/offline_services.sh -s
     exit 1
   fi

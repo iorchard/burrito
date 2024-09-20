@@ -1,0 +1,19 @@
+--- kubespray/roles/container-engine/runc/tasks/main.yml	2024-09-13 11:39:17.822799185 +0900
++++ patches/kubespray/roles/container-engine/runc/tasks/main.yml	2024-09-20 15:52:35.249799185 +0900
+@@ -17,6 +17,7 @@
+     state: absent
+   when:
+     - not (is_ostree or (ansible_distribution == "Flatcar Container Linux by Kinvolk") or (ansible_distribution == "Flatcar"))
++    - (ansible_distribution == "Rocky") and (inventory_hostname not in groups['ceph_servers'])
+ 
+ - name: Runc | Download runc binary
+   include_tasks: "../../../download/tasks/download_file.yml"
+@@ -34,5 +35,7 @@
+   file:
+     path: /usr/bin/runc
+     state: absent
+-  when: runc_bin_dir != "/usr/bin"
++  when: 
++    - (ansible_distribution == "Rocky") and (inventory_hostname not in groups['ceph_servers'])
++    - runc_bin_dir != "/usr/bin"
+   ignore_errors: true  # noqa ignore-errors

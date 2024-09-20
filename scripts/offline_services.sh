@@ -17,7 +17,7 @@ function check() {
     read -p "Enter management network interface name: " MGMT_IFACE
     # check MGMT_IFACE exists
     if ! ip -br a s dev ${MGMT_IFACE}; then
-      echo "Cannot find the network interface name: $MGMT_IFACE"
+      echo "Cannot find the network interface name: $MGMT_IFACE" 1>&2
       exit 1
     fi
     # get mgmt iface ip address
@@ -28,7 +28,7 @@ function check() {
 }
 function _pids() {
   if [ ! -f ${CURRENT_DIR}/.mgmt_ip ]; then
-    echo "Cannot get management ip address. Run $0 --up first."
+    echo "Cannot get management ip address. Run $0 --up first." 1>&2
     exit 1
   fi
   MGMT_IP=$(head -1 ${CURRENT_DIR}/.mgmt_ip)
@@ -42,7 +42,7 @@ function status() {
     echo "Local repo is running."
     ps -q ${REPO_PID} -o cmd=
   else
-    echo "Local repo is NOT running."
+    echo "Local repo is NOT running." 1>&2
     EXIT_CODE=1
   fi
   echo
@@ -51,7 +51,7 @@ function status() {
     echo "Local registry is running."
     ps -q ${REGISTRY_PID} -o cmd=
   else
-    echo "Local registry is NOT running."
+    echo "Local registry is NOT running." 1>&2
     EXIT_CODE=1
   fi
   echo
@@ -210,13 +210,16 @@ EOF
   nohup sudo /usr/bin/registry serve /tmp/seed_registry.conf &>/tmp/registry.log &
 }
 function USAGE() {
-  echo "USAGE: $0 [-h|-d|-u]" 1>&2
-  echo 
-  echo " -h --help                   Display this help message."
-  echo " -s --status                 Show the status of offline services."
-  echo " -d --down   [repo|registry] Stop the offline services."
-  echo " -u --up     [repo|registry] Start the offline services."
-  echo 
+  cat <<EOF 1>&2
+USAGE: $0 [-h|-d|-u]
+
+ -h --help                   Display this help message.
+ -s --status                 Show the status of offline services.
+ -d --down   [repo|registry] Stop the offline services.
+ -u --up     [repo|registry] Start the offline services.
+
+EOF
+
 }
 if [ $# -lt 1 ]; then
   USAGE
@@ -250,7 +253,6 @@ do
       ;;
     *)
       echo Error: unknown option: "$OPT" 1>&2
-      echo " "
       USAGE
       exit 1
       ;;
