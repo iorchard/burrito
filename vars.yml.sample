@@ -436,6 +436,7 @@ trident_version: "24.02.0"
 
 # burrito.powerflex role variables
 pfx_version: "v2.11.0"
+pfx_sdc_version: "4.5.2.1"
 pfx_snapshot_controller_version: "v6.2.1"
 
 # burrito.openstack role variables
