@@ -1,9 +1,15 @@
 ---
 - name: CSI | create vxflexos namespace
   kubernetes.core.k8s:
-    name: vxflexos
-    api_version: v1
-    kind: Namespace
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: vxflexos
+        labels:
+          kubernetes.io/metadata.name: vxflexos
+          pod-security.kubernetes.io/enforce: privileged
     state: present
   become: true
   delegate_to: localhost
