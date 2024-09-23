@@ -2,8 +2,8 @@
 version: {{ pfx_version }}
 
 images:
-  #driverRepository: {{ docker_image_repo }}/dellemc
-  driverRepository: docker.io/dellemc
+  driver: {{ docker_image_repo }}/dellemc/csi-vxflexos:{{ pfx_version }}
+  powerflexSdc: {{ docker_image_repo }}/dellemc/sdc:{{ pfx_sdc_version }}
   # CSI sidecars
   attacher: {{ kube_image_repo }}/sig-storage/csi-attacher:{{ csi_attacher_version }}
   provisioner: {{ kube_image_repo }}/sig-storage/csi-provisioner:{{ csi_provisioner_version }}

@@ -56,6 +56,7 @@ genesis_registry:
     - "netapp/trident-autosupport:{{ trident_version[:5] }}"
   powerflex:
     - "dellemc/csi-vxflexos:{{ pfx_version }}"
+    - "dellemc/sdc:{{ pfx_sdc_version }}"
     - "sig-storage/snapshot-controller:{{ pfx_snapshot_controller_version }}"
   hitachi:
     - "hitachi/hspc-operator:{{ hspc_operator_version }}"
@@ -136,27 +137,11 @@ trident_daemonset: |
   {% endfor -%}
 trident_daemonset_patch_list: "{{ trident_daemonset.splitlines()|map('from_yaml')|list }}"
 
-# vxflexos deploy patch variables
-vxflexos_deploy_images:
-  - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
-  - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"
-  - "sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}"
-  - "sig-storage/csi-resizer:{{ csi_resizer_version }}"
-  - "dellemc/csi-vxflexos:{{ pfx_version }}"
-vxflexos_deploy: |
-  {% for v in vxflexos_deploy_images -%}
-  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
-  {% endfor -%}
-vxflexos_deploy_patch_list: "{{ vxflexos_deploy.splitlines()|map('from_yaml')|list }}"
-  
-# snapshot-controller patch variables
-snapshot_controller_deploy_images:
-  - "sig-storage/snapshot-controller:{{ pfx_snapshot_controller_version }}"
-snapshot_controller_deploy: |
-  {% for v in snapshot_controller_deploy_images -%}
-  {op: replace, path: "/spec/template/spec/containers/{{ loop.index0 }}/image", value: "{{ containerd_insecure_registries.genesis_registry }}/{{ v }}"}
-  {% endfor -%}
-snapshot_controller_deploy_patch_list: "{{ snapshot_controller_deploy.splitlines()|map('from_yaml')|list }}"
+# vxflexos
+vxflexos_artifacts_dir: "{{ ansible_env.HOME }}/vxflexos-artifacts"
+vxflexos_manifests:
+  - "{{ vxflexos_artifacts_dir }}/external-snapshotter/snapshot-controller/setup-snapshot-controller.yaml"
+  - "{{ vxflexos_artifacts_dir }}/vxflexos-values.yml"
 
 # hitachi deployment patch variables
 hspc_operator_deploy_images:

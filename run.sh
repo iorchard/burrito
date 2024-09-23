@@ -88,8 +88,11 @@ FLAGS="${FLAGS} $@"
 
 [[ "${PLAYBOOK}" = "scale" ]] && PLAYBOOK="kubespray/${PLAYBOOK}" || :
 [[ "${PLAYBOOK}" = "k8s" ]] && PLAYBOOK="kubespray/cluster" || :
-
-if [[ "${PLAYBOOK}" = "burrito" && -n ${OFFLINE_VARS} ]]; then
+HELMDIFF=
+if type -p helm &>/dev/null; then
+  HELMDIFF="1"
+fi
+if [[ "${HELMDIFF}" = "1" && -n ${OFFLINE_VARS} ]]; then
   if ! (helm plugin list | grep -q ^diff); then
     # install helm diff plugin
     HELM_DIFF_TARBALL="/mnt/files/github.com/databus23/helm-diff/releases/download/*/helm-diff-linux-amd64.tgz"
