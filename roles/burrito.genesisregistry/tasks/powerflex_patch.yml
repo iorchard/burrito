@@ -1,28 +1,37 @@
 ---
-- name: Genesis Registry | apply patch to vxflexos-node daemonset
-  ansible.builtin.command: >-
-    kubectl patch ds vxflexos-node -n vxflexos -p \
-      '{"spec": {"template": {"spec": {"containers": [{"name": "driver", "image": "{{ containerd_insecure_registries.genesis_registry }}/dellemc/csi-vxflexos:{{ pfx_version }}"},{"name": "registrar", "image": "{{ containerd_insecure_registries.genesis_registry }}/sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"}]}}}}'
+- name: Genesis Registry | patch the image urls in the manifests
+  ansible.builtin.replace:
+    path: "{{ item }}"
+    regexp: "{{ containerd_insecure_registries.seed_registry }}"
+    replace: "{{ containerd_insecure_registries.genesis_registry }}"
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ vxflexos_manifests }}"
+
+- name: Genesis Regsitry | create snapshot crds
+  kubernetes.core.k8s:
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=vxflexos_artifacts_dir+'/external-snapshotter/crd') }}"
   become: true
   delegate_to: localhost
   run_once: true
 
-- name: Genesis Registry | apply patch to vxflexos-controller deployment
-  kubernetes.core.k8s_json_patch:
-    kind: Deployment
-    namespace: vxflexos
-    name: vxflexos-controller
-    patch: "{{ vxflexos_deploy_patch_list }}"
+- name: Genesis Regsitry | create snapshot controller
+  kubernetes.core.k8s:
+    namespace: "kube-system"
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=vxflexos_artifacts_dir+'/external-snapshotter/snapshot-controller') }}"
   become: true
   delegate_to: localhost
   run_once: true
 
-- name: Genesis Registry | apply patch to snapshot-controller deployment
-  kubernetes.core.k8s_json_patch:
-    kind: Deployment
-    namespace: kube-system
-    name: snapshot-controller
-    patch: "{{ snapshot_controller_deploy_patch_list }}"
+- name: Genesis Regsitry | deploy csi-vxflexos chart
+  kubernetes.core.helm:
+    release_name: "vxflexos"
+    chart_ref: "{{ vxflexos_artifacts_dir }}/csi-vxflexos"
+    release_namespace: vxflexos
+    timeout: "10m0s"
+    values_files:
+      - "{{ vxflexos_artifacts_dir }}/vxflexos-values.yml"
+    wait: true
   become: true
   delegate_to: localhost
   run_once: true
