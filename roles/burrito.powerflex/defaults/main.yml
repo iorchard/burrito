@@ -51,6 +51,8 @@ media_type: "SSD"
 spare_percentage: "{{ (1/(groups['sds']|length)*100)|round(0, 'ceil')|int }}"
 
 # vxflexos
+pfx_version: "v2.11.0"
+pfx_sdc_version: "4.5.2.1"
 artifacts_dir: "{{ ansible_env.HOME }}/vxflexos-artifacts"
 template_files:
   - {dest: "{{ artifacts_dir }}/external-snapshotter/snapshot-controller/setup-snapshot-controller.yaml"}
