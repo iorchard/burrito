@@ -99,8 +99,9 @@ if [[ "${HELMDIFF}" = "1" && -n ${OFFLINE_VARS} ]]; then
     HELM_PLUGINS=$(sudo helm env | grep HELM_PLUGINS |cut -d'"' -f2)
     sudo mkdir -p ${HELM_PLUGINS}
     sudo tar -C ${HELM_PLUGINS} -xzf ${HELM_DIFF_TARBALL}
+    sudo chown -R root:root ${HELM_PLUGINS}
+    sudo helm plugin list
   fi
-  sudo helm plugin list
 fi
 
 . ~/.envs/burrito/bin/activate
