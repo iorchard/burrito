@@ -1,0 +1,9 @@
+---
+- name: deploy Dell/EMC PowerStore
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.powerstore
+      when: '"powerstore" in storage_backends'
+      tags: ['powerstore']
+...
