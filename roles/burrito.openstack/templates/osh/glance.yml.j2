@@ -156,6 +156,11 @@ volume:
   class_name: "{{ storageclass_name }}"
   size: "{{ glance.volume_size }}"
 
+dependencies:
+  static:
+    api:
+      jobs: {{ glance_api_jobs_dependencies }}
+
 bootstrap:
   enabled: false
 endpoints:
@@ -262,5 +267,6 @@ pod:
 manifests:
   pod_rally_test: false
   certificates: true
+  job_storage_init: {{ glance_job_storage_init }}
   pvc_nginx_client_tmp: {{ glance.pvc_nginx_client_tmp }}
 ...

@@ -506,7 +506,7 @@ glance_store_types:
 glance_storage:
   ceph: 'rbd'
   netapp: 'cinder'
-  powerflex: 'file'
+  powerflex: 'pvc'
   hitachi: 'cinder'
   primera: 'cinder'
   lvm: 'cinder'
@@ -542,6 +542,13 @@ glance:
     access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
     size: "200Gi"
   pvc_nginx_client_tmp: "{{ storage_backends|map('extract', glance_pvc_nginx_client_tmp)|list|first }}"
+glance_job_storage_init: "{{ (glance.storage == 'rbd') | ternary(true, false) }}"
+glance_api_jobs_dependencies_base:
+  - glance-db-sync
+  - glance-rabbit-init
+  - glance-ks-user
+  - glance-ks-endpoints
+glance_api_jobs_dependencies: "{% if glance.storage == 'rbd' %}{{ glance_api_jobs_dependencies_base + [glance-storage-init] }}{% else %}{{ glance_api_jobs_dependencies_base }}{% endif %}"
 
 # placement
 placement:
