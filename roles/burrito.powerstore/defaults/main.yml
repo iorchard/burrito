@@ -3,31 +3,18 @@ artifacts_dir: "{{ ansible_env.HOME }}/powerstore-artifacts"
 
 service_conf:
   - {dest: "/etc/multipath.conf", owner: "root", group: "root", mode: "0600"}
+
 systemd_service_name:
   - multipathd.service
 
 template_files:
   - {dest: "{{ artifacts_dir }}/secret.yaml"}
-
-offline_template_files:
-  - {dest: "{{ artifacts_dir }}/versions.yaml"}
-
-purestorage_mgmt_ip: ~
-purestorage_api_token: ~
+  - {dest: "{{ artifacts_dir }}/storageclass.yaml"}
+  - {dest: "{{ artifacts_dir }}/powerstore_values.yaml"}
 
 powerstore_namespace: "powerstore"
 
-check_node_health:
-  url: "http://127.0.0.1:9001/v1/cluster/nodehealth"
-  retries: 60
-  delay: 10
-check_kvdb_health:
-  url: "http://127.0.0.1:9019/version"
-  retries: 30
-  delay: 10
-
 uninstall_files:
-  - "{{ artifacts_dir }}/portworx_storageclass.yml"
-  - "{{ artifacts_dir }}/portworx_storagecluster.yml"
-  - "{{ artifacts_dir }}/portworx_operator.yml"
+  - "{{ artifacts_dir }}/secret.yml"
+  - "{{ artifacts_dir }}/storageclass.yml"
 ...

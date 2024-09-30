@@ -1,0 +1,2 @@
+docker.io/dellemc/csi-metadata-retriever:v1.8.0
+docker.io/dellemc/csi-powerstore:v2.11.1
