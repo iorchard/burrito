@@ -1,0 +1,22 @@
+---
+- name: Genesis Registry | patch the image urls in the manifests
+  ansible.builtin.replace:
+    path: "{{ item }}"
+    regexp: "{{ containerd_insecure_registries.seed_registry }}"
+    replace: "{{ containerd_insecure_registries.genesis_registry }}"
+  delegate_to: localhost
+  run_once: true
+  loop: "{{ powerstore_manifests }}"
+
+- name: Genesis Registry | deploy helm chart
+  kubernetes.core.helm:
+    release_name: "csi-powerstore"
+    chart_ref: "{{ powerstore_artifacts_dir }}/charts"
+    release_namespace: "{{ powerstore_namespace }}"
+    timeout: "10m0s"
+    values_files:
+      - "{{ powerstore_artifacts_dir }}/powerstore_values.yaml"
+  become: true
+  delegate_to: localhost
+  run_once: true
+...
