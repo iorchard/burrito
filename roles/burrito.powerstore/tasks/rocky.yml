@@ -1,5 +1,5 @@
 ---
-- name: purestorage | Install packages
+- name: PowerStore | Install packages
   ansible.builtin.package:
     name: "{{ item }}"
     state: "{{ pkg_state }}"

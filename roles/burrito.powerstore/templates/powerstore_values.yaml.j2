@@ -9,6 +9,8 @@ images:
   registrar: {{ kube_image_repo }}/sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}
   metadataretriever: {{ docker_image_repo }}/dellemc/csi-metadata-retriever:{{ csi_metadata_retriever_version }}
 
+externalAccess: "{{ powerstore_external_access }}"
+
 controller:
   controllerCount: {{ pod.replicas }}
   nodeSelector:

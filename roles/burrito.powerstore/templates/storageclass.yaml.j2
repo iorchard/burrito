@@ -3,13 +3,16 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: "{{ p.name }}"
+  name: "{{ 'powerstore' if loop.first else p.name }}"
   annotations:
     storageclass.kubernetes.io/is-default-class: "{{ 'true' if (storage_backends[0] == 'powerstore' and loop.first) else 'false' }}"
 provisioner: "csi-powerstore.dellemc.com"
 parameters:
   arrayID: "{{ p.globalID }}"
-  csi.storage.k8s.io/fstype: "{{ powerstore_sc_fs }}"
+  csi.storage.k8s.io/fstype: "{{ p.fstype }}"
+{% if 'nasName' in p %}
+  nasName: "{{ p.nasName }}"
+{% endif %}
 reclaimPolicy: Delete
 allowVolumeExpansion: true
 volumeBindingMode: Immediate
