@@ -481,6 +481,7 @@ enable_iscsi_map:
   purestorage: true
   powerstore: true
 enable_iscsi: "{{ storage_backends|map('extract', enable_iscsi_map)|list is any }}"
+is_nfs_in_powerstore: "{{ powerstore|selectattr('blockProtocol', 'in', ['None'])|length|int }}"
 enable_multipath_map:
   ceph: false
   netapp: false
@@ -489,7 +490,7 @@ enable_multipath_map:
   primera: true
   lvm: false
   purestorage: true
-  powerstore: true
+  powerstore: "{{ true if (is_nfs_in_powerstore == '0') else false }}"
 enable_multipath: "{{ storage_backends|map('extract', enable_multipath_map)|list is all }}"
 
 # keystone
@@ -634,9 +635,20 @@ cinder_pvc_conversion:
   lvm: false
   purestorage: false
   powerstore: false
+# Note. powerstore does not support allowed_direct_url_schemes
+cinder_allowed_direct_url_schemes:
+  ceph: null
+  netapp: 'cinder'
+  powerflex: 'file'
+  hitachi: 'cinder'
+  primera: 'cinder'
+  lvm: 'cinder'
+  purestorage: 'cinder'
+  powerstore: null
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first|split(',')|first }}"
+  allowed_direct_url_schemes: "{{ storage_backends|map('extract', cinder_allowed_direct_url_schemes)|unique|select() }}"
   password: "{{ vault_cinder_password }}"
   volume_deploy:
     type: "{{ storage_backends|map('extract', cinder_vol_deploy_type_map)|first }}"
