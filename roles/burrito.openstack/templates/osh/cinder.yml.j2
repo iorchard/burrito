@@ -187,6 +187,13 @@ bootstrap:
       volume_backend_name: {{ p.name }}
       access_type: "private"
       "image_service:store_id": "{{ glance_store_types.powerstore }}"
+{% if 'nas_host' in p %}
+      dataLIF: "{{ p.nas_host }}"
+{% endif %}
+{% if 'nas_share_path' in p %}
+      shares:
+        - "{{ p.nas_share_path }}"
+{% endif %}
 {% endfor %}
 {% endif %}
 
@@ -460,7 +467,7 @@ conf:
       nfs_snapshot_support: True
       nfs_sparsed_volumes: True
       nas_host: "{{ p.nas_host }}"
-      nas_share_path: "{{ p.nas_share_path }}"
+      nfs_shares_config: "/etc/cinder/share_{{ p.name }}"
       nas_secure_file_operations: False
       nas_secure_file_permissions: False
 {% endif %}
@@ -594,6 +601,11 @@ dependencies:
         - cinder-ks-endpoints
         - cinder-rabbit-init
 {% endif %}
+
+# powerstore dellfcopy from local repo
+powerstore_nfs_enabled: {{ powerstore_nfs_enabled }}
+dellfcopy_download_url: "{{ dellfcopy_download_url }}"
+
 manifests:
   certificates: true
   cron_volume_usage_audit: {{ enable_cron_volume_usage_audit }}
