@@ -61,7 +61,9 @@ csi_metadata_retriever_version: "v1.8.0"
 # powerstore NFS network
 powerstore_external_access: "{{ storage_netmask | ansible.utils.ipaddr('net') }}"
 
-# cinder volume driver
+# variables used in cinder 
 powerstore_nfs_volume_driver: "cinder.volume.drivers.dell_emc.powerstore.nfs.PowerStoreNFSDriver"
 powerstore_fc_volume_driver: "cinder.volume.drivers.dell_emc.powerstore.driver.PowerStoreDriver"
+is_nfs_in_powerstore: "{{ powerstore|selectattr('blockProtocol', 'in', ['None'])|length|int }}"
+powerstore_nfs_enabled: "{{ true if (('powerstore' in storage_backends) and (is_nfs_in_powerstore != '0')) else false }}"
 ...
