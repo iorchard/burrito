@@ -1,0 +1,20 @@
+---
+artifacts_dir: "{{ ansible_env.HOME }}/powerstore-artifacts"
+
+service_conf:
+  - {dest: "/etc/multipath.conf", owner: "root", group: "root", mode: "0600"}
+
+systemd_service_name:
+  - multipathd.service
+
+template_files:
+  - {dest: "{{ artifacts_dir }}/secret.yaml"}
+  - {dest: "{{ artifacts_dir }}/storageclass.yaml"}
+  - {dest: "{{ artifacts_dir }}/powerstore_values.yaml"}
+
+powerstore_namespace: "powerstore"
+
+uninstall_files:
+  - "{{ artifacts_dir }}/secret.yml"
+  - "{{ artifacts_dir }}/storageclass.yml"
+...

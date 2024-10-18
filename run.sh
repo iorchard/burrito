@@ -44,6 +44,7 @@ shift
 
 OFFLINE_VARS=
 OS_VARS=
+HELMDIFF=
 
 [ -f /etc/os-release ] && . /etc/os-release || (echo 'Cannot find /etc/os-release.' 1>&2; exit 1)
 [ -f ${ID}_vars.yml ] && OS_VARS="--extra-vars=@${ID}_vars.yml" || :
@@ -88,12 +89,11 @@ FLAGS="${FLAGS} $@"
 
 [[ "${PLAYBOOK}" = "scale" ]] && PLAYBOOK="kubespray/${PLAYBOOK}" || :
 [[ "${PLAYBOOK}" = "k8s" ]] && PLAYBOOK="kubespray/cluster" || :
-HELMDIFF=
 if type -p helm &>/dev/null; then
   HELMDIFF="1"
 fi
-if [[ "${HELMDIFF}" = "1" && -n ${OFFLINE_VARS} ]]; then
-  if ! (helm plugin list | grep -q ^diff); then
+if [[ -n "${HELMDIFF}" && -n "${OFFLINE_VARS}" ]]; then
+  if ! (sudo helm plugin list | grep -q ^diff); then
     # install helm diff plugin
     HELM_DIFF_TARBALL="/mnt/files/github.com/databus23/helm-diff/releases/download/*/helm-diff-linux-amd64.tgz"
     HELM_PLUGINS=$(sudo helm env | grep HELM_PLUGINS |cut -d'"' -f2)

@@ -181,6 +181,21 @@ bootstrap:
       access_type: "private"
       "image_service:store_id": "{{ glance_store_types.purestorage }}"
 {% endif %}
+{% if "powerstore" in storage_backends %}
+{% for p in powerstore %}
+    {{ p.name }}:
+      volume_backend_name: {{ p.name }}
+      access_type: "private"
+      "image_service:store_id": "{{ glance_store_types.powerstore }}"
+{% if 'nas_host' in p %}
+      dataLIF: "{{ p.nas_host }}"
+{% endif %}
+{% if 'nas_share_path' in p %}
+      shares:
+        - "{{ p.nas_share_path }}"
+{% endif %}
+{% endfor %}
+{% endif %}
 
 network:
   api:
@@ -260,7 +275,7 @@ conf:
       glance_ca_certificates_file: /etc/cinder/certs/ca.crt
       debug: true
       enable_force_upload: true
-      allowed_direct_url_schemes: cinder
+      allowed_direct_url_schemes: "{{ cinder.allowed_direct_url_schemes }}"
       cinder_internal_tenant_project_id: internal_cinder
       cinder_internal_tenant_user_id: internal_cinder
       enabled_backends: "{{ cinder.enabled_backends }}"
@@ -433,6 +448,31 @@ conf:
       pure_eradicate_on_delete: {{ pure_eradicate_on_delete }}
       pure_automatic_max_oversubscription_ratio: {{ pure_automatic_max_oversubscription_ratio }}
 {% endif %}
+{% if "powerstore" in storage_backends %}
+{% for p in powerstore %}
+    {{ p.name }}:
+      volume_driver: "{{ p.volume_driver }}"
+      volume_backend_name: "{{ p.name }}"
+{% if p.blockProtocol == 'FC' %}
+      image_volume_cache_enabled: True
+      image_upload_use_cinder_backend: True
+      image_upload_use_internal_tenant: True
+      san_ip: "{{ p.apiserver }}"
+      san_login: "{{ p.username }}"
+      san_password: "{{ p.password }}"
+      storage_protocol: "{{ p.blockProtocol }}"
+      use_multipath_for_image_xfer: True
+{% elif p.blockProtocol == 'None' %}
+      nfs_qcow2_volumes: False
+      nfs_snapshot_support: True
+      nfs_sparsed_volumes: True
+      nas_host: "{{ p.nas_host }}"
+      nfs_shares_config: "/etc/cinder/share_{{ p.name }}"
+      nas_secure_file_operations: False
+      nas_secure_file_permissions: False
+{% endif %}
+{% endfor %}
+{% endif %}
 
 endpoints:
   oslo_db:
@@ -561,6 +601,11 @@ dependencies:
         - cinder-ks-endpoints
         - cinder-rabbit-init
 {% endif %}
+
+# powerstore dellfcopy from local repo
+powerstore_nfs_enabled: {{ powerstore_nfs_enabled }}
+dellfcopy_download_url: "{{ dellfcopy_download_url }}"
+
 manifests:
   certificates: true
   cron_volume_usage_audit: {{ enable_cron_volume_usage_audit }}

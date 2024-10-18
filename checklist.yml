@@ -279,10 +279,33 @@
         connect_timeout: 2
         sleep: 1
         timeout: 5
-      no_log: true
       loop: "{{ netapp }}"
       when:
         - "'netapp' in storage_backends"
+        - inventory_hostname in groups['kube_node']
+
+    - name: check if powerstore apiserver is reachable
+      ansible.builtin.uri:
+        url: "https://{{ item.apiserver }}/swaggerui/"
+        validate_certs: false
+        timeout: 3
+        status_code: 200
+      loop: "{{ powerstore }}"
+      when:
+        - "'powerstore' in storage_backends"
+        - inventory_hostname in groups['kube_node']
+
+    - name: check if powerstore nas host is reachable
+      ansible.builtin.wait_for:
+        host: "{{ item.nas_host }}"
+        port: 2049
+        connect_timeout: 2
+        sleep: 1
+        timeout: 5
+      loop: "{{ powerstore }}"
+      when:
+        - "'powerstore' in storage_backends"
+        - "'nas_host' in item"
         - inventory_hostname in groups['kube_node']
 
     - name: check if all hosts are reachable
