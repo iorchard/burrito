@@ -453,10 +453,10 @@ conf:
     {{ p.name }}:
       volume_driver: "{{ p.volume_driver }}"
       volume_backend_name: "{{ p.name }}"
-{% if p.blockProtocol == 'FC' %}
-      image_volume_cache_enabled: True
       image_upload_use_cinder_backend: True
       image_upload_use_internal_tenant: True
+{% if p.blockProtocol == 'FC' %}
+      image_volume_cache_enabled: True
       san_ip: "{{ p.apiserver }}"
       san_login: "{{ p.username }}"
       san_password: "{{ p.password }}"
