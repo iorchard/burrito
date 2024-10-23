@@ -36,14 +36,6 @@ metallb_enabled: false
 # Only one IP: 192.168.20.95/32
 metallb_ip_range: "192.168.20.95-192.168.20.98"
 
-### HA tuning
-# ha levels: moderato, allegro, and vivace
-# moderato: default liveness update and failover response
-# allegro: faster liveness update and failover response
-# vivace: fastest liveness update and failover response
-ha_level: "moderato"
-k8s_ha_level: "moderato"
-
 ### storage
 # storage backends
 # If there are multiple backends, the first one is the default backend.
@@ -68,10 +60,18 @@ storage_backends:
 # primera: set HP primera configuration in group_vars/all/primera_vars.yml
 # lvm: set LVM configuration in group_vars/all/lvm_vars.yml
 # purestorage: set Pure Storage configuration in group_vars/all/purestorage_vars.yml
+# powerstore: set PowerStore configuration in group_vars/all/powerstore_vars.yml
 
 ###################################################
 ## Do not edit below if you are not an expert!!!  #
 ###################################################
+### HA tuning
+# ha levels: moderato, allegro, and vivace
+# moderato: default liveness update and failover response
+# allegro: faster liveness update and failover response
+# vivace: fastest liveness update and failover response
+ha_level: "moderato"
+k8s_ha_level: "moderato"
 ha:
   moderato:
     interval: 5
@@ -424,11 +424,11 @@ ceph_rgw_port: "{{ radosgw_frontend_port }}"
 ceph_pool: "{{ kube_pool.name }}"
 cephcsi_version: "v3.10.1"
 # common csi driver versions
-csi_attacher_version: "v4.4.0"
-csi_node_driver_registrar_version: "v2.9.0"
-csi_provisioner_version: "v3.6.1"
-csi_resizer_version: "v1.9.1"
-csi_snapshotter_version: "v6.3.1"
+csi_attacher_version: "v4.6.1"
+csi_node_driver_registrar_version: "v2.10.1"
+csi_provisioner_version: "v5.0.1"
+csi_resizer_version: "v1.11.1"
+csi_snapshotter_version: "v8.0.1"
 registry_ready_timeout: 300
 
 # burrito.netapp role variables
@@ -455,6 +455,7 @@ pvc_access_modes_map:
   primera: 'ReadWriteOnce'
   lvm: 'ReadWriteOnce'
   purestorage: 'ReadWriteOnce'
+  powerstore: 'ReadWriteOnce'
 
 # ingress
 ingress:
@@ -478,6 +479,7 @@ enable_iscsi_map:
   primera: true
   lvm: true
   purestorage: true
+  powerstore: true
 enable_iscsi: "{{ storage_backends|map('extract', enable_iscsi_map)|list is any }}"
 enable_multipath_map:
   ceph: false
@@ -487,6 +489,7 @@ enable_multipath_map:
   primera: true
   lvm: false
   purestorage: true
+  powerstore: "{{ true if (is_nfs_in_powerstore == '0') else false }}"
 enable_multipath: "{{ storage_backends|map('extract', enable_multipath_map)|list is all }}"
 
 # keystone
@@ -503,14 +506,16 @@ glance_store_types:
   primera: 'cinder'
   lvm: 'cinder'
   purestorage: 'cinder'
+  powerstore: 'cinder'
 glance_storage:
   ceph: 'rbd'
   netapp: 'cinder'
-  powerflex: 'file'
+  powerflex: 'pvc'
   hitachi: 'cinder'
   primera: 'cinder'
   lvm: 'cinder'
   purestorage: 'cinder'
+  powerstore: 'cinder'
 glance_nginx_deploy_types:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
@@ -519,6 +524,7 @@ glance_nginx_deploy_types:
   primera: 'StatefulSet'
   lvm: 'StatefulSet'
   purestorage: 'StatefulSet'
+  powerstore: 'StatefulSet'
 glance_pvc_nginx_client_tmp:
   ceph: false
   netapp: true
@@ -527,6 +533,7 @@ glance_pvc_nginx_client_tmp:
   primera: false
   lvm: false
   purestorage: false
+  powerstore: false
 glance:
   storage: "{{ storage_backends|map('extract', glance_storage)|list|first }}"
   enabled_backends: "{{ storage_backends|map('extract', glance_store_types)|unique }}"
@@ -542,6 +549,13 @@ glance:
     access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
     size: "200Gi"
   pvc_nginx_client_tmp: "{{ storage_backends|map('extract', glance_pvc_nginx_client_tmp)|list|first }}"
+glance_job_storage_init: "{{ (glance.storage == 'rbd') | ternary(true, false) }}"
+glance_api_jobs_dependencies_base:
+  - glance-db-sync
+  - glance-rabbit-init
+  - glance-ks-user
+  - glance-ks-endpoints
+glance_api_jobs_dependencies: "{% if glance_job_storage_init %}{{ glance_api_jobs_dependencies_base + ['glance-storage-init'] }}{% else %}{{ glance_api_jobs_dependencies_base }}{% endif %}"
 
 # placement
 placement:
@@ -575,6 +589,7 @@ nova_pvc_instances:
   primera: false
   lvm: false
   purestorage: false
+  powerstore: false
 nova:
   vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
   hypervisor_host_interface: "{{ mgmt_iface_name }}"
@@ -600,6 +615,7 @@ cinder_backends_map:
   primera: 'primera'
   lvm: 'lvm'
   purestorage: 'purestorage'
+  powerstore: "{% for p in powerstore %}{{ p.name }}{% if not loop.last %},{% endif %}{% endfor %}"
 cinder_vol_deploy_type_map:
   ceph: 'StatefulSet'
   netapp: 'Deployment'
@@ -608,6 +624,7 @@ cinder_vol_deploy_type_map:
   primera: 'StatefulSet'
   lvm: 'StatefulSet'
   purestorage: 'StatefulSet'
+  powerstore: 'StatefulSet'
 cinder_pvc_conversion:
   ceph: false
   netapp: true
@@ -616,9 +633,21 @@ cinder_pvc_conversion:
   primera: false
   lvm: false
   purestorage: false
+  powerstore: false
+# Note. powerstore does not support allowed_direct_url_schemes
+cinder_allowed_direct_url_schemes:
+  ceph: null
+  netapp: 'cinder'
+  powerflex: 'file'
+  hitachi: 'cinder'
+  primera: 'cinder'
+  lvm: 'cinder'
+  purestorage: 'cinder'
+  powerstore: null
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first|split(',')|first }}"
+  allowed_direct_url_schemes: "{{ storage_backends|map('extract', cinder_allowed_direct_url_schemes)|unique|select() }}"
   password: "{{ vault_cinder_password }}"
   volume_deploy:
     type: "{{ storage_backends|map('extract', cinder_vol_deploy_type_map)|first }}"
@@ -647,4 +676,9 @@ btx:
 ### dasel binary - used by k8spatch.
 dasel_version: v2.5.0
 dasel_download_url: "https://github.com/TomWright/dasel/releases/download/{{ dasel_version }}/dasel_linux_amd64"
+### Dell/EMC PowerStore dellfcopy binary download url
+# If you want to use Dell/EMC PowerStore NFS backend, 
+# you should get dellfcopy binary from Dell engineer 
+# and put it in your web server's root directory.
+dellfcopy_download_url: "http://your_web_server/dellfcopy"
 ...

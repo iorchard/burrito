@@ -75,4 +75,7 @@ dasel_download_url: "{{ files_repo }}/github.com/TomWright/dasel/releases/downlo
 
 ### kubelet_csr_approver
 kubelet_csr_approver_repository_url: "{{ files_repo }}/postfinance.github.io/kubelet-csr-approver"
+
+### Dell/EMC PowerStore dellfcopy download url
+dellfcopy_download_url: "http://localrepo.kube-system.svc.cluster.local:{{ local_repo_port }}/dellfcopy"
 ...

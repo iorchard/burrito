@@ -1,9 +1,14 @@
 ---
 - name: Main | import common tasks
   ansible.builtin.import_tasks: "common.yml"
+  tags: ['always']
 
 - name: Main | include os specific tasks
   ansible.builtin.include_tasks: "{{ lookup('first_found', _params) }}"
+  args:
+    apply:
+      tags: always
+  tags: always
   vars:
     _params:
       files:
@@ -18,22 +23,29 @@
 
 - name: Main | import ceph bootstrap tasks
   ansible.builtin.import_tasks: "bootstrap.yml"
+  tags: ['bootstrap', 'ceph_servers']
 
 - name: Main | import ceph public ssh key tasks
   ansible.builtin.import_tasks: "sshkey.yml"
+  tags: ['sshkey', 'ceph_servers']
 
 - name: Main | import ceph cluster setup tasks
   ansible.builtin.import_tasks: "setup.yml"
+  tags: ['setup', 'ceph_servers']
 
 - name: Main | import ceph init tasks
   ansible.builtin.import_tasks: "init.yml"
+  tags: ['init', 'ceph_servers']
 
 - name: Main | import ceph client tasks
   ansible.builtin.import_tasks: "client.yml"
+  tags: ['ceph_client']
 
 - name: Main | import ceph status check tasks
   ansible.builtin.import_tasks: "status.yml"
+  tags: ['status']
 
 - name: Main | import radosgw haproxy setup tasks
   ansible.builtin.import_tasks: "haproxy.yml"
+  tags: ['haproxy']
 ...

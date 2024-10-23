@@ -57,4 +57,12 @@
     - role: burrito.purestorage
       when: '"purestorage" in storage_backends'
       tags: ['purestorage']
+
+- name: deploy Dell/EMC powerstore
+  hosts: kube_node
+  any_errors_fatal: true
+  roles:
+    - role: burrito.powerstore
+      when: '"powerstore" in storage_backends'
+      tags: ['powerstore']
 ...

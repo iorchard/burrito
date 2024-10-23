@@ -61,7 +61,7 @@ conf:
 {% if "cinder" in glance.enabled_backends %}
     cinder:
       cinder_catalog_info: "volumev3::internalURL"
-      cinder_use_multipath: True
+      cinder_use_multipath: {{ enable_multipath }}
 {% endif %}
 
     glance_store:
@@ -155,6 +155,11 @@ storage: "{{ glance.storage }}"
 volume:
   class_name: "{{ storageclass_name }}"
   size: "{{ glance.volume_size }}"
+
+dependencies:
+  static:
+    api:
+      jobs: {{ glance_api_jobs_dependencies }}
 
 bootstrap:
   enabled: false
@@ -262,5 +267,6 @@ pod:
 manifests:
   pod_rally_test: false
   certificates: true
+  job_storage_init: {{ glance_job_storage_init }}
   pvc_nginx_client_tmp: {{ glance.pvc_nginx_client_tmp }}
 ...

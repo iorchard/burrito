@@ -1,0 +1,10 @@
+---
+- name: Set up local repo haproxy
+  hosts: kube_control_plane
+  any_errors_fatal: true
+  tasks:
+    - name: Set up local repo haproxy
+      include_role:
+        name: burrito.localrepo
+        tasks_from: haproxy_setup
+...

@@ -805,6 +805,9 @@ conf:
 
         # initiator/connector.py:
         drv_cfg: CommandFilter, /opt/emc/scaleio/sdc/bin/drv_cfg, root, /opt/emc/scaleio/sdc/bin/drv_cfg, --query_guid
+
+        # cinder/volume/drivers/dell_emc/powerstore/nfs.py
+        dellfcopy: CommandFilter, dellfcopy, root
   ceph:
     override:
     append:

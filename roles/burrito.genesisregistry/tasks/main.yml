@@ -193,4 +193,8 @@
 - name: Genesis Registry | include patch tasks for purestorage
   ansible.builtin.include_tasks: "purestorage_patch.yml"
   when: storage_backends[0] == 'purestorage'
+
+- name: Genesis Registry | include patch tasks for powerstore
+  ansible.builtin.include_tasks: "powerstore_patch.yml"
+  when: storage_backends[0] == 'powerstore'
 ...

@@ -84,7 +84,6 @@
     mode: "0644"
   when: 
     - inventory_hostname in groups['kube_control_plane']
-    - client_cert is changed
 
 - name: Kubeconfig | copy client key file on server
   ansible.builtin.copy:

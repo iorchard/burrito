@@ -1,0 +1,69 @@
+---
+### powerstore configuration
+## name: powerstore name 
+# Warn: The name of the first entry should be fixed to 'powerstore'
+# since it should be the same as the storage backend name in vars.yml.
+# Even if you change the name in the first entry, it will set to 'powerstore'.
+## globalID: powerstore global ID
+# Retrieve the globalID of the PowerStore array by login into 
+# your PowerStore settings > properties
+## apiserver: powerstore api server ip address
+## username: powerstore api username
+## password:  powerstore api password
+## isDefault: Is this array the default array?
+## blockProtocol: FC, ISCSI, NVMeTCP, NVMeFC, None, or auto
+## fstype: ext4, xfs, or nfs
+## nasName: powerstore nas server name
+# Get the nas server name by logging into your PowerStore
+# and go to Storage > Nas Servers.
+## volume_driver: cinder volume driver - used in cinder configuration
+## nas_host: PowerStore NAS host IP address - used in cinder configuration
+# Get the nas server IP address by logging into your PowerStore
+# and go to Storage > NAS Servers (see Preferred IPv4 Interface column)
+## nas_share_path: PowerStore NFS export path - used in cinder configuration
+# Get the nas share path by logging into your PowerStore
+# and go to Storage > File Systems > NFS EXPORTS
+# (see path part in NFS Export Path column)
+## This example shows the NFS and FC storage configurations.
+powerstore:
+  - name: "powerstore"
+    globalID: "PS76bd0a91c4e3"
+    apiserver: "192.168.172.40"
+    username: "admin"
+    password: "<password>"
+    isDefault: true
+    blockProtocol: "None"
+    fstype: "nfs"
+    nasName: "PS_NAS"
+    volume_driver: "{{ powerstore_nfs_volume_driver }}"
+    nas_host: "192.168.173.40"
+    nas_share_path: "/cinderNFS"
+  - name: "powerstore-fc"
+    globalID: "PS76bd0a91c4e3"
+    apiserver: "192.168.172.40"
+    username: "admin"
+    password: "<password>"
+    isDefault: true
+    blockProtocol: "FC"
+    fstype: "ext4"
+    volume_driver: "{{ powerstore_fc_volume_driver }}"
+
+########################
+# Do Not Edit below!!! #
+########################
+# powerstore k8s namespace
+powerstore_namespace: "powerstore"
+# Skip certificate validation on client side
+powerstore_skip_cert_validation: true
+# version information
+powerstore_csi_version: "v2.11.1"
+csi_metadata_retriever_version: "v1.8.0"
+# powerstore NFS network
+powerstore_external_access: "{{ storage_netmask | ansible.utils.ipaddr('net') }}"
+
+# variables used in cinder 
+powerstore_nfs_volume_driver: "cinder.volume.drivers.dell_emc.powerstore.nfs.PowerStoreNFSDriver"
+powerstore_fc_volume_driver: "cinder.volume.drivers.dell_emc.powerstore.driver.PowerStoreDriver"
+is_nfs_in_powerstore: "{{ powerstore|selectattr('blockProtocol', 'in', ['None'])|length|int }}"
+powerstore_nfs_enabled: "{{ true if (('powerstore' in storage_backends) and (is_nfs_in_powerstore != '0')) else false }}"
+...

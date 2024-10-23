@@ -28,6 +28,8 @@ spec:
       labels:
         app: nginx
     spec:
+      securityContext:
+        fsGroup: 101
       containers:
       - name: nginx
         #image: registry.k8s.io/nginx-slim:0.8

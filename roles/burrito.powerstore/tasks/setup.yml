@@ -1,0 +1,100 @@
+---
+- name: Setup | copy config files
+  ansible.builtin.copy:
+    dest: "{{ item.dest }}"
+    src: "files{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+    backup: true
+  loop: "{{ service_conf }}"
+  become: true
+  notify:
+    - systemctl restart service
+
+- name: Setup | flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Setup | delete artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: absent
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | create artifacts directory
+  ansible.builtin.file:
+    path: "{{ artifacts_dir }}"
+    state: directory
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | copy helm chart
+  ansible.builtin.copy:
+    dest: "{{ artifacts_dir }}/"
+    src: "charts"
+    mode: "0600"
+    directory_mode: "0700"
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | templating files
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.dest | basename }}.j2"
+    mode: "0600"
+  loop: "{{ template_files }}"
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | create namespace
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ powerstore_namespace }}"
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | create a secret
+  kubernetes.core.k8s:
+    state: present
+    resource_definition:
+      apiVersion: v1
+      kind: Secret
+      type: Opaque
+      metadata:
+        name: csi-powerstore-config
+        namespace: "{{ powerstore_namespace }}"
+      data:
+        config: "{{ lookup('file', '{{ artifacts_dir }}/secret.yaml') | b64encode }}"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | deploy helm chart
+  kubernetes.core.helm:
+    release_name: "csi-powerstore"
+    chart_ref: "{{ artifacts_dir }}/charts"
+    release_namespace: "{{ powerstore_namespace }}"
+    timeout: "10m0s"
+    values_files:
+      - "{{ artifacts_dir }}/powerstore_values.yaml"
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Setup | create storageclass
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ artifacts_dir }}/storageclass.yaml"
+    wait: true
+  become: true
+  delegate_to: localhost
+  run_once: true
+...

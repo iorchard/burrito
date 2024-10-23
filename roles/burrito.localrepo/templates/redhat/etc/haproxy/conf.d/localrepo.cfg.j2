@@ -1,7 +1,6 @@
 #jinja2: lstrip_blocks: "True"
 listen localrepo
     bind {{ keepalived_vip }}:{{ local_repo_port }}
-    bind {{ hostvars[groups['kube_control_plane'][0]].ip }}:{{ local_repo_port }}
     option forwardfor except 127.0.0.0/8
     balance {{ balance }}
     option httpchk GET /
