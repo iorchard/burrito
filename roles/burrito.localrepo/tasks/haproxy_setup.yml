@@ -1,0 +1,25 @@
+---
+- name: Local Repo | template local repo
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ ansible_os_family | lower }}{{ item.dest + '.j2' }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  loop:
+    - {dest: "/etc/yum.repos.d/burrito.repo"}
+  become: true
+
+- name: Local Repo | add localrepo haproxy config
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ ansible_os_family | lower }}{{ item.dest + '.j2' }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop: "{{ service_conf }}"
+  become: true
+  when: inventory_hostname in groups['kube_control_plane']
+  notify:
+    - haproxy reload service
+...
