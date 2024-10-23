@@ -555,7 +555,7 @@ glance_api_jobs_dependencies_base:
   - glance-rabbit-init
   - glance-ks-user
   - glance-ks-endpoints
-glance_api_jobs_dependencies: "{% if glance.storage == 'rbd' %}{{ glance_api_jobs_dependencies_base + [glance-storage-init] }}{% else %}{{ glance_api_jobs_dependencies_base }}{% endif %}"
+glance_api_jobs_dependencies: "{% if glance_job_storage_init %}{{ glance_api_jobs_dependencies_base + ['glance-storage-init'] }}{% else %}{{ glance_api_jobs_dependencies_base }}{% endif %}"
 
 # placement
 placement:
