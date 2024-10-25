@@ -52,6 +52,7 @@ storage_backends:
   - primera
   - lvm
   - purestorage
+  - powerstore
 
 # ceph: set ceph configuration in group_vars/all/ceph_vars.yml
 # netapp: set netapp configuration in group_vars/all/netapp_vars.yml
