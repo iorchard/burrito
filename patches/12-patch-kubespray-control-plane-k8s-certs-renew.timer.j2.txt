@@ -1,0 +1,12 @@
+--- kubespray/roles/kubernetes/control-plane/templates/k8s-certs-renew.timer.j2	2024-10-25 16:40:53.898000000 +0900
++++ patches/kubespray/roles/kubernetes/control-plane/templates/k8s-certs-renew.timer.j2	2024-10-28 16:34:42.920638312 +0900
+@@ -4,7 +4,9 @@
+ [Timer]
+ OnCalendar={{ auto_renew_certificates_systemd_calendar }}
+ RandomizedDelaySec={{ 10 * (groups['kube_control_plane'] | length) }}min
++{% if not ((ansible_os_family == 'RedHat') and (ansible_distribution_major_version == '8')) %}
+ FixedRandomDelay=yes
++{% endif %}
+ Persistent=yes
+ 
+ [Install]

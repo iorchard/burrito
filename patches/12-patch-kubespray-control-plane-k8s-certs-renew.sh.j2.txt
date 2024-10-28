@@ -1,0 +1,11 @@
+--- kubespray/roles/kubernetes/control-plane/templates/k8s-certs-renew.sh.j2.bak	2024-10-28 11:25:02.187638312 +0900
++++ kubespray/roles/kubernetes/control-plane/templates/k8s-certs-renew.sh.j2	2024-10-28 11:26:16.609638312 +0900
+@@ -17,7 +17,7 @@
+ cp {{ kube_config_dir }}/admin.conf /root/.kube/config
+ 
+ echo "## Waiting for apiserver to be up again ##"
+-until printf "" 2>>/dev/null >>/dev/tcp/127.0.0.1/{{ kube_apiserver_port | default(6443) }}; do sleep 1; done
++until printf "" 2>>/dev/null >>/dev/tcp/{{ ip }}/{{ kube_apiserver_port | default(6443) }}; do sleep 1; done
+ 
+ echo "## Expiration after renewal ##"
+ {{ bin_dir }}/kubeadm certs check-expiration
