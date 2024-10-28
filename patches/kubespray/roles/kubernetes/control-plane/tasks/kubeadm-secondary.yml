@@ -101,14 +101,14 @@
     - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
 
 - name: patch kube-apiserver.yaml in joining control nodes.
-  ansible.builtin.lineinfile:
+  ansible.builtin.replace:
     path: "{{ kube_config_dir }}/manifests/kube-apiserver.yaml"
-    search_string: "{{ item.search }}"
-    line: "{{ item.replace }}"
+    regexp: "{{ item.search }}"
+    replace: "{{ item.replace }}"
   loop:
-    - {search: "--bind-address=", replace: "    - --bind-address={{ ip }}"}
-    - {search: "--etcd-certfile=", replace: "    - --etcd-certfile=/etc/ssl/etcd/ssl/node-{{ inventory_hostname }}.pem"}
-    - {search: "--etcd-keyfile=", replace: "    - --etcd-keyfile=/etc/ssl/etcd/ssl/node-{{ inventory_hostname }}-key.pem"}
+    - {search: '(?P<bindaddr>bind-address=).*', replace: '\g<bindaddr>{{ ip }}'}
+    - {search: '(?P<etcdcert>etcd-certfile=).*', replace: '\g<etcdcert>/etc/ssl/etcd/ssl/node-{{ inventory_hostname }}.pem'}
+    - {search: '(?P<etcdkey>etcd-keyfile=).*', replace: '\g<etcdkey>/etc/ssl/etcd/ssl/node-{{ inventory_hostname }}-key.pem'}
   when:
     - inventory_hostname != first_kube_control_plane
     - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
