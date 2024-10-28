@@ -30,12 +30,15 @@
   delegate_to: localhost
   run_once: true
 
-- name: netapp | remove netapp artifacts directory
+- name: netapp | remove netapp artifacts and download directories
   ansible.builtin.file:
-    path: "{{ artifacts_dir }}"
+    path: "{{ item }}"
     state: absent
   delegate_to: localhost
   run_once: true
+  loop:
+    - "{{ artifacts_dir }}"
+    - "/tmp/{{ unarchive_dir }}"
 
 - name: netapp | create netapp artifacts directory
   ansible.builtin.file:
