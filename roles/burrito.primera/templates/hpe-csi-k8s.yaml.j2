@@ -125,6 +125,7 @@ spec:
             - "--timeout=30s"
             - "--worker-threads=16"
             - "--extra-create-metadata"
+            - "--feature-gates=Topology=false"
           env:
             - name: ADDRESS
               value: /var/lib/csi/sockets/pluginproxy/csi.sock
