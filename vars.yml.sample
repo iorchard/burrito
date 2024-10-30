@@ -635,11 +635,10 @@ cinder_pvc_conversion:
   lvm: false
   purestorage: false
   powerstore: false
-# Note. powerstore does not support allowed_direct_url_schemes
 cinder_allowed_direct_url_schemes:
   ceph: null
   netapp: 'cinder'
-  powerflex: 'file'
+  powerflex: null
   hitachi: 'cinder'
   primera: 'cinder'
   lvm: 'cinder'
