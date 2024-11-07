@@ -535,10 +535,11 @@ glance_pvc_nginx_client_tmp:
   lvm: false
   purestorage: false
   powerstore: false
+glance_enabled_backends_str: "{% for s in storage_backends %}{{ s }}:{{glance_store_types[s] }}{% if not loop.last %},{% endif %}{% endfor %}"
 glance:
-  storage: "{{ storage_backends|map('extract', glance_storage)|list|first }}"
-  enabled_backends: "{{ storage_backends|map('extract', glance_store_types)|unique }}"
-  default_backend: "{{ storage_backends|map('extract', glance_store_types)|unique|first }}"
+  storage: "{{ storage_backends|map('extract', glance_storage)|list }}"
+  enabled_backends: "{{ glance_enabled_backends_str|split(',') }}"
+  default_backend: "{{ storage_backends[0] }}"
   password: "{{ vault_glance_password }}"
   nginx:
     proxy_body_size: "102400M"
@@ -550,7 +551,7 @@ glance:
     access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
     size: "200Gi"
   pvc_nginx_client_tmp: "{{ storage_backends|map('extract', glance_pvc_nginx_client_tmp)|list|first }}"
-glance_job_storage_init: "{{ (glance.storage == 'rbd') | ternary(true, false) }}"
+glance_job_storage_init: "{{ ('rbd' in glance.storage) | ternary(true, false) }}"
 glance_api_jobs_dependencies_base:
   - glance-db-sync
   - glance-rabbit-init

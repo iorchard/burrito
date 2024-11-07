@@ -76,7 +76,7 @@ spec:
         {{ .Values.labels.job.node_selector_key }}: {{ .Values.labels.job.node_selector_value }}
       initContainers:
 {{ tuple $envAll "storage_init" list | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
-        {{ if or (eq .Values.storage "rbd") (eq .Values.storage "radosgw") }}
+        {{ if has "rbd" .Values.storage }}
         - name: ceph-keyring-placement
 {{ tuple $envAll "glance_api" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ dict "envAll" $envAll "application" "storage_init" "container" "ceph_keyring_placement" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
@@ -109,37 +109,22 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: STORAGE_BACKEND
-              value: {{ .Values.storage | quote }}
-            {{- if eq .Values.storage "rbd" }}
+              value: {{ join "," .Values.storage }}
+            {{- if has "rbd" .Values.storage }}
             - name: RBD_POOL_NAME
-              value: {{ .Values.conf.glance.glance_store.rbd_store_pool | quote }}
+              value: {{ .Values.conf.glance.ceph.rbd_store_pool | quote }}
             - name: RBD_POOL_APP_NAME
               value: {{ .Values.conf.software.rbd.rbd_store_pool_app_name | quote }}
             - name: RBD_POOL_USER
-              value: {{ .Values.conf.glance.glance_store.rbd_store_user | quote }}
+              value: {{ .Values.conf.glance.ceph.rbd_store_user | quote }}
             - name: RBD_POOL_REPLICATION
-              value: {{ .Values.conf.glance.glance_store.rbd_store_replication | quote }}
+              value: {{ .Values.conf.glance.ceph.rbd_store_replication | quote }}
             - name: RBD_POOL_CRUSH_RULE
-              value: {{ .Values.conf.glance.glance_store.rbd_store_crush_rule | quote }}
+              value: {{ .Values.conf.glance.ceph.rbd_store_crush_rule | quote }}
             - name: RBD_POOL_CHUNK_SIZE
-              value: {{ .Values.conf.glance.glance_store.rbd_store_chunk_size | quote }}
+              value: {{ .Values.conf.glance.ceph.rbd_store_chunk_size | quote }}
             - name: RBD_POOL_SECRET
               value: {{ .Values.secrets.rbd | quote }}
-            {{ end }}
-            {{- if eq .Values.storage "radosgw" }}
-            - name: RADOSGW_USERNAME
-              value: {{ .Values.endpoints.ceph_object_store.auth.glance.username | quote }}
-            - name: RADOSGW_PASSWORD
-              value: {{ .Values.endpoints.ceph_object_store.auth.glance.password | quote }}
-            - name: RADOSGW_TMPURL_KEY
-              value: {{ .Values.endpoints.ceph_object_store.auth.glance.tmpurlkey | quote }}
-            {{ end }}
-            {{- if eq .Values.storage "swift" }}
-            - name: SWIFT_TMPURL_KEY
-              value: {{ .Values.endpoints.object_store.auth.glance.tmpurlkey | quote }}
-{{- with $env := dict "ksUserSecret" $envAll.Values.secrets.identity.glance "useCA" .Values.manifests.certificates }}
-{{- include "helm-toolkit.snippets.keystone_openrc_env_vars" $env | indent 12 }}
-{{- end }}
             {{ end }}
           command:
             - /tmp/storage-init.sh
@@ -150,7 +135,7 @@ spec:
               mountPath: /tmp/storage-init.sh
               subPath: storage-init.sh
               readOnly: true
-            {{ if or (eq .Values.storage "rbd") (eq .Values.storage "radosgw") }}
+            {{ if has "rbd" .Values.storage }}
             - name: etcceph
               mountPath: /etc/ceph
             - name: ceph-etc
@@ -164,7 +149,7 @@ spec:
               readOnly: true
             {{ end }}
             {{ end }}
-            {{- if eq .Values.storage "pvc" }}
+            {{- if has "pvc" .Values.storage }}
             - name: glance-images
               mountPath: {{ .Values.conf.glance.glance_store.filesystem_store_datadir }}
             {{ end }}
@@ -176,7 +161,7 @@ spec:
           configMap:
             name: glance-bin
             defaultMode: 0555
-        {{ if or (eq .Values.storage "rbd") (eq .Values.storage "radosgw") }}
+        {{ if has "rbd" .Values.storage }}
         - name: etcceph
           emptyDir: {}
         - name: ceph-etc
@@ -189,7 +174,7 @@ spec:
             secretName: {{ .Values.ceph_client.user_secret_name }}
         {{ end }}
         {{ end }}
-        {{- if eq .Values.storage "pvc" }}
+        {{- if has "pvc" .Values.storage }}
         - name: glance-images
           persistentVolumeClaim:
             claimName: glance-images

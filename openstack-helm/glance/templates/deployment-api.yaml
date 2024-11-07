@@ -95,7 +95,7 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
 {{- end }}
-{{- if eq .Values.storage "cinder" }}
+{{- if has "cinder" .Values.storage }}
       hostIPC: true
 {{- end }}
       initContainers:
@@ -114,13 +114,13 @@ spec:
               mountPath: /tmp
             - name: glance-images
               mountPath: {{ .Values.conf.glance.glance_store.filesystem_store_datadir }}
-        {{ if eq .Values.storage "rbd" }}
+        {{ if has "rbd" .Values.storage }}
         - name: ceph-keyring-placement
 {{ tuple $envAll "glance_api" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ dict "envAll" $envAll "application" "glance" "container" "ceph_keyring_placement" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
           env:
             - name: RBD_STORE_USER
-              value: {{ .Values.conf.glance.glance_store.rbd_store_user | quote }}
+              value: {{ .Values.conf.glance.ceph.rbd_store_user | quote }}
           command:
             - /tmp/ceph-keyring.sh
           volumeMounts:
@@ -267,7 +267,7 @@ spec:
               readOnly: true
             - name: glance-images
               mountPath: {{ .Values.conf.glance.glance_store.filesystem_store_datadir }}
-{{- if eq .Values.storage "cinder" }}
+{{- if has "cinder" .Values.storage }}
             - name: host-rootfs
               mountPath: /mnt/host-rootfs
               {{- if or ( gt .Capabilities.KubeVersion.Major "1" ) ( ge .Capabilities.KubeVersion.Minor "10" ) }}
@@ -307,7 +307,7 @@ spec:
               mountPropagation: HostToContainer
               {{- end }}
 {{- end }}
-{{- if eq .Values.storage "rbd" }}
+{{- if has "rbd" .Values.storage }}
             - name: etcceph
               mountPath: /etc/ceph
             - name: ceph-etc
@@ -343,7 +343,7 @@ spec:
           persistentVolumeClaim:
             claimName: nginx-client-tmp-pvc
         {{- end }}
-        {{- if eq .Values.storage "pvc" }}
+        {{- if has "pvc" .Values.storage }}
         - name: glance-images
           persistentVolumeClaim:
             claimName: glance-images
@@ -351,7 +351,7 @@ spec:
         - name: glance-images
           emptyDir: {}
         {{- end }}
-        {{- if eq .Values.storage "rbd" }}
+        {{- if has "rbd" .Values.storage }}
         - name: etcceph
           emptyDir: {}
         - name: ceph-etc
@@ -362,7 +362,7 @@ spec:
           secret:
             secretName: {{ .Values.secrets.rbd | quote }}
         {{- end }}
-        {{- if eq .Values.storage "cinder" }}
+        {{- if has "cinder" .Values.storage }}
         - name: host-rootfs
           hostPath:
             path: /
