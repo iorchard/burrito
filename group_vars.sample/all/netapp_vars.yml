@@ -11,4 +11,6 @@ netapp:
     nas_secure_file_permissions: false
     shares:
       - /dev03
+## Do Not Edit Below!!!
+netapp_backend_names: "{{ netapp|map(attribute='name')|list }}"
 ...

@@ -535,7 +535,8 @@ glance_pvc_nginx_client_tmp:
   lvm: false
   purestorage: false
   powerstore: false
-glance_enabled_backends_str: "{% for s in storage_backends %}{{ s }}:{{glance_store_types[s] }}{% if not loop.last %},{% endif %}{% endfor %}"
+glance_enabled_backends_str: "{% for s in storage_backends %}{% if s == 'netapp' %}{{ netapp_backend_names|product([glance_store_types[s]])|map('join', ':')|join(',') }}{% elif s == 'powerstore' %}{{ powerstore_backend_names|product([glance_store_types[s]])|map('join', ':')|join(',') }}{% else %}{{ s }}:{{ glance_store_types[s] }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
+
 glance:
   storage: "{{ storage_backends|map('extract', glance_storage)|list }}"
   enabled_backends: "{{ glance_enabled_backends_str|split(',') }}"

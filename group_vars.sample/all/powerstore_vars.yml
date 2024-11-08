@@ -66,4 +66,5 @@ powerstore_nfs_volume_driver: "cinder.volume.drivers.dell_emc.powerstore.nfs.Pow
 powerstore_fc_volume_driver: "cinder.volume.drivers.dell_emc.powerstore.driver.PowerStoreDriver"
 is_nfs_in_powerstore: "{{ powerstore|selectattr('blockProtocol', 'in', ['None'])|length|int }}"
 powerstore_nfs_enabled: "{{ true if (('powerstore' in storage_backends) and (is_nfs_in_powerstore != '0')) else false }}"
+powerstore_backend_names: "{{ powerstore|map(attribute='name')|list }}"
 ...

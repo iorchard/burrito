@@ -1,36 +1,28 @@
 ---
-### powerstore configuration
-## name: powerstore name (you can name it as you want.)
-## globalID: powerstore global ID
-# Retrieve the globalID of the PowerStore array by login into 
-# your PowerStore console > settings > properties
-## apiserver: powerstore api server ip address
-## username: powerstore api username
-## password:  powerstore api password
-## isDefault: Is this array the default array?
-## blockProtocol: FC, ISCSI, NVMeTCP, NVMeFC, None, or auto
-powerstore:
-  - name: "powerstore1"
-    globalID: "PS76bd0a91c4e3"
-    apiserver: "192.168.172.40"
-    username: "admin"
-    password: "<password>"
-    isDefault: true
-    blockProtocol: "FC"
+# MDM VIPs on storage networks
+mdm_ip: 
+  - "192.168.24.40"
+storage_iface_names:
+  - eth4
+sds_devices:
+  - /dev/sdb
+  - /dev/sdc
+  - /dev/sdd
 
-########################
-# Do Not Edit below!!! #
-########################
-# powerstore k8s namespace
-powerstore_namespace: "powerstore"
-# Skip certificate validation on client side
-powerstore_skip_cert_validation: true
-# version information
-powerstore_csi_version: "v2.11.1"
-csi_metadata_retriever_version: "v1.8.0"
-# storageclass filesystem - ext4 or xfs
-powerstore_sc_fs: "ext4"
-
-# cinder volume driver
-powerstore_volume_driver: "cinder.volume.drivers.dell_emc.powerstore.driver.PowerStoreDriver"
+#
+# Do Not Edit below
+#
+gateway_admin_password: "{{ vault_pfx_admin_password }}"
+mdm_password: "{{ vault_pfx_admin_password }}"
+lia_token: "{{ vault_pfx_lia_token }}"
+protection_domain_name: "burrito_domain"
+storage_pool_name: "burrito_sp"
+# default gateway http port is 80. change it to 8999.
+gateway_http_port: 8999
+# default gateway ssl port is 443. change it to 7443
+gateway_ssl_port: 7443
+# default lia port is 9099. change it to 9090
+lia_port: 9090
+# default presentation port is 8443. change it to 9443
+presentation_port: 9443
 ...
