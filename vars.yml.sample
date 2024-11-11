@@ -637,19 +637,9 @@ cinder_pvc_conversion:
   lvm: false
   purestorage: false
   powerstore: false
-cinder_allowed_direct_url_schemes:
-  ceph: null
-  netapp: 'cinder'
-  powerflex: null
-  hitachi: 'cinder'
-  primera: 'cinder'
-  lvm: 'cinder'
-  purestorage: 'cinder'
-  powerstore: 'cinder'
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first|split(',')|first }}"
-  allowed_direct_url_schemes: "{{ storage_backends|map('extract', cinder_allowed_direct_url_schemes)|unique|select()|join(',') }}"
   password: "{{ vault_cinder_password }}"
   volume_deploy:
     type: "{{ storage_backends|map('extract', cinder_vol_deploy_type_map)|first }}"
