@@ -38,8 +38,7 @@ pod:
     api: {{ pod.replicas }}
     backup: {{ pod.replicas }}
     scheduler: 1
-    #volume: {% if "lvm" in storage_backends %}1{% else %}{{ pod.replicas }}{% endif %}
-    volume: 1
+    volume: {% if "lvm" in storage_backends %}1{% else %}{{ pod.replicas }}{% endif %}
 
   useHostNetwork:
     volume: {{ enable_iscsi }}
@@ -138,6 +137,7 @@ bootstrap:
     rbd1:
       volume_backend_name: {{ cinder_backends_map.ceph }}
       access_type: "private"
+      "image_service:store_id": "ceph"
 {% endif %}
 {% if "netapp" in storage_backends %}
 {% for n in netapp %}
