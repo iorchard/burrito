@@ -72,30 +72,6 @@ limitations under the License.
 {{- $_ := tuple "image" "public" "api" . | include "helm-toolkit.endpoints.keystone_endpoint_uri_lookup" | set .Values.conf.glance.DEFAULT "public_endpoint" -}}
 {{- end -}}
 
-{{- if empty .Values.conf.glance.glance_store.stores -}}
-{{- if eq .Values.storage "rbd" }}
-{{- $_ := "file, http, rbd" | set .Values.conf.glance.glance_store "stores" -}}
-{{- end -}}
-{{- if eq .Values.storage "pvc" }}
-{{- $_ := "file, http" | set .Values.conf.glance.glance_store "stores" -}}
-{{- end -}}
-{{ if or (eq .Values.storage "radosgw") (eq .Values.storage "swift") }}
-{{- $_ := "file, http, swift" | set .Values.conf.glance.glance_store "stores" -}}
-{{- end -}}
-{{- end -}}
-
-{{- if empty .Values.conf.glance.glance_store.default_store -}}
-{{- if eq .Values.storage "rbd" }}
-{{- $_ := "rbd" | set .Values.conf.glance.glance_store "default_store" -}}
-{{- end -}}
-{{- if eq .Values.storage "pvc" }}
-{{- $_ := "file" | set .Values.conf.glance.glance_store "default_store" -}}
-{{- end -}}
-{{ if or (eq .Values.storage "radosgw") (eq .Values.storage "swift") }}
-{{- $_ := "swift" | set .Values.conf.glance.glance_store "default_store" -}}
-{{- end -}}
-{{- end -}}
-
 {{- if empty .Values.conf.glance.DEFAULT.bind_port -}}
 {{- $_ := tuple "image" "service" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" | set .Values.conf.glance.DEFAULT "bind_port" -}}
 {{- end -}}

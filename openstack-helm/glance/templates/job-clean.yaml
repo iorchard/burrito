@@ -72,7 +72,7 @@ spec:
       initContainers:
 {{ tuple $envAll "clean" list | include "helm-toolkit.snippets.kubernetes_entrypoint_init_container" | indent 8 }}
       containers:
-        {{- if eq .Values.storage "rbd" }}
+        {{- if has "rbd" .Values.storage }}
         - name: glance-secret-clean
 {{ tuple $envAll "glance_storage_init" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ tuple $envAll $envAll.Values.pod.resources.jobs.bootstrap | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}

@@ -1,6 +1,6 @@
 ---
 netapp:
-  - name: netapp1
+  - name: netapp
     managementLIF: "192.168.100.230"
     dataLIF: "192.168.140.19"
     svm: "svm01"
@@ -11,4 +11,6 @@ netapp:
     nas_secure_file_permissions: false
     shares:
       - /dev03
+## Do Not Edit Below!!!
+netapp_backend_names: "{{ netapp|map(attribute='name')|list }}"
 ...

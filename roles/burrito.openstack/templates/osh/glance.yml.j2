@@ -36,40 +36,50 @@ conf:
       bind_host: 127.0.0.1
       debug: true
       show_image_direct_url: true
-      show_multiple_locations: {{ ('cinder' in glance.enabled_backends)|ternary('true', 'false') }}
-      enabled_backends: {{ glance.enabled_backends | zip(glance.enabled_backends) | map('join', ':')|first }}
+      show_multiple_locations: {{ ('cinder' in glance_enabled_backends_str)|ternary('true', 'false') }}
+      enabled_backends: {{ glance_enabled_backends_str }}
     keystone_authtoken:
       service_token_roles: service
       service_token_roles_required: true
       cafile: /etc/glance/certs/ca.crt
 
-{% if "rbd" in glance.enabled_backends %}
-    rbd:
+{% if "ceph:rbd" in glance.enabled_backends %}
+    ceph:
+      store_description: "ceph rbd backend"
       rbd_store_replication: {{ ceph_pool_default_size }}
       rbd_store_user: glance
       rbd_store_pool: images
       rbd_store_ceph_conf: /etc/ceph/ceph.conf
       rbd_store_chunk_size: 8
       rbd_thin_provisioning: true
+      rbd_store_crush_rule: replicated_rule
 {% endif %}
 
-{% if "file" in glance.enabled_backends %}
-    file:
+{% if "powerflex:file" in glance.enabled_backends %}
+    powerflex:
+      store_description: "powerflex pvc backend"
       filesystem_store_datadir: /var/lib/glance/images
 {% endif %}
 
-{% if "cinder" in glance.enabled_backends %}
-    cinder:
+{% for backend in glance.enabled_backends %}
+{% if "cinder" in backend %}
+    {{ (backend|split(':'))[0] }}:
+      store_description: "{{ backend|replace(':', ' ') }} backend"
       cinder_catalog_info: "volumev3::internalURL"
-      cinder_use_multipath: {{ enable_multipath }}
+      cinder_store_auth_address: "https://keystone-api.openstack.svc.cluster.local:5000/v3"
+      cinder_store_user_name: admin
+      cinder_store_password: {{ os_admin_password }}
+      cinder_store_project_name: admin
+      cinder_volume_type: {{ (backend|split(':'))[0] }}
 {% endif %}
+{% endfor %}
 
     glance_store:
       default_backend: "{{ glance.default_backend }}"
       https_ca_certificates_file: /etc/glance/certs/ca.crt
       swift_store_cacert: /etc/glance/certs/ca.crt
 
-{% if "rbd" in glance.enabled_backends %}
+{% if "ceph:rbd" in glance.enabled_backends %}
       # This is duplicate but it is needed by glance helm chart
       # glance-storage-init get the info from glance_store section.
       rbd_store_replication: {{ ceph_pool_default_size }}
@@ -151,7 +161,7 @@ network:
         nginx.ingress.kubernetes.io/proxy-read-timeout: "{{ glance.nginx.proxy_read_timeout }}"
         nginx.ingress.kubernetes.io/backend-protocol: "https"
 
-storage: "{{ glance.storage }}"
+storage: {{ glance.storage }}
 volume:
   class_name: "{{ storageclass_name }}"
   size: "{{ glance.volume_size }}"
@@ -231,7 +241,7 @@ endpoints:
       replicas: {{ pod.quorum_replicas }}
 pod:
   useHostNetwork:
-    api: "{{ (glance.storage == 'cinder') | ternary('true', 'false') }}"
+    api: "{{ ('cinder' in glance.storage) | ternary('true', 'false') }}"
   security_context:
     glance:
       pod:

@@ -137,6 +137,7 @@ bootstrap:
     rbd1:
       volume_backend_name: {{ cinder_backends_map.ceph }}
       access_type: "private"
+      "image_service:store_id": "ceph"
 {% endif %}
 {% if "netapp" in storage_backends %}
 {% for n in netapp %}
@@ -144,7 +145,7 @@ bootstrap:
       volume_backend_name: {{ n.name }}
       access_type: "private"
       dataLIF: "{{ n.dataLIF }}"
-      "image_service:store_id": "{{ glance_store_types.netapp }}"
+      "image_service:store_id": "{{ n.name }}"
       shares:
 {% for share in n.shares %}
         - "{{ share }}"
@@ -155,38 +156,38 @@ bootstrap:
     powerflex:
       volume_backend_name: {{ cinder_backends_map.powerflex }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.powerflex }}"
+      "image_service:store_id": "powerflex"
 {% endif %}
 {% if "hitachi" in storage_backends %}
     hitachi:
       volume_backend_name: {{ cinder_backends_map.hitachi }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.hitachi }}"
+      "image_service:store_id": "hitachi"
 {% endif %}
 {% if "primera" in storage_backends %}
     primera:
       volume_backend_name: {{ cinder_backends_map.primera }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.primera }}"
+      "image_service:store_id": "primera"
 {% endif %}
 {% if "lvm" in storage_backends %}
     lvm:
       volume_backend_name: {{ cinder_backends_map.lvm }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.lvm }}"
+      "image_service:store_id": "lvm"
 {% endif %}
 {% if "purestorage" in storage_backends %}
     purestorage:
       volume_backend_name: {{ cinder_backends_map.purestorage }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.purestorage }}"
+      "image_service:store_id": "purestorage"
 {% endif %}
 {% if "powerstore" in storage_backends %}
 {% for p in powerstore %}
     {{ p.name }}:
       volume_backend_name: {{ p.name }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.powerstore }}"
+      "image_service:store_id": "{{ p.name }}"
 {% if 'nas_host' in p %}
       dataLIF: "{{ p.nas_host }}"
 {% endif %}

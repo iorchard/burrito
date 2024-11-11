@@ -21,7 +21,7 @@ kind: ConfigMap
 metadata:
   name: glance-bin
 data:
-{{- if eq .Values.storage "cinder" }}
+{{- if has "cinder" .Values.storage }}
   iscsiadm: |
 {{ tuple "bin/_iscsiadm.tpl" . | include "helm-toolkit.utils.template" | indent 4 }}
   multipath: |
