@@ -372,7 +372,7 @@ conf:
       san_login: admin
       san_password: "{{ gateway_admin_password }}"
       powerflex_rest_server_port: {{ gateway_ssl_port }}
-      image_volume_cache_enabled: false
+      image_volume_cache_enabled: true
       image_upload_use_cinder_backend: "{{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}"
       image_upload_use_internal_tenant: "{{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}"
 {% endif %}
