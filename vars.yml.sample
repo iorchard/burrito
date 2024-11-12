@@ -637,9 +637,19 @@ cinder_pvc_conversion:
   lvm: false
   purestorage: false
   powerstore: false
+cinder_volume_capabilities_map:
+  ceph: []
+  netapp: ['SYS_ADMIN', 'NET_ADMIN', 'DAC_OVERRIDE', 'DAC_READ_SEARCH']
+  powerflex: ['SYS_ADMIN']
+  hitachi: []
+  primera: []
+  lvm: []
+  purestorage: []
+  powerstore: []
 cinder:
   enabled_backends: "{{ storage_backends|map('extract', cinder_backends_map)|join(',') }}"
   default_volume_type: "{{ storage_backends|map('extract', cinder_backends_map)|first|split(',')|first }}"
+  volume_capabilities: "{{ storage_backends|map('extract', cinder_volume_capabilities_map)|flatten|unique }}"
   password: "{{ vault_cinder_password }}"
   volume_deploy:
     type: "{{ storage_backends|map('extract', cinder_vol_deploy_type_map)|first }}"
