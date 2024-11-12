@@ -48,27 +48,14 @@ pod:
         cinder_api:
           runAsUser: 0
           readOnlyRootFilesystem: false
-{% if "netapp" in storage_backends %}
     cinder_volume:
       container:
         cinder_volume:
           capabilities:
-            add:
-              - SYS_ADMIN
-              - NET_ADMIN
-              - DAC_OVERRIDE
-              - DAC_READ_SEARCH
+            add: {{ cinder.volume_capabilities }}
+          privileged: {{ ("powerflex" in storage_backends)|ternary(true, false) }}
           readOnlyRootFilesystem: false
-{% endif %}
 {% if "powerflex" in storage_backends %}
-    cinder_volume:
-      container:
-        cinder_volume:
-          privileged: true
-          capabilities:
-            add:
-              - SYS_ADMIN
-          readOnlyRootFilesystem: false
   mounts:
     cinder_volume:
       cinder_volume:
@@ -359,8 +346,8 @@ conf:
       nas_secure_file_operations: {{ n.nas_secure_file_operations }}
       nas_secure_file_permissions: {{ n.nas_secure_file_permissions }}
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: "{{ (glance_store_types['netapp'] == 'cinder')|ternary(true, false) }}"
-      image_upload_use_internal_tenant: "{{ (glance_store_types['netapp'] == 'cinder')|ternary(true, false) }}"
+      image_upload_use_cinder_backend: {{ (glance_store_types['netapp'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['netapp'] == 'cinder')|ternary(true, false) }}
 {% endfor %}
 {% endif %}
 {% if "powerflex" in storage_backends %}
@@ -373,8 +360,8 @@ conf:
       san_password: "{{ gateway_admin_password }}"
       powerflex_rest_server_port: {{ gateway_ssl_port }}
       image_volume_cache_enabled: true
-      image_upload_use_cinder_backend: "{{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}"
-      image_upload_use_internal_tenant: "{{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}"
+      image_upload_use_cinder_backend: {{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}
 {% endif %}
 {% if "hitachi" in storage_backends %}
     hitachi:
@@ -385,8 +372,8 @@ conf:
       san_password: "{{ hitachi_san_password }}"
       use_multipath_for_image_xfer: True
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: "{{ (glance_store_types['hitachi'] == 'cinder')|ternary(true, false) }}"
-      image_upload_use_internal_tenant: "{{ (glance_store_types['hitachi'] == 'cinder')|ternary(true, false) }}"
+      image_upload_use_cinder_backend: {{ (glance_store_types['hitachi'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['hitachi'] == 'cinder')|ternary(true, false) }}
       suppress_requests_ssl_warnings: True
       hitachi_storage_id: "{{ hitachi_storage_id }}"
       hitachi_storage_cli: REST
@@ -412,8 +399,8 @@ conf:
       san_password: "{{ primera_password }}"
       use_multipath_for_image_xfer: True
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: "{{ (glance_store_types['primera'] == 'cinder')|ternary(true, false) }}"
-      image_upload_use_internal_tenant: "{{ (glance_store_types['primera'] == 'cinder')|ternary(true, false) }}"
+      image_upload_use_cinder_backend: {{ (glance_store_types['primera'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['primera'] == 'cinder')|ternary(true, false) }}
       #hpe3par_target_nsp: "0:3:3"
       hpe3par_api_url: "{{ primera_api_url }}"
       hpe3par_username: "{{ primera_username }}"
@@ -433,8 +420,8 @@ conf:
       target_protocol: iscsi
       target_helper: lioadm
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: "{{ (glance_store_types['lvm'] == 'cinder')|ternary(true, false) }}"
-      image_upload_use_internal_tenant: "{{ (glance_store_types['lvm'] == 'cinder')|ternary(true, false) }}"
+      image_upload_use_cinder_backend: {{ (glance_store_types['lvm'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['lvm'] == 'cinder')|ternary(true, false) }}
 {% endif %}
 {% if "purestorage" in storage_backends %}
     purestorage:
@@ -444,8 +431,8 @@ conf:
       pure_api_token: {{ purestorage_api_token }}
       use_multipath_for_image_xfer: True
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: "{{ (glance_store_types['purestorage'] == 'cinder')|ternary(true, false) }}"
-      image_upload_use_internal_tenant: "{{ (glance_store_types['purestorage'] == 'cinder')|ternary(true, false) }}"
+      image_upload_use_cinder_backend: {{ (glance_store_types['purestorage'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['purestorage'] == 'cinder')|ternary(true, false) }}
       pure_eradicate_on_delete: {{ pure_eradicate_on_delete }}
       pure_automatic_max_oversubscription_ratio: {{ pure_automatic_max_oversubscription_ratio }}
 {% endif %}
@@ -454,8 +441,8 @@ conf:
     {{ p.name }}:
       volume_driver: "{{ p.volume_driver }}"
       volume_backend_name: "{{ p.name }}"
-      image_upload_use_cinder_backend: "{{ (glance_store_types['powerstore'] == 'cinder')|ternary(true, false) }}"
-      image_upload_use_internal_tenant: "{{ (glance_store_types['powerstore'] == 'cinder')|ternary(true, false) }}"
+      image_upload_use_cinder_backend: {{ (glance_store_types['powerstore'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['powerstore'] == 'cinder')|ternary(true, false) }}
 {% if p.blockProtocol == 'FC' %}
       image_volume_cache_enabled: True
       san_ip: "{{ p.apiserver }}"
