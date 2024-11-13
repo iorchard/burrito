@@ -55,6 +55,14 @@ pod:
             add: {{ cinder.volume_capabilities }}
           privileged: {{ ("powerflex" in storage_backends)|ternary(true, false) }}
           readOnlyRootFilesystem: false
+{% if enable_iscsi %}
+    cinder_volume:
+      container:
+        cinder_volume:
+          runAsUser: 0
+          privileged: true
+          readOnlyRootFilesystem: false
+{% endif %}
 {% if "powerflex" in storage_backends %}
   mounts:
     cinder_volume:
@@ -91,14 +99,6 @@ pod:
               path: /opt/emc/scaleio/openstack
           - name: cinder-tmp
             emptyDir: {}
-{% endif %}
-{% if enable_iscsi %}
-    cinder_volume:
-      container:
-        cinder_volume:
-          runAsUser: 0
-          privileged: true
-          readOnlyRootFilesystem: false
 {% endif %}
 {% if "lvm" in storage_backends %}
   mounts:
