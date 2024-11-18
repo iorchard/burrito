@@ -180,7 +180,7 @@ bootstrap:
 {% endif %}
 {% if 'nas_share_path' in p %}
       shares:
-        - "{{ p.nas_share_path }}"
+        - "{{ p.nas_host }}{{ p.nas_share_path }}"
 {% endif %}
 {% endfor %}
 {% endif %}

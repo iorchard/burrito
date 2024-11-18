@@ -1,4 +1,7 @@
 ---
+# NFS protocols: tcp(default), rdma
+netapp_nfs_protocol: tcp
+netapp_nfs_mount_options: "proto={{ netapp_nfs_protocol }},lookupcache=pos"
 netapp:
   - name: netapp
     managementLIF: "192.168.100.230"
@@ -6,11 +9,11 @@ netapp:
     svm: "svm01"
     username: "admin"
     password: "<netapp_admin_password>"
-    nfsMountOptions: "lookupcache=pos"
+    nfsMountOptions: "{{ netapp_nfs_mount_options }}"
     nas_secure_file_operations: false
     nas_secure_file_permissions: false
     shares:
-      - /dev03
+      - 192.168.140.19:/dev03
 ## Do Not Edit Below!!!
 netapp_backend_names: "{{ netapp|map(attribute='name')|list }}"
 ...

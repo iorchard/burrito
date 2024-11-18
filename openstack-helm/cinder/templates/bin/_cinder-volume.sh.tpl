@@ -24,7 +24,7 @@ set -ex
       {{- $dataLIF := $properties.dataLIF }}
       {{- $shares := $properties.shares }}
       {{- range $share := $shares }}
-        echo {{ $dataLIF }}:{{ $share }} >> /etc/cinder/share_{{ $name }}
+        echo {{ $share }} >> /etc/cinder/share_{{ $name }}
       {{- end }}
     {{- end }}
   {{- end }}
