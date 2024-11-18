@@ -233,6 +233,9 @@ conf:
       virt_type: kvm
       disk_cachemodes: "network=writeback"
       hw_disk_discard: unmap
+{% if "netapp" in storage_backends %}
+      nfs_mount_options: "{{ netapp_nfs_mount_options }}"
+{% endif %}
     scheduler:
       driver: filter_scheduler
       discover_hosts_in_cells_interval: 60
