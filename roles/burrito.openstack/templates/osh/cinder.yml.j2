@@ -70,13 +70,15 @@ pod:
         volumeMounts:
           - name: run
             mountPath: /run
+{% if not enable_iscsi %}
           - name: dev
             mountPath: /dev
+          - name: sys
+            mountPath: /sys
+{% endif %}
           - name: libmodules
             mountPath: /lib/modules
             readOnly: true
-          - name: sys
-            mountPath: /sys
           - name: cinder-pfx
             mountPath: /opt/emc/scaleio/openstack
           - name: cinder-tmp
@@ -85,15 +87,17 @@ pod:
           - name: run
             hostPath:
               path: /run
+{% if not enable_iscsi %}
           - name: dev
             hostPath:
               path: /dev
-          - name: libmodules
-            hostPath:
-              path: /lib/modules
           - name: sys
             hostPath:
               path: /sys
+{% endif %}
+          - name: libmodules
+            hostPath:
+              path: /lib/modules
           - name: cinder-pfx
             hostPath:
               path: /opt/emc/scaleio/openstack
