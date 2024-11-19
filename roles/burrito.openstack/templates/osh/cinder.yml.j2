@@ -458,6 +458,7 @@ conf:
       nfs_qcow2_volumes: False
       nfs_snapshot_support: True
       nfs_sparsed_volumes: True
+      nfs_mount_options: "{{ p.nfsMountOptions }}"
       nas_host: "{{ p.nas_host }}"
       nfs_shares_config: "/etc/cinder/share_{{ p.name }}"
       nas_secure_file_operations: False
