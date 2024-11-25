@@ -125,7 +125,7 @@ pod:
 bootstrap:
   volume_types:
 {% if "ceph" in storage_backends %}
-    rbd1:
+    ceph:
       volume_backend_name: {{ cinder_backends_map.ceph }}
       access_type: "private"
       "image_service:store_id": "ceph"
@@ -194,6 +194,11 @@ network:
     ingress:
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: "https"
+
+{% if "ceph" in storage_backends %}
+ceph_client:
+  internal_ceph_backend: ceph
+{% endif %}
 conf:
   enable_iscsi: {{ enable_iscsi }}
   enable_powerflex: {{ ("powerflex" in storage_backends)|ternary('true', 'false') }}
@@ -319,7 +324,7 @@ conf:
   rabbitmq: null
   backends:
 {% if "ceph" in storage_backends %}
-    rbd1:
+    ceph:
       volume_driver: cinder.volume.drivers.rbd.RBDDriver
       volume_backend_name: "{{ cinder_backends_map.ceph }}"
       rbd_ceph_conf: "/etc/ceph/ceph.conf"
@@ -331,7 +336,7 @@ conf:
       rbd_pool: "volumes"
       rbd_secret_uuid: "{{ ceph_secret_uuid }}"
       rbd_exclusive_cinder_pool: true
-{% else %}
+      image_volume_cache_enabled: true
     rbd1: null
 {% endif %}
 {% if "netapp" in storage_backends %}
