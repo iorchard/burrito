@@ -499,6 +499,7 @@ keystone:
   password: "{{ vault_keystone_password }}"
 
 # glance
+## glance store types: cinder, file, rbd
 glance_store_types:
   ceph: 'rbd'
   netapp: 'cinder'
@@ -508,6 +509,7 @@ glance_store_types:
   lvm: 'cinder'
   purestorage: 'cinder'
   powerstore: 'cinder'
+## glance storage: cinder, pvc, rbd
 glance_storage:
   ceph: 'rbd'
   netapp: 'cinder'
@@ -621,7 +623,7 @@ ssh_port: "{{ ansible_port }}"
 enable_cinder_backup: false
 enable_cron_volume_usage_audit: false
 cinder_backends_map:
-  ceph: 'rbd1'
+  ceph: 'ceph'
   netapp: "{% for n in netapp %}{{ n.name }}{% if not loop.last %},{% endif %}{% endfor %}"
   powerflex: 'powerflex'
   hitachi: 'hitachi'
@@ -681,7 +683,7 @@ barbican:
 
 ### btx
 btx:
-  version: "2.0.2"
+  version: "2.1.0"
   pvc:
     size: "200Gi"
 
