@@ -329,6 +329,7 @@ conf:
       volume_backend_name: "{{ cinder_backends_map.ceph }}"
       rbd_ceph_conf: "/etc/ceph/ceph.conf"
       rbd_flatten_volume_from_snapshot: false
+      report_discard_supported: true
       rbd_max_clone_depth: 5
       rbd_store_chunk_size: 8
       rados_connect_timeout: -1
@@ -337,8 +338,8 @@ conf:
       rbd_secret_uuid: "{{ ceph_secret_uuid }}"
       rbd_exclusive_cinder_pool: true
       image_volume_cache_enabled: true
-    rbd1: null
 {% endif %}
+    rbd1: null
 {% if "netapp" in storage_backends %}
 {% for n in netapp %}
     {{ n.name }}:
