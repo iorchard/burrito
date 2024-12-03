@@ -36,7 +36,7 @@ powerstore:
     fstype: "nfs"
     nasName: "PS_NAS"
     volume_driver: "{{ powerstore_nfs_volume_driver }}"
-    nfsMountOptions: "lookupcache=pos"
+    nfsMountOptions: "{{ powerstore_nfs_mount_options }}"
     nas_host: "192.168.173.40"
     nas_share_path: "/cinderNFS"
   - name: "powerstore-fc"
@@ -61,6 +61,7 @@ powerstore_csi_version: "v2.11.1"
 csi_metadata_retriever_version: "v1.8.0"
 # powerstore NFS network
 powerstore_external_access: "{{ storage_netmask | ansible.utils.ipaddr('net') }}"
+
 # variables used in cinder 
 powerstore_nfs_volume_driver: "cinder.volume.drivers.dell_emc.powerstore.nfs.PowerStoreNFSDriver"
 powerstore_fc_volume_driver: "cinder.volume.drivers.dell_emc.powerstore.driver.PowerStoreDriver"
@@ -69,4 +70,5 @@ powerstore_nfs_enabled: "{{ true if (('powerstore' in storage_backends) and (is_
 powerstore_backend_names: "{{ powerstore|map(attribute='name')|list }}"
 # powerstore nfs protocol
 powerstore_nfs_protocol: "tcp"
+powerstore_nfs_mount_options: "proto={{ powerstore_nfs_protocol }},lookupcache=pos,rsize=65536,wsize=65536"
 ...
