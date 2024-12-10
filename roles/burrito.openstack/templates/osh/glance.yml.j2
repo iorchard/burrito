@@ -260,7 +260,7 @@ pod:
         memory: "1024Mi"
         cpu: "2000m"
   replicas:
-    api: {{ ('file' in glance.enabled_backends) | ternary(1, pod.replicas) }}
+    api: {{ ('file' in glance_enabled_backends_str) | ternary(1, pod.replicas) }}
 {% if "powerflex" in storage_backends %}
   mounts:
     glance_api:
