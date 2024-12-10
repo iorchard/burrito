@@ -18,6 +18,8 @@ netapp:
     nas_secure_file_permissions: false
     shares:
       - 192.168.140.19:/dev03
+      - 192.168.140.20:/dev12
+
 ## Do Not Edit Below!!!
 netapp_backend_names: "{{ netapp|map(attribute='name')|list }}"
 ...
