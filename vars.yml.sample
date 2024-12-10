@@ -605,7 +605,7 @@ nova_nfs_mount_options:
   purestorage: null
   powerstore: "{{ powerstore_nfs_mount_options }}"
 nova:
-  nfs_mount_options: "{{ storage_backends|map('extract', nova_nfs_mount_options)|select|first }}"
+  nfs_mount_options: "{{ storage_backends|map('extract', nova_nfs_mount_options)|select|first|default('lookupcache=pos') }}"
   vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
   hypervisor_host_interface: "{{ mgmt_iface_name }}"
   libvirt_live_migration_interface: "{{ mgmt_iface_name }}"
