@@ -54,12 +54,14 @@ if [[ "$STORAGE_BACKEND" == *"rbd"* ]]; then
     echo "Cephx user client.${RBD_POOL_USER} already exist."
     echo "Update its cephx caps"
     ceph auth caps client.${RBD_POOL_USER} \
+      mgr "profile rbd pool=${RBD_POOL_NAME}" \
       mon "profile rbd" \
       osd "profile rbd pool=${RBD_POOL_NAME}"
     ceph auth get client.${RBD_POOL_USER} -o ${KEYRING}
   else
     #NOTE(JCL): Restrict Glance user to only what is needed. MON Read only and RBD access to the Glance Pool
     ceph auth get-or-create "client.${RBD_POOL_USER}" \
+      mgr "profile rbd pool=${RBD_POOL_NAME}" \
       mon "profile rbd" \
       osd "profile rbd pool=${RBD_POOL_NAME}" \
       -o "${KEYRING}"
