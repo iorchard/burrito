@@ -44,14 +44,16 @@ if [ "x$STORAGE_BACKEND" == "xcinder.volume.drivers.rbd.RBDDriver" ]; then
     echo "Cephx user client.${RBD_POOL_USER} already exist."
     echo "Update its cephx caps"
     ceph auth caps client.${RBD_POOL_USER} \
+      mgr "profile rbd pool=volumes" \
       mon "profile rbd" \
-      osd "profile rbd"
+      osd "profile rbd pool=volumes, profile rbd pool=vms, profile rbd pool=images"
     ceph auth get client.${RBD_POOL_USER} -o ${KEYRING}
   else
     #NOTE(JCL): Restrict Cinder permissions to what is needed. MON Read only and RBD access to Cinder pool only.
     ceph auth get-or-create client.${RBD_POOL_USER} \
+      mgr "profile rbd pool=volumes" \
       mon "profile rbd" \
-      osd "profile rbd" \
+      osd "profile rbd pool=volumes, profile rbd pool=vms, profile rbd pool=images" \
       -o ${KEYRING}
   fi
 
