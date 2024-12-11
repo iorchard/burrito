@@ -3,7 +3,7 @@
 netapp_nfs_protocol: tcp
 ## NFS mount options - NFSv4(default). NFSv3
 # For NFSv4
-netapp_nfs_mount_options: "proto={{ netapp_nfs_protocol }},lookupcache=pos"
+netapp_nfs_mount_options: "proto={{ netapp_nfs_protocol }},lookupcache=pos,nconnect=16"
 # For NFSv3 
 #netapp_nfs_mount_options: "proto={{ netapp_nfs_protocol }},lookupcache=pos,nfsvers=3,nconnect=16"
 netapp:
