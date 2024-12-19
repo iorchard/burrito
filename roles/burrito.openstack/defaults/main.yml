@@ -121,10 +121,10 @@ osh_infra_charts:
 
 osh_charts:
   - keystone
-  - glance
   - placement
   - neutron
   - nova
+  - glance
   - cinder
   - horizon
 

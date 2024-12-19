@@ -25,8 +25,8 @@ nginx_deployment:
     access_modes: "ReadWriteOnce"
     size: 100Gi
 
-# radosgw, rbd, swift or pvc
-storage: swift
+# storage: type list, ['rbd', 'cinder', 'pvc']
+storage: ['rbd']
 
 labels:
   api:
@@ -368,7 +368,7 @@ conf:
       image: 'service/storage/image'
   swift_store: |
     [{{ .Values.conf.glance.glance_store.default_swift_reference }}]
-    {{- if eq .Values.storage "radosgw" }}
+    {{- if has "radosgw" .Values.storage }}
     auth_version = 1
     auth_address = {{ tuple "ceph_object_store" "public" "api" . | include "helm-toolkit.endpoints.keystone_endpoint_uri_lookup" }}
     user = {{ .Values.endpoints.ceph_object_store.auth.glance.username }}:swift

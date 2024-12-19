@@ -15,7 +15,8 @@ limitations under the License.
 */}}
 
 set -x
-if [ "x$STORAGE_BACKEND" == "xrbd" ]; then
+# STORAGE_BACKEND is a comma-separated storage backends (rbd,cinder,pvc)
+if [[ "$STORAGE_BACKEND" == *"rbd"* ]]; then
   SECRET=$(mktemp --suffix .yaml)
   KEYRING=$(mktemp --suffix .keyring)
   function cleanup {
@@ -30,18 +31,13 @@ if [[ "$SCHEME" == "https" && -f /etc/ssl/certs/openstack-helm.crt ]]; then
 fi
 
 set -ex
-if [ "x$STORAGE_BACKEND" == "xpvc" ]; then
-  echo "No action required."
-elif [ "x$STORAGE_BACKEND" == "xswift" ]; then
-  : ${OS_INTERFACE:="internal"}
-  OS_TOKEN="$(openstack token issue -f value -c id)"
-  OS_PROJECT_ID="$(openstack project show service -f value -c id)"
-  OS_SWIFT_ENDPOINT_PREFIX="$(openstack endpoint list --service swift --interface ${OS_INTERFACE} --region ${OS_REGION_NAME} -f value -c URL | awk -F '$' '{ print $1 }')"
-  OS_SWIFT_SCOPED_ENDPOINT="${OS_SWIFT_ENDPOINT_PREFIX}${OS_PROJECT_ID}"
-  curl --fail -i -X POST "${OS_SWIFT_SCOPED_ENDPOINT}" \
-    -H "X-Auth-Token: ${OS_TOKEN}" \
-    -H "X-Account-Meta-Temp-URL-Key: ${SWIFT_TMPURL_KEY}"
-elif [ "x$STORAGE_BACKEND" == "xrbd" ]; then
+if [[ "$STORAGE_BACKEND" == *"pvc"* ]]; then
+  echo "No action required for pvc."
+fi
+if [[ "$STORAGE_BACKEND" == *"cinder"* ]]; then
+  echo "No action required for cinder."
+fi
+if [[ "$STORAGE_BACKEND" == *"rbd"* ]]; then
   ceph -s
   function ensure_pool () {
     ceph osd pool stats "$1" || ceph osd pool create "$1" "$2"
@@ -58,12 +54,14 @@ elif [ "x$STORAGE_BACKEND" == "xrbd" ]; then
     echo "Cephx user client.${RBD_POOL_USER} already exist."
     echo "Update its cephx caps"
     ceph auth caps client.${RBD_POOL_USER} \
+      mgr "profile rbd pool=${RBD_POOL_NAME}" \
       mon "profile rbd" \
       osd "profile rbd pool=${RBD_POOL_NAME}"
     ceph auth get client.${RBD_POOL_USER} -o ${KEYRING}
   else
     #NOTE(JCL): Restrict Glance user to only what is needed. MON Read only and RBD access to the Glance Pool
     ceph auth get-or-create "client.${RBD_POOL_USER}" \
+      mgr "profile rbd pool=${RBD_POOL_NAME}" \
       mon "profile rbd" \
       osd "profile rbd pool=${RBD_POOL_NAME}" \
       -o "${KEYRING}"
@@ -80,23 +78,4 @@ data:
   key: "${ENCODED_KEYRING}"
 EOF
   kubectl apply --namespace "${NAMESPACE}" -f "${SECRET}"
-elif [ "x${STORAGE_BACKEND}" == "xradosgw" ]; then
-  radosgw-admin user stats --uid="${RADOSGW_USERNAME}" || \
-    radosgw-admin user create \
-      --uid="${RADOSGW_USERNAME}" \
-      --display-name="${RADOSGW_USERNAME} user"
-
-  radosgw-admin subuser create \
-    --uid="${RADOSGW_USERNAME}" \
-    --subuser="${RADOSGW_USERNAME}:swift" \
-    --access=full
-
-  radosgw-admin key create \
-    --subuser="${RADOSGW_USERNAME}:swift" \
-    --key-type=swift \
-    --secret="${RADOSGW_PASSWORD}"
-
-  radosgw-admin user modify \
-    --uid="${RADOSGW_USERNAME}" \
-    --temp-url-key="${RADOSGW_TMPURL_KEY}"
 fi

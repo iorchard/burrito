@@ -233,6 +233,7 @@ conf:
       virt_type: kvm
       disk_cachemodes: "network=writeback"
       hw_disk_discard: unmap
+      nfs_mount_options: "{{ nova.nfs_mount_options }}"
     scheduler:
       driver: filter_scheduler
       discover_hosts_in_cells_interval: 60
@@ -451,14 +452,18 @@ pod:
     nova_compute:
       nova_compute:
         volumeMounts:
+{% if not enable_iscsi %}
           - name: dev
             mountPath: /dev
+{% endif %}
           - name: nova-pfx
             mountPath: /opt/emc/scaleio/openstack
         volumes:
+{% if not enable_iscsi %}
           - name: dev
             hostPath:
               path: /dev
+{% endif %}
           - name: nova-pfx
             hostPath:
               path: /opt/emc/scaleio/openstack

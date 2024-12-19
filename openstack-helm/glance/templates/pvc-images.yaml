@@ -14,7 +14,7 @@ limitations under the License.
 
 {{- if .Values.manifests.pvc_images }}
 {{- $envAll := . }}
-{{- if eq .Values.storage "pvc" }}
+{{- if has "pvc" .Values.storage }}
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1

@@ -48,40 +48,37 @@ pod:
         cinder_api:
           runAsUser: 0
           readOnlyRootFilesystem: false
-{% if "netapp" in storage_backends %}
     cinder_volume:
       container:
         cinder_volume:
           capabilities:
-            add:
-              - SYS_ADMIN
-              - NET_ADMIN
-              - DAC_OVERRIDE
-              - DAC_READ_SEARCH
+            add: {{ cinder.volume_capabilities }}
+          privileged: {{ ("powerflex" in storage_backends)|ternary(true, false) }}
+          readOnlyRootFilesystem: false
+{% if enable_iscsi %}
+    cinder_volume:
+      container:
+        cinder_volume:
+          runAsUser: 0
+          privileged: true
           readOnlyRootFilesystem: false
 {% endif %}
 {% if "powerflex" in storage_backends %}
-    cinder_volume:
-      container:
-        cinder_volume:
-          privileged: true
-          capabilities:
-            add:
-              - SYS_ADMIN
-          readOnlyRootFilesystem: false
   mounts:
     cinder_volume:
       cinder_volume:
         volumeMounts:
           - name: run
             mountPath: /run
+{% if not enable_iscsi %}
           - name: dev
             mountPath: /dev
+          - name: sys
+            mountPath: /sys
+{% endif %}
           - name: libmodules
             mountPath: /lib/modules
             readOnly: true
-          - name: sys
-            mountPath: /sys
           - name: cinder-pfx
             mountPath: /opt/emc/scaleio/openstack
           - name: cinder-tmp
@@ -90,28 +87,22 @@ pod:
           - name: run
             hostPath:
               path: /run
+{% if not enable_iscsi %}
           - name: dev
             hostPath:
               path: /dev
-          - name: libmodules
-            hostPath:
-              path: /lib/modules
           - name: sys
             hostPath:
               path: /sys
+{% endif %}
+          - name: libmodules
+            hostPath:
+              path: /lib/modules
           - name: cinder-pfx
             hostPath:
               path: /opt/emc/scaleio/openstack
           - name: cinder-tmp
             emptyDir: {}
-{% endif %}
-{% if enable_iscsi %}
-    cinder_volume:
-      container:
-        cinder_volume:
-          runAsUser: 0
-          privileged: true
-          readOnlyRootFilesystem: false
 {% endif %}
 {% if "lvm" in storage_backends %}
   mounts:
@@ -134,9 +125,10 @@ pod:
 bootstrap:
   volume_types:
 {% if "ceph" in storage_backends %}
-    rbd1:
+    ceph:
       volume_backend_name: {{ cinder_backends_map.ceph }}
       access_type: "private"
+      "image_service:store_id": "ceph"
 {% endif %}
 {% if "netapp" in storage_backends %}
 {% for n in netapp %}
@@ -144,7 +136,7 @@ bootstrap:
       volume_backend_name: {{ n.name }}
       access_type: "private"
       dataLIF: "{{ n.dataLIF }}"
-      "image_service:store_id": "{{ glance_store_types.netapp }}"
+      "image_service:store_id": "{{ n.name }}"
       shares:
 {% for share in n.shares %}
         - "{{ share }}"
@@ -155,44 +147,44 @@ bootstrap:
     powerflex:
       volume_backend_name: {{ cinder_backends_map.powerflex }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.powerflex }}"
+      "image_service:store_id": "powerflex"
 {% endif %}
 {% if "hitachi" in storage_backends %}
     hitachi:
       volume_backend_name: {{ cinder_backends_map.hitachi }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.hitachi }}"
+      "image_service:store_id": "hitachi"
 {% endif %}
 {% if "primera" in storage_backends %}
     primera:
       volume_backend_name: {{ cinder_backends_map.primera }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.primera }}"
+      "image_service:store_id": "primera"
 {% endif %}
 {% if "lvm" in storage_backends %}
     lvm:
       volume_backend_name: {{ cinder_backends_map.lvm }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.lvm }}"
+      "image_service:store_id": "lvm"
 {% endif %}
 {% if "purestorage" in storage_backends %}
     purestorage:
       volume_backend_name: {{ cinder_backends_map.purestorage }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.purestorage }}"
+      "image_service:store_id": "purestorage"
 {% endif %}
 {% if "powerstore" in storage_backends %}
 {% for p in powerstore %}
     {{ p.name }}:
       volume_backend_name: {{ p.name }}
       access_type: "private"
-      "image_service:store_id": "{{ glance_store_types.powerstore }}"
+      "image_service:store_id": "{{ p.name }}"
 {% if 'nas_host' in p %}
       dataLIF: "{{ p.nas_host }}"
 {% endif %}
 {% if 'nas_share_path' in p %}
       shares:
-        - "{{ p.nas_share_path }}"
+        - "{{ p.nas_host }}{{ p.nas_share_path }}"
 {% endif %}
 {% endfor %}
 {% endif %}
@@ -202,6 +194,11 @@ network:
     ingress:
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: "https"
+
+{% if "ceph" in storage_backends %}
+ceph_client:
+  internal_ceph_backend: ceph
+{% endif %}
 conf:
   enable_iscsi: {{ enable_iscsi }}
   enable_powerflex: {{ ("powerflex" in storage_backends)|ternary('true', 'false') }}
@@ -275,7 +272,7 @@ conf:
       glance_ca_certificates_file: /etc/cinder/certs/ca.crt
       debug: true
       enable_force_upload: true
-      allowed_direct_url_schemes: "{{ cinder.allowed_direct_url_schemes }}"
+      allowed_direct_url_schemes: cinder
       cinder_internal_tenant_project_id: internal_cinder
       cinder_internal_tenant_user_id: internal_cinder
       enabled_backends: "{{ cinder.enabled_backends }}"
@@ -327,11 +324,12 @@ conf:
   rabbitmq: null
   backends:
 {% if "ceph" in storage_backends %}
-    rbd1:
+    ceph:
       volume_driver: cinder.volume.drivers.rbd.RBDDriver
       volume_backend_name: "{{ cinder_backends_map.ceph }}"
       rbd_ceph_conf: "/etc/ceph/ceph.conf"
       rbd_flatten_volume_from_snapshot: false
+      report_discard_supported: true
       rbd_max_clone_depth: 5
       rbd_store_chunk_size: 8
       rados_connect_timeout: -1
@@ -339,9 +337,9 @@ conf:
       rbd_pool: "volumes"
       rbd_secret_uuid: "{{ ceph_secret_uuid }}"
       rbd_exclusive_cinder_pool: true
-{% else %}
-    rbd1: null
+      image_volume_cache_enabled: true
 {% endif %}
+    rbd1: null
 {% if "netapp" in storage_backends %}
 {% for n in netapp %}
     {{ n.name }}:
@@ -358,8 +356,8 @@ conf:
       nas_secure_file_operations: {{ n.nas_secure_file_operations }}
       nas_secure_file_permissions: {{ n.nas_secure_file_permissions }}
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: True
-      image_upload_use_internal_tenant: True
+      image_upload_use_cinder_backend: {{ (glance_store_types['netapp'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['netapp'] == 'cinder')|ternary(true, false) }}
 {% endfor %}
 {% endif %}
 {% if "powerflex" in storage_backends %}
@@ -371,9 +369,9 @@ conf:
       san_login: admin
       san_password: "{{ gateway_admin_password }}"
       powerflex_rest_server_port: {{ gateway_ssl_port }}
-      image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: True
-      image_upload_use_internal_tenant: True
+      image_volume_cache_enabled: true
+      image_upload_use_cinder_backend: {{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}
 {% endif %}
 {% if "hitachi" in storage_backends %}
     hitachi:
@@ -384,8 +382,8 @@ conf:
       san_password: "{{ hitachi_san_password }}"
       use_multipath_for_image_xfer: True
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: True
-      image_upload_use_internal_tenant: True
+      image_upload_use_cinder_backend: {{ (glance_store_types['hitachi'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['hitachi'] == 'cinder')|ternary(true, false) }}
       suppress_requests_ssl_warnings: True
       hitachi_storage_id: "{{ hitachi_storage_id }}"
       hitachi_storage_cli: REST
@@ -411,8 +409,8 @@ conf:
       san_password: "{{ primera_password }}"
       use_multipath_for_image_xfer: True
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: True
-      image_upload_use_internal_tenant: True
+      image_upload_use_cinder_backend: {{ (glance_store_types['primera'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['primera'] == 'cinder')|ternary(true, false) }}
       #hpe3par_target_nsp: "0:3:3"
       hpe3par_api_url: "{{ primera_api_url }}"
       hpe3par_username: "{{ primera_username }}"
@@ -432,8 +430,8 @@ conf:
       target_protocol: iscsi
       target_helper: lioadm
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: True
-      image_upload_use_internal_tenant: True
+      image_upload_use_cinder_backend: {{ (glance_store_types['lvm'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['lvm'] == 'cinder')|ternary(true, false) }}
 {% endif %}
 {% if "purestorage" in storage_backends %}
     purestorage:
@@ -443,8 +441,8 @@ conf:
       pure_api_token: {{ purestorage_api_token }}
       use_multipath_for_image_xfer: True
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: True
-      image_upload_use_internal_tenant: True
+      image_upload_use_cinder_backend: {{ (glance_store_types['purestorage'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['purestorage'] == 'cinder')|ternary(true, false) }}
       pure_eradicate_on_delete: {{ pure_eradicate_on_delete }}
       pure_automatic_max_oversubscription_ratio: {{ pure_automatic_max_oversubscription_ratio }}
 {% endif %}
@@ -453,10 +451,10 @@ conf:
     {{ p.name }}:
       volume_driver: "{{ p.volume_driver }}"
       volume_backend_name: "{{ p.name }}"
+      image_upload_use_cinder_backend: {{ (glance_store_types['powerstore'] == 'cinder')|ternary(true, false) }}
+      image_upload_use_internal_tenant: {{ (glance_store_types['powerstore'] == 'cinder')|ternary(true, false) }}
 {% if p.blockProtocol == 'FC' %}
       image_volume_cache_enabled: True
-      image_upload_use_cinder_backend: True
-      image_upload_use_internal_tenant: True
       san_ip: "{{ p.apiserver }}"
       san_login: "{{ p.username }}"
       san_password: "{{ p.password }}"
@@ -466,6 +464,7 @@ conf:
       nfs_qcow2_volumes: False
       nfs_snapshot_support: True
       nfs_sparsed_volumes: True
+      nfs_mount_options: "{{ p.nfsMountOptions }}"
       nas_host: "{{ p.nas_host }}"
       nfs_shares_config: "/etc/cinder/share_{{ p.name }}"
       nas_secure_file_operations: False

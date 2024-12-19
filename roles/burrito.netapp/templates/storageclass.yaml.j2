@@ -8,6 +8,6 @@ metadata:
 provisioner: csi.trident.netapp.io
 parameters:
   backendType: "ontap-nas"
-  fsType: "ext4"
+  csi.storage.k8s.io/fstype: "ext4"
 allowVolumeExpansion: True
 ...
