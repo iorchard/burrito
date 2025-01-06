@@ -20,14 +20,4 @@
   become: true
   delegate_to: "{{ groups['mons'][0] }}"
   run_once: true
-
-- name: Setup | wait until ceph cluster is healthy
-  ansible.builtin.command: ceph health
-  become: true
-  register: ceph_health
-  until: ceph_health.stdout == "HEALTH_OK"
-  retries: 15
-  delay: 20
-  delegate_to: "{{ groups['mons'][0] }}"
-  run_once: true
 ...
