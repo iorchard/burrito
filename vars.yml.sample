@@ -187,13 +187,12 @@ keepalived_interface_svc_prefix: "{{ hostvars[inventory_hostname]['ansible_' + s
 # ceph network cidr - recommend the same cidr for public/cluster networks.
 storage_netmask: "{{ hostvars[inventory_hostname]['ansible_' + storage_iface_name].ipv4.network }}/{{ hostvars[inventory_hostname]['ansible_' + storage_iface_name].ipv4.netmask }}"
 public_network: "{{ storage_netmask | ansible.utils.ipaddr('net') }}"
-## not used?
 cluster_network: "{{ public_network }}"
 
 # set the size, min_size, and single_osd_node
-## not used?
+## used in burrito.ceph/tasks/init.yml and 
+## burrito.openstack/templates/osh/{glance,cinder}.yml.j2
 ceph_pool_default_size: "{% if (groups['osds']|length) > 3 %}3{% else %}2{% endif %}"
-## not used?
 ceph_pool_default_min_size: "{% if (groups['osds']|length) > 3 %}2{% else %}1{% endif %}"
 ## used on burrito.ceph/defaults/main.yml
 single_osd_node: "{{ ((groups['osds']|length) == 1)|ternary(true, false) }}"
@@ -237,10 +236,6 @@ ceph_cinder_backup_key:
   - { name: client.cinder-backup, caps: "mon 'profile rbd', osd 'profile rbd pool={{ openstack_cinder_backup_pool.name }}' mgr 'profile rbd pool={{ openstack_cinder_backup_pool.name }}'" }
 
 ceph_keys: "{% if enable_cinder_backup %}{{ ceph_basic_keys + [ceph_cinder_backup_key] }}{% else %}{{ ceph_basic_keys }}{% endif %}"
-
-# clients
-## not used?
-copy_admin_key: true
 
 ### kubespray
 # pod.replicas is for pods for HA
