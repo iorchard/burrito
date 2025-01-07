@@ -23,6 +23,7 @@
         --image {{ quay_image_repo }}/ceph/ceph:{{ ceph_version }} \
         bootstrap {{ ceph_bootstrap_params }} \
         --allow-overwrite \
+        --cluster-network {{ cluster_network }} \
         --mon-ip {{ hostvars[groups['mons'][0]]['ansible_' + storage_iface_name].ipv4.address }} \
         --skip-dashboard \
         --skip-firewalld \
