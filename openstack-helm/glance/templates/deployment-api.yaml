@@ -389,7 +389,7 @@ spec:
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_messaging.auth.admin.secret.tls.internal | include "helm-toolkit.snippets.tls_volume" | indent 8 }}
 {{ if $mounts_glance_api.volumes }}{{ toYaml $mounts_glance_api.volumes | indent 8 }}{{ end }}
 {{- end }}
-{{- if eq .Values.nginx_deployment.type "StatefulSet" }}
+{{- if and (.Values.nginx_deployment.pvc.enabled) (eq .Values.nginx_deployment.type "StatefulSet") }}
   volumeClaimTemplates:
   - metadata:
       name: nginx-client-tmp-pvc
