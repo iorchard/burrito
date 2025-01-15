@@ -232,8 +232,6 @@ conf:
     openvswitch_agent:
       ovs:
         bridge_mappings: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.bridge }},{% endfor %}"
-      securitygroup:
-        firewall_driver: openvswitch
       agent:
         extensions: qos
         enable_distributed_routing: {{ ovs_dvr | ternary('True', 'False') }}
