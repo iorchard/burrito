@@ -139,6 +139,8 @@ apiserver_loadbalancer_domain_name: "lb-apiserver.kubernetes.local"
 kube_apiserver_bind_address: "{{ ip }}"
 kube_apiserver_address: "{{ keepalived_vip | default(ip) }}"
 kube_apiserver_port: 6443
+kubeadm_ignore_preflight_errors:
+  - "Port-{{ kube_apiserver_port }}"
 loadbalancer_apiserver:
   address: "{{ keepalived_vip }}"
   port: "{{ kube_apiserver_port }}"
@@ -239,10 +241,14 @@ ceph_keys: "{% if enable_cinder_backup %}{{ ceph_basic_keys + [ceph_cinder_backu
 
 ### kubespray
 # pod.replicas is for pods for HA
-# quorum.replicas is for pods for quorum like mariadb, rabbitmq.
+# quorum.replicas is for pods with quorum like mariadb, rabbitmq.
 pod:
   replicas: "{{ (groups['kube_control_plane']|length<2)|ternary(1, 2) }}"
   quorum_replicas: "{{ (groups['kube_control_plane']|length<3) |ternary(1, 3) }}"
+# disable anonymous access
+remove_anonymous_access: true
+# enable metrics server
+metrics_server_enabled: true
 # The default upstream dns servers in containers.
 upstream_dns_servers:
   - 8.8.8.8
@@ -254,7 +260,7 @@ quay_image_repo: "quay.io"
 download_run_once: false
 # Override bin_dir to mitigate the conflict with ceph in HCI architecture.
 bin_dir: /usr/sbin
-kube_version: v1.30.3
+kube_version: v1.32.0
 kube_proxy_strict_arp: true
 kubeconfig_localhost: true
 kubectl_localhost: true
@@ -353,7 +359,7 @@ kube_pod_security_use_default: true
 kube_pod_security_default_enforce: restricted
 
 ## calico
-calico_version: "v3.27.3"
+calico_version: "v3.29.1"
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
