@@ -1,5 +1,5 @@
---- kubespray/playbooks/cluster.yml	2024-07-24 16:32:10.314194439 +0900
-+++ patches/kubespray/playbooks/cluster.yml	2024-07-24 16:31:07.120167489 +0900
+--- kubespray/playbooks/cluster.yml	2025-01-31 13:59:14.994046105 +0900
++++ patches/kubespray/playbooks/cluster.yml	2025-01-31 16:53:55.906748015 +0900
 @@ -70,7 +70,7 @@
      - { role: kubespray-defaults }
      - { role: win_nodes/kubernetes_patch, tags: ["master", "win_nodes"] }
@@ -7,7 +7,7 @@
 -- name: Install Kubernetes apps
 +- name: Install Kubernetes apps - part1
    hosts: kube_control_plane
-   gather_facts: False
+   gather_facts: false
    any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
 @@ -82,6 +82,20 @@
      - { role: kubernetes-apps/policy_controller, tags: policy-controller }
@@ -22,7 +22,7 @@
 +
 +- name: Install Kubernetes apps - part2
 +  hosts: kube_control_plane
-+  gather_facts: False
++  gather_facts: false
 +  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
 +  environment: "{{ proxy_disable_env }}"
 +  roles:

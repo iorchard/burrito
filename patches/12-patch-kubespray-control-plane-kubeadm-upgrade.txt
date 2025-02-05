@@ -1,24 +1,8 @@
---- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-upgrade.yml	2024-08-21 13:09:44.080000000 +0900
-+++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-upgrade.yml	2024-08-26 15:33:28.227679682 +0900
-@@ -15,7 +15,6 @@
-     {{ bin_dir }}/kubeadm
-     upgrade apply -y {{ kube_version }}
-     --certificate-renewal={{ kubeadm_upgrade_auto_cert_renewal }}
--    --config={{ kube_config_dir }}/kubeadm-config.yaml
-     --ignore-preflight-errors=all
-     --allow-experimental-upgrades
-     --etcd-upgrade={{ (etcd_deployment_type == "kubeadm") | bool | lower }}
-@@ -37,7 +36,6 @@
-     {{ bin_dir }}/kubeadm
-     upgrade apply -y {{ kube_version }}
-     --certificate-renewal={{ kubeadm_upgrade_auto_cert_renewal }}
--    --config={{ kube_config_dir }}/kubeadm-config.yaml
-     --ignore-preflight-errors=all
-     --allow-experimental-upgrades
-     --etcd-upgrade={{ (etcd_deployment_type == "kubeadm") | bool | lower }}
-@@ -53,6 +51,18 @@
+--- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-upgrade.yml	2025-01-31 13:40:07.907750713 +0900
++++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-upgrade.yml	2025-01-31 16:42:20.607176084 +0900
+@@ -51,6 +51,18 @@
      PATH: "{{ bin_dir }}:{{ ansible_env.PATH }}"
-   notify: Master | restart kubelet
+   notify: Control plane | restart kubelet
  
 +- name: patch kube-apiserver.yaml in non-first control nodes.
 +  ansible.builtin.lineinfile:

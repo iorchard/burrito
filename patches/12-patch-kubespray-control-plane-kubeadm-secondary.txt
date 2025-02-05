@@ -1,6 +1,6 @@
---- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2024-10-28 16:27:50.172638312 +0900
-+++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2024-10-28 16:33:26.071638312 +0900
-@@ -83,6 +83,7 @@
+--- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2025-01-31 13:59:14.989046108 +0900
++++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2025-02-03 16:23:39.179263415 +0900
+@@ -84,6 +84,7 @@
      - kubeadm_use_file_discovery
      - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
  
@@ -8,7 +8,7 @@
  - name: Joining control plane node to the cluster.
    command: >-
      {{ bin_dir }}/kubeadm join
-@@ -98,3 +99,24 @@
+@@ -99,3 +100,24 @@
    when:
      - inventory_hostname != first_kube_control_plane
      - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
