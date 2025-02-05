@@ -1,0 +1,11 @@
+---
+pkg_state: "latest"
+packages:
+  - chrony
+
+service_conf:
+  - {dest: "/etc/chrony.conf"}
+
+systemd_service_name:
+  - chronyd.service
+...

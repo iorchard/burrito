@@ -1,0 +1,7 @@
+---
+packages:
+  - device-mapper-multipath
+  - pciutils
+  - sg3_utils
+  - lsscsi
+...

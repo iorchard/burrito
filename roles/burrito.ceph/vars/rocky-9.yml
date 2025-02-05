@@ -1,0 +1,9 @@
+---
+online_pkgs:
+  - epel-release
+  - centos-release-ceph-squid
+
+prereq_pkgs:
+  - chrony
+  - lvm2
+...
