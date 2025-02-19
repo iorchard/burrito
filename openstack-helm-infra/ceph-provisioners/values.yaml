@@ -29,17 +29,15 @@ release_group: null
 images:
   pull_policy: IfNotPresent
   tags:
-    ceph_bootstrap: 'docker.io/openstackhelm/ceph-daemon:ubuntu_focal_18.2.0-1-20231013'
-    ceph_cephfs_provisioner: 'docker.io/openstackhelm/ceph-cephfs-provisioner:ubuntu_focal_18.2.0-1-20231013'
-    ceph_config_helper: 'docker.io/openstackhelm/ceph-config-helper:ubuntu_focal_18.2.0-1-20231013'
-    ceph_rbd_provisioner: 'docker.io/openstackhelm/ceph-rbd-provisioner:change_770201_ubuntu_bionic-20210113'
+    ceph_bootstrap: 'docker.io/openstackhelm/ceph-daemon:uubuntu_jammy_18.2.2-1-20240312'
+    ceph_config_helper: 'docker.io/openstackhelm/ceph-config-helper:ubuntu_jammy_18.2.2-1-20240312'
     csi_provisioner: 'registry.k8s.io/sig-storage/csi-provisioner:v3.1.0'
     csi_snapshotter: 'registry.k8s.io/sig-storage/csi-snapshotter:v6.0.0'
     csi_attacher: 'registry.k8s.io/sig-storage/csi-attacher:v3.4.0'
     csi_resizer: 'registry.k8s.io/sig-storage/csi-resizer:v1.4.0'
     csi_registrar: 'registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.5.0'
     cephcsi: 'quay.io/cephcsi/cephcsi:v3.6.2'
-    dep_check: 'quay.io/airshipit/kubernetes-entrypoint:v1.0.0'
+    dep_check: 'quay.io/airshipit/kubernetes-entrypoint:latest-ubuntu_focal'
     image_repo_sync: 'docker.io/library/docker:17.07.0'
   local_registry:
     active: false
@@ -146,8 +144,6 @@ pod:
           readOnlyRootFilesystem: true
   dns_policy: "ClusterFirstWithHostNet"
   replicas:
-    cephfs_provisioner: 2
-    rbd_provisioner: 2
     csi_rbd_provisioner: 2
   lifecycle:
     upgrades:
