@@ -1,5 +1,5 @@
 ---
-- name: Rocky Linux | install packages.
+- name: Rocky Linux | install common packages.
   ansible.builtin.package:
     name: "{{ item }}"
     state: "{{ pkg_state }}"
@@ -9,4 +9,54 @@
   delay: 3
   become: true
   loop: "{{ packages }}"
+
+- name: Rocky Linux | install pre-requisite packages for mdm service
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ mdm_pkgs }}"
+  when: inventory_hostname in groups['mdm']
+
+- name: Rocky Linux | install pre-requisite packages for sds service
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ sds_pkgs }}"
+  when: inventory_hostname in groups['sds']
+
+- name: Rocky Linux | install pre-requisite packages for sdc service
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ sdc_pkgs }}"
+  when: inventory_hostname in groups['sdc']
+
+- name: Rocky Linux | install pre-requisite packages for sds with nvdimm
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ sds_nvdimm_pkgs }}"
+  when:
+    - inventory_hostname in groups['sds']
+    - sds_nvdimm_enabled
 ...

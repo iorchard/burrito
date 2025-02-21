@@ -1,0 +1,119 @@
+---
+- name: Certificate | check if mdm CA exists
+  ansible.builtin.stat:
+    path: "{{ mdm_certs.ca }}"
+  register: _mdm_ca_exists
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+  
+- name: Certificate | create mdm CA
+  ansible.builtin.command: >-
+    {{ ansible_playbook_python }} {{ mdm_certs.cmd }} \
+      --generate_ca {{ mdm_certs.ca }} \
+      --password '{{ mdm_password }}'
+  become: true
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+  no_log: true
+  when: not _mdm_ca_exists.stat.exists
+
+- name: Certificate | check if mdm client certificate exists
+  ansible.builtin.stat:
+    path: "{{ mdm_certs.client }}"
+  register: _mdm_client_exists
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+
+- name: Certificate | create client certificate
+  ansible.builtin.command: >-
+    {{ ansible_playbook_python }} {{ mdm_certs.cmd }} \
+      --generate_cli {{ mdm_certs.client }} \
+      -CA {{ mdm_certs.ca }} \
+      --password '{{ mdm_password }}'
+  become: true
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+  no_log: true 
+  when: not _mdm_client_exists.stat.exists
+
+- name: Certificate | check if mdm primary certificate exists
+  ansible.builtin.stat:
+    path: "{{ mdm_certs.primary }}"
+  register: _mdm_primary_exists
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+
+- name: Certificate | create primary mdm certificate
+  ansible.builtin.command: >-
+    {{ ansible_playbook_python }} {{ mdm_certs.cmd }} \
+      --generate_mdm {{ mdm_certs.primary }} \
+      -CA {{ mdm_certs.ca }}
+  become: true
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+  when: not _mdm_primary_exists.stat.exists
+
+- name: Certificate | check if mdm secondary certificate exists
+  ansible.builtin.stat:
+    path: "{{ mdm_certs.secondary }}"
+  register: _mdm_secondary_exists
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+
+- name: Certificate | create secondary mdm certificate
+  ansible.builtin.command: >-
+    {{ ansible_playbook_python }} {{ mdm_certs.cmd }} \
+      --generate_mdm {{ mdm_certs.secondary }} \
+      -CA {{ mdm_certs.ca }}
+  become: true
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+  when: not _mdm_secondary_exists.stat.exists
+
+- name: Certificate | get the content of CA
+  ansible.builtin.slurp:
+    src: "{{ mdm_certs.ca }}"
+  register: mdm_ca
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+
+- name: Certificate | get the content of client certificate
+  ansible.builtin.slurp:
+    src: "{{ mdm_certs.client }}"
+  register: mdm_client
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+
+- name: Certificate | get the content of secondary certificate
+  ansible.builtin.slurp:
+    src: "{{ mdm_certs.secondary }}"
+  register: mdm_secondary
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+
+- name: Certificate | copy certificate files on secondary mdm
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  become: true
+  when: inventory_hostname == groups['mdm'][1]
+  loop:
+    - {content: "{{ mdm_ca.content | b64decode }}", dest: "{{ mdm_certs.ca }}", mode: "0644"}
+    - {content: "{{ mdm_client.content | b64decode }}", dest: "{{ mdm_certs.client }}", mode: "0644"}
+    - {content: "{{ mdm_secondary.content | b64decode }}", dest: "{{ mdm_certs.primary }}", mode: "0644"}
+
+- name: Certificate | add CA to the CLI
+  ansible.builtin.command: >-
+    scli --add_certificate --certificate_file {{ mdm_certs.ca }}
+  when: inventory_hostname == groups['mdm'][0] or inventory_hostname == groups['mdm'][1]
+
+- name: Certificate | restart mdm.service
+  ansible.builtin.service:
+    name: "mdm.service"
+    state: "restarted"
+  become: true
+  when: inventory_hostname in groups['mdm']
+...

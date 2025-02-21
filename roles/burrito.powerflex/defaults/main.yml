@@ -1,8 +1,5 @@
 ---
-haproxy_conf_dir: "/etc/haproxy"
-service_conf:
-  - {dest: "{{ haproxy_conf_dir }}/conf.d/powerflex.cfg", owner: "root", group: "haproxy", mode: "0640"}
-
+sds_nvdimm_enabled: false
 pkg_tarball: "/mnt/powerflex_pkgs.tar.gz"
 pkg_base: "{{ ansible_env.HOME }}/powerflex_pkgs"
 lia_token: ~
@@ -10,31 +7,14 @@ mdm_ip: []
 gateway_admin_password: ~
 mdm_password: ~
 scaleio_dir: "/opt/emc/scaleio"
-gateway_user_properties_file: "{{ scaleio_dir }}/gateway/webapps/ROOT/WEB-INF/classes/gatewayUser.properties"
-mdm_ip_addresses: >-
-  [
-  {% for vip in mdm_ip %}
-    "{{ vip }}",
-  {% endfor %}
-    "{{ hostvars[groups['mdm'][0]]['ansible_'+mgmt_iface_name].ipv4.address }}",
-    "{{ hostvars[groups['mdm'][1]]['ansible_'+mgmt_iface_name].ipv4.address }}",
-  {% for siface in storage_iface_names %}
-    "{{ hostvars[groups['mdm'][0]]['ansible_'+siface].ipv4.address }}",
-    "{{ hostvars[groups['mdm'][1]]['ansible_'+siface].ipv4.address }}",
-  {% endfor %}
-  ]
-
-catalina_properties_file: "{{ scaleio_dir }}/gateway/conf/catalina.properties"
-gateway_http_port: 80
-gateway_ssl_port: 443
-server_xml_file: "{{ scaleio_dir }}/gateway/conf/server.xml"
-gateway_bind_ip: "{{ hostvars[inventory_hostname]['ansible_'+mgmt_iface_name].ipv4.address }}"
-
+mdm_certs:
+  cmd: "{{ scaleio_dir }}/mdm/cfg/certificate_generator_MDM_USER.py"
+  ca: "{{ scaleio_dir }}/mdm/cfg/mgmt_ca.pem"
+  client: "{{ scaleio_dir }}/mdm/cfg/cli_certificate.p12"
+  primary: "{{ scaleio_dir }}/mdm/cfg/mdm_certificate.pem"
+  secondary: "{{ scaleio_dir }}/mdm/cfg/sec_mdm_certificate.pem"
 lia_conf_file: "{{ scaleio_dir }}/lia/cfg/conf.txt"
 lia_port: 9099
-
-presentation_conf_file: "/etc/mgmt-server/.config/mgmt-server"
-presentation_port: 8443
 
 keepalived_vip: ~
 balance: source

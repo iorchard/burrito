@@ -1,17 +1,31 @@
 ---
-packages: []
+packages:
+  - numactl
+  - libaio
+  - wget
+  - apr
+  - python3-rpm
+  - yum-utils
 pkgs:
+  activemq: "{{ pkg_base }}/EMC-ScaleIO-activemq-*.rpm"
   lia: "{{ pkg_base }}/EMC-ScaleIO-lia-*.rpm"
   mdm: "{{ pkg_base }}/EMC-ScaleIO-mdm-*.rpm"
   sds: "{{ pkg_base }}/EMC-ScaleIO-sds-*.rpm"
   sdc: "{{ pkg_base }}/EMC-ScaleIO-sdc-*.rpm"
-  gateway: "{{ pkg_base }}/EMC-ScaleIO-gateway-*.rpm"
-  presentation: "{{ pkg_base }}/EMC-ScaleIO-mgmt-server-*.rpm"
-
-gateway_prerequisite_pkgs:
+mdm_pkgs:
+  - bash-completion
   - binutils
-  - java-1.8.0-openjdk-headless
-
-presentation_prerequisite_pkgs:
-  - java-1.8.0-openjdk-headless
+  - java-11-openjdk-headless
+sds_pkgs:
+  - smartmontools
+  - sg3_utils
+  - hdparm
+  - pciutils
+sdc_pkgs:
+  - which
+sds_nvdimm_pkgs:
+  - ndctl
+  - jq
+  - daxio
+  - libpmem
 ...
