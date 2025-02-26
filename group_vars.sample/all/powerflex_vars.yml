@@ -8,6 +8,11 @@ sds_devices:
   - /dev/sdb
   - /dev/sdc
   - /dev/sdd
+# PowerFlex Management IP
+pfmp_ip: "192.168.21.58"
+pfmp_port: 443
+pfmp_username: "admin"
+pfmp_password: "<PFMP_ADMIN_PASSWORD>"
 
 #
 # Do Not Edit below
