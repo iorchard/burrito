@@ -47,31 +47,6 @@
   changed_when: res.rc == 0
   no_log: true
 
-##- name: Cluster | get the secondary MDM id
-##  ansible.builtin.shell: >-
-##    scli --query_cluster|grep {{ groups['mdm'][1] }}|cut -d',' -f2|cut -d' ' -f3
-##  register: secondary_mdm_res
-##  delegate_to: "{{ groups['mdm'][0] }}"
-##  run_once: true
-##  failed_when: secondary_mdm_res.rc != 0
-##  changed_when: false
-##  
-##- name: Cluster | get the tiebreaker id
-##  ansible.builtin.shell: >-
-##    scli --query_cluster |grep {{ groups['mdm'][2] }}|cut -d',' -f2|cut -d' ' -f3
-##  register: tiebreaker_res
-##  delegate_to: "{{ groups['mdm'][0] }}"
-##  run_once: true
-##  failed_when: tiebreaker_res.rc != 0
-##  changed_when: false
-##  
-##- name: Cluster | set facts for secondary and tiebreaker id
-##  ansible.builtin.set_fact:
-##    secondary_mdm_id: "{{ secondary_mdm_res.stdout }}"
-##    tiebreaker_id: "{{ tiebreaker_res.stdout }}"
-##  delegate_to: "{{ groups['mdm'][0] }}"
-##  run_once: true
-#
 - name: Cluster | switch to 3-node cluster mode
   ansible.builtin.shell: >-
     scli --login --p12_path {{ mdm_certs.client }} \

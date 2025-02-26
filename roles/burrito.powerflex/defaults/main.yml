@@ -16,12 +16,10 @@ mdm_certs:
 lia_conf_file: "{{ scaleio_dir }}/lia/cfg/conf.txt"
 lia_port: 9099
 
-keepalived_vip: ~
-balance: source
-inter: 2s
-rise: 2
-fall: 3
-
+pfmp_ip: ~
+pfmp_port: 443
+pfmp_username: "admin"
+pfmp_password: ~
 validate_certs: false
 protection_domain_name: "burrito_domain"
 storage_pool_name: "burrito_sp"
@@ -31,7 +29,7 @@ media_type: "SSD"
 spare_percentage: "{{ (1/(groups['sds']|length)*100)|round(0, 'ceil')|int }}"
 
 # vxflexos
-pfx_version: "v2.11.0"
+pfx_version: "v2.13.0"
 pfx_sdc_version: "4.5.2.1"
 artifacts_dir: "{{ ansible_env.HOME }}/vxflexos-artifacts"
 template_files:

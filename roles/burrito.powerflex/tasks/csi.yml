@@ -1,7 +1,6 @@
 ---
 - name: CSI | create vxflexos namespace
   kubernetes.core.k8s:
-    state: present
     resource_definition:
       apiVersion: v1
       kind: Namespace
@@ -42,18 +41,18 @@
 
 - name: CSI | get system id
   dellemc.powerflex.info:
-    hostname: "{{ keepalived_vip }}"
-    port: "{{ gateway_ssl_port }}"
-    username: "admin"
-    password: "{{ gateway_admin_password }}"
+    hostname: "{{ pfmp_ip }}"
+    port: "{{ pfmp_port }}"
+    username: "{{ pfmp_username }}"
+    password: "{{ pfmp_password }}"
     validate_certs: "{{ validate_certs }}"
-  register: pfx_info
+  register: _pfx_info
   delegate_to: localhost
   run_once: true
 
 - name: CSI | set facts for system id
   ansible.builtin.set_fact:
-    systemid: "{{ pfx_info.Array_Details[0].id }}"
+    systemid: "{{ _pfx_info.Array_Details[0].id }}"
   delegate_to: localhost
   run_once: true
 

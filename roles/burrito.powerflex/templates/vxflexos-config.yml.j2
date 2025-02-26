@@ -1,6 +1,6 @@
-- username: "admin"
-  password: "{{ gateway_admin_password }}"
+- username: "{{ pfmp_username }}"
+  password: "{{ pfmp_password }}"
   systemID: "{{ systemid }}"
-  endpoint: "https://{{ keepalived_vip }}:{{ gateway_ssl_port }}"
+  endpoint: "https://{{ pfmp_ip }}:{{ pfmp_port }}"
   skipCertificateValidation: true
   mdm: "{{ mdm_ip | join(',') }}"
