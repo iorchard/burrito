@@ -25,23 +25,23 @@ If you want to uninstall glance, run it with uninstall action.::
 
    $ ./burrito.sh uninstall glance
 
-clean_openstack_ns.sh
+clean_openstack.sh
 -----------------------
 
 This script is for deleting everything in openstack namespace.
 
 Usage::
 
-   $ ./clean_openstack_ns.sh
+   $ ./clean_openstack.sh
    Enter machine Hostname : <Enter the hostname>
 
 
-clean_all.sh
+clean_k8s.sh
 ---------------
 
-This script is for deleting openstack namespace and kubernetes cluster.
+This script is for deleting kubernetes cluster.
 
 Usage::
 
-   $ ./clean_all.sh
+   $ ./clean_k8s.sh
 
