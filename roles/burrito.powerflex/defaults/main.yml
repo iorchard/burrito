@@ -4,7 +4,6 @@ pkg_tarball: "/mnt/powerflex_pkgs.tar.gz"
 pkg_base: "{{ ansible_env.HOME }}/powerflex_pkgs"
 lia_token: ~
 mdm_ip: []
-gateway_admin_password: ~
 mdm_password: ~
 scaleio_dir: "/opt/emc/scaleio"
 mdm_certs:

@@ -49,6 +49,9 @@
   delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
   loop: "{{ groups['sds'] }}"
+  register: res
+  failed_when: res.rc not in [0, 7]
+  changed_when: res.rc == 0
 
 - name: Setup | add devices to each SDS
   ansible.builtin.shell: >-
@@ -61,11 +64,10 @@
       --device_path {{ item.1 }} \
       --media_type {{ media_type }} \
       --force_device_takeover
-  register: pfx_result
-  until: pfx_result is not failed
-  retries: 3
-  delay: 3
   delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
   loop: "{{ groups['sds'] | product(sds_devices) | list }}"
+  register: res
+  failed_when: res.rc not in [0, 7]
+  changed_when: res.rc == 0
 ...
