@@ -1,0 +1,10 @@
+--- kubespray/roles/network_plugin/calico_defaults/defaults/main.yml	2025-02-19 15:21:12.112000000 +0900
++++ patches/kubespray/roles/network_plugin/calico_defaults/defaults/main.yml	2025-02-27 16:00:21.335273871 +0900
+@@ -94,6 +94,7 @@
+ 
+ # Define address on which Felix will respond to health requests
+ calico_healthhost: "localhost"
++calico_healthport: "9099"
+ 
+ # Configure time in seconds that calico will wait for the iptables lock
+ calico_iptables_lock_timeout_secs: 10

@@ -1,0 +1,11 @@
+--- kubespray/roles/network_plugin/calico/templates/calico-node.yml.j2	2025-02-19 15:21:12.111000000 +0900
++++ patches/kubespray/roles/network_plugin/calico/templates/calico-node.yml.j2	2025-02-27 15:58:01.530338756 +0900
+@@ -222,6 +222,8 @@
+               value: "{{ calico_endpoint_to_host_action | default('RETURN') }}"
+             - name: FELIX_HEALTHHOST
+               value: "{{ calico_healthhost }}"
++            - name: FELIX_HEALTHPORT
++              value: "{{ calico_healthport }}"
+ {% if kube_proxy_mode == 'ipvs' and kube_apiserver_node_port_range is defined %}
+             - name: FELIX_KUBENODEPORTRANGES
+               value: "{{ kube_apiserver_node_port_range.split('-')[0] }}:{{ kube_apiserver_node_port_range.split('-')[1] }}"

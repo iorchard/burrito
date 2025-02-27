@@ -23,4 +23,6 @@ protection_domain_name: "burrito_domain"
 storage_pool_name: "burrito_sp"
 # default lia port is 9099
 lia_port: 9099
+# set calico_healthport to 9090 not to conflict with lia port
+calico_healthport: "{{ omit if 'powerflex' not in storage_backends else 9090 }}"
 ...
