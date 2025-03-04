@@ -43,7 +43,7 @@
       --p12_password '{{ mdm_password }}' && \
     scli --add_sds \
       --sds_name {{ item }}-sds \
-      --sds_ip {% for siface in hostvars[item].storage_iface_names %}hostvars[item]['ansible_'+siface].ipv4.address }}{% if not loop.last %},{% endif %}{% endfor %} \
+      --sds_ip {% for siface in hostvars[item].storage_iface_names %}{{ hostvars[item]['ansible_'+siface].ipv4.address }}{% if not loop.last %},{% endif %}{% endfor %} \
       --protection_domain_name {{ protection_domain_name }} \
       --storage_pool_name {{ storage_pool_name }}
   delegate_to: "{{ groups['mdm'][0] }}"
