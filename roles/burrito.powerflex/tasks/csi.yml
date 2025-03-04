@@ -12,6 +12,23 @@
     scli --add_certificate --certificate_file {{ mdm_certs.ca }}
   when: inventory_hostname == groups['mdm'][0] or inventory_hostname == groups['mdm'][1]
 
+- name: CSI | get system id
+  dellemc.powerflex.info:
+    hostname: "{{ pfmp_ip }}"
+    port: "{{ pfmp_port }}"
+    username: "{{ pfmp_username }}"
+    password: "{{ pfmp_password }}"
+    validate_certs: "{{ validate_certs }}"
+  register: _pfx_info
+  delegate_to: localhost
+  run_once: true
+
+- name: CSI | set facts for system id
+  ansible.builtin.set_fact:
+    systemid: "{{ _pfx_info.Array_Details[0].id }}"
+  delegate_to: localhost
+  run_once: true
+
 - name: CSI | create vxflexos namespace
   kubernetes.core.k8s:
     resource_definition:
@@ -49,23 +66,6 @@
     directory_mode: "0755"
   loop:
     - "files/"
-  delegate_to: localhost
-  run_once: true
-
-- name: CSI | get system id
-  dellemc.powerflex.info:
-    hostname: "{{ pfmp_ip }}"
-    port: "{{ pfmp_port }}"
-    username: "{{ pfmp_username }}"
-    password: "{{ pfmp_password }}"
-    validate_certs: "{{ validate_certs }}"
-  register: _pfx_info
-  delegate_to: localhost
-  run_once: true
-
-- name: CSI | set facts for system id
-  ansible.builtin.set_fact:
-    systemid: "{{ _pfx_info.Array_Details[0].id }}"
   delegate_to: localhost
   run_once: true
 
