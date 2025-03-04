@@ -1,6 +1,6 @@
 ---
 - name: deploy powerflex csi
-  hosts: localhost
+  hosts: mdm
   any_errors_fatal: true
   tasks:
     - name: deploy powerflex csi
