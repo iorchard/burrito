@@ -372,7 +372,7 @@ conf:
     powerflex:
       volume_driver: cinder.volume.drivers.dell_emc.powerflex.driver.PowerFlexDriver
       volume_backend_name: "{{ cinder_backends_map.powerflex }}"
-      san_ip: "{{ keepalived_vip }}"
+      san_ip: "{{ pfmp_ip }}"
       powerflex_storage_pools: "{{ protection_domain_name }}:{{ storage_pool_name }}"
       san_login: "{{ pfmp_username }}"
       san_password: "{{ pfmp_password }}"
