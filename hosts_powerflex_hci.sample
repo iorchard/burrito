@@ -19,12 +19,6 @@ pfx-[1:3]
 [sdc]
 pfx-[1:3]
 
-[gateway]
-pfx-[1:2]
-
-[presentation]
-pfx-3
-
 # kubernetes nodes
 [kube_control_plane]
 pfx-[1:3]
@@ -59,8 +53,6 @@ clients
 mdm
 sds
 sdc
-gateway
-presentation
 
 [etcd:children]
 kube_control_plane
