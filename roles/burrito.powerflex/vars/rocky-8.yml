@@ -28,4 +28,10 @@ sds_nvdimm_pkgs:
   - jq
   - daxio
   - libpmem
+pfmp_pkgs:
+  - qemu-kvm
+  - qemu-img
+  - libvirt
+  - libguestfs-tools-c
+bridge_conf: "/etc/qemu-kvm/bridge.conf"
 ...

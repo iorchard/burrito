@@ -1,0 +1,98 @@
+---
+- name: PFMP | import common tasks
+  ansible.builtin.import_tasks: "common.yml"
+
+- name: PFMP | install pre-requisite packages for PFMP
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ pfmp_pkgs }}"
+
+- name: PFMP | enable and start libvirtd service
+  ansible.builtin.service:
+    name: "libvirtd.service"
+    state: "started"
+    enabled: true
+  become: true
+
+- name: PFMP | modify bridge.conf
+  ansible.builtin.copy:
+    content: "allow all"
+    dest: "{{ bridge_conf }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
+- name: PFMP | add user to kvm group
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    groups: "{{ pfmp_user_groups }}"
+  become: true
+
+- name: PFMP | check pfmp image file exists
+  ansible.builtin.stat:
+    path: "{{ pfmp_vm_image }}"
+    get_checksum: false
+  register: _res
+  failed_when: not _res.stat.exists
+
+- name: PFMP | check pfmp tarball exists
+  ansible.builtin.stat:
+    path: "{{ pfmp_tarball }}"
+    get_checksum: false
+  register: _res
+  failed_when: not _res.stat.exists
+
+- name: PFMP | unarchive pfmp_robot tarball
+  ansible.builtin.unarchive:
+    src: "{{ pfmp_robot_tarball }}"
+    dest: "{{ pfmp_robot_base }}"
+
+- name: PFMP | install pfmp_robot requirements
+  ansible.builtin.pip:
+    requirements: "{{ pfmp_robot_base }}/pfmp_robot/requirements.txt"
+    extra_args: "--no-index --find-links {{ pfmp_robot_base }}/pfmp_robot/pypi"
+    virtualenv: "{{ pfmp_venv_dir }}"
+    virtualenv_command: "python3 -m venv"
+
+- name: PFMP | template props.py
+  ansible.builtin.template:
+    dest: "{{ pfmp_robot_base }}/pfmp_robot/props.py"
+    src: "props.py.j2"
+    mode: "0644"
+
+- name: PFMP | run a robot to create PFMP virtual machines
+  ansible.builtin.command: >-
+    {{ pfmp_venv_dir }}/bin/robot -d output setup.robot
+  args:
+    chdir: "{{ pfmp_robot_base }}/pfmp_robot"
+
+- name: PFMP | set up ssh config file
+  ansible.builtin.copy:
+    content: "Host *\n  StrictHostKeyChecking no\n"
+    dest: "{{ ansible_env.HOME }}/.ssh/config"
+    mode: "0600"
+
+- name: PFMP | check PFMP tarball is already extracted
+  ansible.builtin.command: >-
+    ssh {{ ansible_user }}@pfmp-installer \
+      "ls {{ pfmp_installer_root }}/.pfmp_untar_done"
+  register: res
+
+- name: PFMP | extract PFMP tarball into PFMP installer virtual machine
+  ansible.builtin.shell: >-
+    ssh {{ ansible_user }}@pfmp-installer \
+      "sudo mkdir -p {{ pfmp_installer_root }} && \
+       sudo chown {{ ansible_user }}:{{ansible_user }} \
+         {{ pfmp_installer_root }}" && \
+    cat {{ pfmp_tarball }} | ssh {{ ansible_user }}@pfmp-installer \
+      "tar xzf - -C {{ pfmp_installer_root }} && \
+       touch {{ pfmp_installer_root }}/.pfmp_untar_done"
+  when: res.rc != 0
+...

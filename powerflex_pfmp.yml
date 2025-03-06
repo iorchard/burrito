@@ -1,0 +1,40 @@
+---
+- name: powerflex pfmp playbook
+  hosts: mdm[0]:pfmp
+  any_errors_fatal: true
+  tasks:
+
+    - name: get mgmt network segment
+      ansible.builtin.set_fact:
+        pfmp_mgmt_net_segment: "{{ hostvars[ groups['mdm'][0] ][ 'ansible_' + hostvars[ groups['mdm'][0] ].mgmt_iface_name].ipv4.network|ansible.builtin.regex_replace('^(.*)\\.\\d+$', '\\1') }}"
+    - name: get storage network segment
+      ansible.builtin.set_fact:
+        pfmp_storage_net_segment: "{{ hostvars[ groups['mdm'][0] ][ 'ansible_' + hostvars[ groups['mdm'][0] ].storage_iface_name].ipv4.network|ansible.builtin.regex_replace('^(.*)\\.\\d+$', '\\1') }}"
+    - name: get the management netmask prefix
+      ansible.builtin.set_fact:
+        pfmp_mgmt_net_prefix: "{{ hostvars[ groups['mdm'][0] ][ 'ansible_' + hostvars[ groups['mdm'][0] ].mgmt_iface_name].ipv4.prefix }}"
+    - name: get the storage netmask prefix
+      ansible.builtin.set_fact:
+        pfmp_storage_net_prefix: "{{ hostvars[ groups['mdm'][0] ][ 'ansible_' + hostvars[ groups['mdm'][0] ].storage_iface_name].ipv4.prefix }}"
+    - name: get the next usable ip address
+      ansible.builtin.set_fact:
+        pfmp_vm_start_ip: "{{ (hostvars[groups['pfmp'][0]].ip + '/' + pfmp_mgmt_net_prefix)|ansible.utils.ipaddr('next_usable')|ansible.builtin.regex_replace('.*\\.(\\d+)$', '\\1') }}"
+
+    - name: debug
+      ansible.builtin.debug:
+        msg: >-
+          {{ pfmp_mgmt_net_segment }}
+          {{ pfmp_storage_net_segment }}
+          {{ hostvars[groups['pfmp'][0]].ip }}/{{ pfmp_mgmt_net_prefix }}
+          {{ pfmp_storage_net_prefix }}
+          {{ pfmp_vm_start_ip }}
+
+    - name: deploy powerflex pfmp
+      include_role:
+        name: burrito.powerflex
+        tasks_from: pfmp
+      when:
+        - '"powerflex" in storage_backends'
+        - inventory_hostname in groups['pfmp']
+      tags: ['powerflex', 'pfmp']
+...

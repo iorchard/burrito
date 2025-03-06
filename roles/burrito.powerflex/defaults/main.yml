@@ -15,6 +15,7 @@ mdm_certs:
 lia_conf_file: "{{ scaleio_dir }}/lia/cfg/conf.txt"
 lia_port: 9099
 
+
 pfmp_ip: ~
 pfmp_port: 443
 pfmp_username: "admin"
@@ -26,6 +27,16 @@ storage_pool_name: "burrito_sp"
 media_type: "SSD"
 # spare_percentage: ROUND(1/(number of sds)*100)
 spare_percentage: "{{ (1/(groups['sds']|length)*100)|round(0, 'ceil')|int }}"
+
+# pfmp variables
+pfmp_user_groups:
+  - kvm
+pfmp_vm_image: "{{ ansible_env.HOME }}/images/pfmp.qcow2"
+pfmp_tarball: "{{ ansible_env.HOME }}/images/pfmp.tgz"
+pfmp_robot_tarball: "/mnt/pfmp_robot.tar.gz"
+pfmp_robot_base: "{{ ansible_env.HOME }}"
+pfmp_venv_dir: "{{ ansible_env.HOME }}/.envs/pfmp"
+pfmp_installer_root: "/opt/dell/pfmp"
 
 # vxflexos
 pfx_version: "v2.13.0"

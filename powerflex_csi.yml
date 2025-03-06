@@ -8,5 +8,5 @@
         name: burrito.powerflex
         tasks_from: csi
       when: '"powerflex" in storage_backends'
-      tags: ['powerflex']
+      tags: ['powerflex', 'csi']
 ...
