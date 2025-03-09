@@ -1,7 +1,7 @@
 ---
 # MDM VIPs on storage networks
 mdm_ip: 
-  - "192.168.24.40"
+  - "192.168.24.70"
 storage_iface_names:
   - eth4
 sds_devices:
@@ -9,7 +9,7 @@ sds_devices:
   - /dev/sdc
   - /dev/sdd
 # PowerFlex Management Platform info
-pfmp_ip: "192.168.21.58"
+pfmp_ip: "192.168.21.79"
 pfmp_port: 443
 pfmp_username: "admin"
 pfmp_password: "<PFMP_ADMIN_PASSWORD>"

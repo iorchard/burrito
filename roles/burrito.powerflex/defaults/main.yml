@@ -31,12 +31,23 @@ spare_percentage: "{{ (1/(groups['sds']|length)*100)|round(0, 'ceil')|int }}"
 # pfmp variables
 pfmp_user_groups:
   - kvm
+pfmp_installer_image: "{{ ansible_env.HOME }}/images/pfmp-installer.qcow2"
 pfmp_vm_image: "{{ ansible_env.HOME }}/images/pfmp.qcow2"
 pfmp_tarball: "{{ ansible_env.HOME }}/images/pfmp.tgz"
 pfmp_robot_tarball: "/mnt/pfmp_robot.tar.gz"
 pfmp_robot_base: "{{ ansible_env.HOME }}"
 pfmp_venv_dir: "{{ ansible_env.HOME }}/.envs/pfmp"
 pfmp_installer_root: "/opt/dell/pfmp"
+pfmp_templates:
+  - {src: 'props.py.j2', dest: "{{ pfmp_robot_base }}/pfmp_robot/props.py"}
+  - {src: 'PFMP_Config.json.j2', dest: "{{ pfmp_robot_base }}/pfmp/PFMP_Config.json"}
+pfmp_files:
+  - {src: 'pfmp/configure-cluster-tasks-main.yml', dest: "{{ pfmp_installer_root }}/configure-cluster-tasks-main.yml"}
+  - {src: 'pfmp/setup_installer.sh', dest: "{{ pfmp_installer_root }}/PFMP_Installer/scripts/setup_installer.sh"}
+pfmp_overwrite_files:
+  - {src: 'pfmp/configure-cluster-tasks-main.yml', dest: "{{ pfmp_installer_root }}/configure-cluster-tasks-main.yml"}
+  - {src: 'pfmp/setup_installer.sh', dest: "{{ pfmp_installer_root }}/PFMP_Installer/scripts/setup_installer.sh"}
+  - {src: 'pfmp/PFMP_Config.json', dest: "{{ pfmp_installer_root }}/PFMP_Installer/config/PFMP_Config.json"}
 
 # vxflexos
 pfx_version: "v2.13.0"

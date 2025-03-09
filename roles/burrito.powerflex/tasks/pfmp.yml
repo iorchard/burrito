@@ -49,6 +49,11 @@
   register: _res
   failed_when: not _res.stat.exists
 
+- name: PFMP | create pfmp directory
+  ansible.builtin.file:
+    path: "{{ pfmp_robot_base }}/pfmp"
+    state: directory
+
 - name: PFMP | unarchive pfmp_robot tarball
   ansible.builtin.unarchive:
     src: "{{ pfmp_robot_tarball }}"
@@ -61,17 +66,25 @@
     virtualenv: "{{ pfmp_venv_dir }}"
     virtualenv_command: "python3 -m venv"
 
-- name: PFMP | template props.py
+- name: PFMP | templating template files
   ansible.builtin.template:
-    dest: "{{ pfmp_robot_base }}/pfmp_robot/props.py"
-    src: "props.py.j2"
+    dest: "{{ item.dest }}"
+    src: "{{ item.src }}"
     mode: "0644"
+  loop: "{{ pfmp_templates }}"
 
 - name: PFMP | run a robot to create PFMP virtual machines
   ansible.builtin.command: >-
     {{ pfmp_venv_dir }}/bin/robot -d output setup.robot
   args:
     chdir: "{{ pfmp_robot_base }}/pfmp_robot"
+
+- name: PFMP | wait for ssh port to be open on pfmp install virtual machine
+  ansible.builtin.wait_for:
+    host: pfmp-installer
+    port: 22
+    sleep: 5
+    timeout: 120
 
 - name: PFMP | set up ssh config file
   ansible.builtin.copy:
@@ -84,6 +97,7 @@
     ssh {{ ansible_user }}@pfmp-installer \
       "ls {{ pfmp_installer_root }}/.pfmp_untar_done"
   register: res
+  failed_when: res.rc not in [0, 2]
 
 - name: PFMP | extract PFMP tarball into PFMP installer virtual machine
   ansible.builtin.shell: >-
@@ -95,4 +109,17 @@
       "tar xzf - -C {{ pfmp_installer_root }} && \
        touch {{ pfmp_installer_root }}/.pfmp_untar_done"
   when: res.rc != 0
+
+- name: PFMP | copy files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ pfmp_robot_base }}/{{ item.src }}"
+  loop: "{{ pfmp_files }}"
+
+- name: PFMP | overwrite files in PFMP installer
+  ansible.builtin.shell: >-
+    cat {{ pfmp_robot_base }}/{{ item.src }} | \
+      ssh {{ ansible_user }}@pfmp-installer \
+      "cat - > {{ item.dest }}"
+  loop: "{{ pfmp_overwrite_files }}"
 ...

@@ -1,6 +1,6 @@
 ---
 - name: preflight checklist
-  hosts: all
+  hosts: all:!pfmp
   any_errors_fatal: true
   tasks:
     - name: check if nodes have enough vcpus.

@@ -71,5 +71,6 @@ for vmname in VMS:
     i += 1
 
 OS = 'Rocky Linux 8.10'
+INSTALLER_IMG = '{{ pfmp_installer_image|ansible.builtin.basename }}'
 IMG = '{{ pfmp_vm_image|ansible.builtin.basename }}'
 SSHKEY = '{{ ansible_env.HOME }}' + '/.ssh/id_rsa'
