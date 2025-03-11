@@ -15,7 +15,6 @@ mdm_certs:
 lia_conf_file: "{{ scaleio_dir }}/lia/cfg/conf.txt"
 lia_port: 9099
 
-
 pfmp_ip: ~
 pfmp_port: 443
 pfmp_username: "admin"
@@ -29,6 +28,8 @@ media_type: "SSD"
 spare_percentage: "{{ (1/(groups['sds']|length)*100)|round(0, 'ceil')|int }}"
 
 # pfmp variables
+pfmp_mgmt_bridge_name: "br_mgmt"
+pfmp_storage_bridge_name: "br_storage"
 pfmp_user_groups:
   - kvm
 pfmp_installer_image: "{{ ansible_env.HOME }}/images/pfmp-installer.qcow2"

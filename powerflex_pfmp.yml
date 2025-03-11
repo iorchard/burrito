@@ -19,15 +19,7 @@
     - name: get the next usable ip address
       ansible.builtin.set_fact:
         pfmp_vm_start_ip: "{{ (hostvars[groups['pfmp'][0]].ip + '/' + pfmp_mgmt_net_prefix)|ansible.utils.ipaddr('next_usable')|ansible.builtin.regex_replace('.*\\.(\\d+)$', '\\1') }}"
-
-    - name: debug
-      ansible.builtin.debug:
-        msg: >-
-          {{ pfmp_mgmt_net_segment }}
-          {{ pfmp_storage_net_segment }}
-          {{ hostvars[groups['pfmp'][0]].ip }}/{{ pfmp_mgmt_net_prefix }}
-          {{ pfmp_storage_net_prefix }}
-          {{ pfmp_vm_start_ip }}
+      when: pfmp_vm_start_ip is undefined
 
     - name: deploy powerflex pfmp
       include_role:
