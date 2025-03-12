@@ -321,7 +321,15 @@ conf:
       user_domain_name: service
       username: cinder
       password: {{ cinder.password }}
-  rabbitmq: null
+  rabbitmq:
+    policies:
+      - vhost: "cinder"
+        name: "ha_ttl_cinder"
+        definition:
+          message-ttl: 70000
+        priority: 0
+        apply-to: all
+        pattern: '^(?!(amq\.|reply_)).*'
   backends:
 {% if "ceph" in storage_backends %}
     ceph:
@@ -364,11 +372,11 @@ conf:
     powerflex:
       volume_driver: cinder.volume.drivers.dell_emc.powerflex.driver.PowerFlexDriver
       volume_backend_name: "{{ cinder_backends_map.powerflex }}"
-      san_ip: "{{ keepalived_vip }}"
+      san_ip: "{{ pfmp_ip }}"
       powerflex_storage_pools: "{{ protection_domain_name }}:{{ storage_pool_name }}"
-      san_login: admin
-      san_password: "{{ gateway_admin_password }}"
-      powerflex_rest_server_port: {{ gateway_ssl_port }}
+      san_login: "{{ pfmp_username }}"
+      san_password: "{{ pfmp_password }}"
+      powerflex_rest_server_port: {{ pfmp_port }}
       image_volume_cache_enabled: true
       image_upload_use_cinder_backend: {{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}
       image_upload_use_internal_tenant: {{ (glance_store_types['powerflex'] == 'cinder')|ternary(true, false) }}

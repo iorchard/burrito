@@ -431,7 +431,7 @@ registry_ready_timeout: 300
 trident_version: "24.06.1"
 
 # burrito.powerflex role variables
-pfx_version: "v2.11.0"
+pfx_version: "v2.13.0"
 pfx_sdc_version: "4.5.2.1"
 pfx_snapshot_controller_version: "v6.2.1"
 
@@ -594,9 +594,9 @@ nova_nfs_mount_options:
   powerstore: "{{ powerstore_nfs_mount_options }}"
 nova:
   nfs_mount_options: "{{ storage_backends|map('extract', nova_nfs_mount_options)|select|first|default('lookupcache=pos') }}"
-  vncserver_proxyclient_interface: "{{ mgmt_iface_name }}"
-  hypervisor_host_interface: "{{ mgmt_iface_name }}"
-  libvirt_live_migration_interface: "{{ mgmt_iface_name }}"
+  vncserver_proxyclient_network_cidr: "{{ ntp_allowed_cidr }}"
+  hypervisor_host_network_cidr: "{{ ntp_allowed_cidr }}"
+  libvirt_live_migration_network_cidr: "{{ ntp_allowed_cidr }}"
   password: "{{ vault_nova_password }}"
   volume_size: "500Gi"
   pvc_instances: "{{ storage_backends|map('extract', nova_pvc_instances)|list|first }}"

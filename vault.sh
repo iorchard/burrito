@@ -27,7 +27,6 @@ CINDER_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 HORIZON_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 BARBICAN_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 BARBICAN_KEK=$(head /dev/urandom |tr -dc ${COMP} |head -c 32)
-PFX_LIA_TOKEN=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 
 echo "---" > $VAULTFILE
 echo "vault_ssh_password: '$USERPASS'" >> $VAULTFILE
@@ -46,7 +45,7 @@ echo "vault_horizon_password: '$HORIZON_PASS'" >> $VAULTFILE
 echo "vault_barbican_password: '$BARBICAN_PASS'" >> $VAULTFILE
 echo "vault_barbican_kek: '$BARBICAN_KEK'" >> $VAULTFILE
 echo "vault_pfx_admin_password: '$OS_ADMIN_PASS'" >> $VAULTFILE
-echo "vault_pfx_lia_token: '$PFX_LIA_TOKEN'" >> $VAULTFILE
+echo "vault_pfx_lia_token: '$OS_ADMIN_PASS'" >> $VAULTFILE
 echo -n "..." >> $VAULTFILE
 head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH} > .vaultpass
 chmod 0400 .vaultpass

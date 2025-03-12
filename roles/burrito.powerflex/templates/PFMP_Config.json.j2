@@ -1,0 +1,26 @@
+{
+  "Nodes":
+  [
+    {
+      "hostname": "pfmp-mvm1",
+      "ipaddress": "{{ pfmp_mgmt_net_segment }}.{{ (pfmp_vm_start_ip|int + 1) }}"
+    },
+    {
+      "hostname": "pfmp-mvm2",
+      "ipaddress": "{{ pfmp_mgmt_net_segment }}.{{ (pfmp_vm_start_ip|int + 2) }}"
+    },
+    {
+      "hostname": "pfmp-mvm3",
+      "ipaddress": "{{ pfmp_mgmt_net_segment }}.{{ (pfmp_vm_start_ip|int + 3) }}"
+    }
+  ],
+
+  "ClusterReservedIPPoolCIDR" : "10.42.0.0/23",
+  "ServiceReservedIPPoolCIDR" : "10.43.0.0/23",
+  "RoutableIPPoolCIDR" : [
+    {"mgmt": "192.168.21.{{ (pfmp_vm_start_ip|int + 4) }}-192.168.21.{{ (pfmp_vm_start_ip|int + 6) }}"},
+    {"data": "192.168.24.{{ (pfmp_vm_start_ip|int + 4) }}-192.168.24.{{ (pfmp_vm_start_ip|int + 6) }}"}
+  ],
+  "PFMPHostname" : "pfmp.cluster.local",
+  "PFMPHostIP" : "192.168.21.{{ (pfmp_vm_start_ip|int + 4) }}"
+}

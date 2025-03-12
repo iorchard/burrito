@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+USERID = '{{ ansible_user }}'
+PREFIX = 'pfmp-'
+
+# VM location
+SRC_DIR = '{{ pfmp_vm_image|ansible.builtin.dirname }}'
+DST_DIR = '{{ ansible_env.HOME }}/vms/' + PREFIX + 'lab'
+
+# machine list.
+VMS = [
+        PREFIX + 'installer',
+        PREFIX + 'mvm1',
+        PREFIX + 'mvm2',
+        PREFIX + 'mvm3',
+]
+# machine role list.
+ROLES = {
+        PREFIX + 'installer': ['installer'],
+        PREFIX + 'mvm1': ['worker'],
+        PREFIX + 'mvm2': ['worker'],
+        PREFIX + 'mvm3': ['worker'],
+}
+# machine resources
+CORES = {
+        PREFIX + 'installer': 4,
+        PREFIX + 'mvm1': 8,
+        PREFIX + 'mvm2': 8,
+        PREFIX + 'mvm3': 8,
+}
+MEM = {
+        PREFIX + 'installer': 8,
+        PREFIX + 'mvm1': 24,
+        PREFIX + 'mvm2': 24,
+        PREFIX + 'mvm3': 24,
+}
+DISK = {
+        PREFIX + 'installer': 100,
+        PREFIX + 'mvm1': 150,
+        PREFIX + 'mvm2': 150,
+        PREFIX + 'mvm3': 150,
+}
+# machine network
+NET = { 
+        'mgmt':     '{{ pfmp_mgmt_net_segment }}',
+        'storage':  '{{ pfmp_storage_net_segment }}',
+}
+IP = {{ pfmp_vm_start_ip }}  # The last octet of the IP address to begin.
+# Management network bridge name
+MGMT_BR = '{{ pfmp_mgmt_bridge_name }}'
+# storage network bridge name
+STRG_BR = '{{ pfmp_storage_bridge_name }}'
+
+#
+# Do not edit below this line!!!
+#
+REP_BR = MGMT_BR
+i = 0
+IPS = {}
+for vmname in VMS:
+    IPS[vmname] = {}
+    IPS[vmname][MGMT_BR] = {
+        'ip': NET['mgmt'] + '.' + str(IP+i),
+        'nm': {{ pfmp_mgmt_net_prefix }},
+        'gw': '{{ hostvars[groups['pfmp'][0]].ip }}',
+    }
+    if 'worker' in ROLES[vmname]:
+      IPS[vmname][STRG_BR] = {
+          'ip': NET['storage'] + '.' + str(IP+i),
+          'nm': {{ pfmp_storage_net_prefix }},
+      }
+    i += 1
+
+OS = 'Rocky Linux 8.10'
+INSTALLER_IMG = '{{ pfmp_installer_image|ansible.builtin.basename }}'
+IMG = '{{ pfmp_vm_image|ansible.builtin.basename }}'
+SSHKEY = '{{ ansible_env.HOME }}' + '/.ssh/id_rsa'

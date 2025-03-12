@@ -19,6 +19,9 @@
 - name: Main | include install tasks
   ansible.builtin.include_tasks: "install.yml"
 
+- name: Main | include certificate tasks
+  ansible.builtin.include_tasks: "certificate.yml"
+
 - name: Main | include cluster tasks
   ansible.builtin.include_tasks: "cluster.yml"
 
@@ -27,7 +30,4 @@
 
 - name: Main | include setup tasks
   ansible.builtin.include_tasks: "setup.yml"
-
-- name: Main | include csi tasks
-  ansible.builtin.include_tasks: "csi.yml"
 ...
