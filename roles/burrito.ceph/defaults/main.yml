@@ -3,6 +3,10 @@ registry_conf_dir: "/etc/containers/registries.conf.d"
 quay_image_repo: "quay.io"
 ceph_version: "v18.2.1"
 ceph_conf_dir: "/etc/ceph"
+ceph_ssh_config: "{{ ceph_conf_dir }}/ssh_config"
+ceph_bootstrap_templates:
+  - {src: "999-local-registry.conf.j2", dest: "{{ registry_conf_dir }}/999-local-registry.conf"}
+  - {src: "{{ ceph_ssh_config|basename }}.j2", dest: "{{ ceph_ssh_config }}"}
 ceph_artifacts_dir: "{{ ansible_env.HOME }}/ceph-artifacts"
 ceph_bootstrap_params: "{{ single_osd_node | ternary('--single-host-defaults', '') }}"
 ceph_health_ok: "HEALTH_OK"
