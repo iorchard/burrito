@@ -26,7 +26,12 @@ storage_pool_name: "burrito_sp"
 lia_port: 9099
 # set calico_healthport to 9090 not to conflict with lia port
 calico_healthport: "{{ omit if 'powerflex' not in storage_backends else 9090 }}"
-# set the start ip of pfmp virtual machines
+# set the last octet of ip address for the first pfmp virtual machine
 # default: the next usable ip address will be picked up in powerflex_pfmp.yml
+# For example,
+# if you set pfmp_vm_start_ip to "80",
+# 192.168.21.80 is the ip address of the first pfmp virtual machine 
+# and 192.168.21.81 will be the ip address of the second pfmp virtual machine,
+# and so on.
 pfmp_vm_start_ip: "{{ default(omit) }}"
 ...
