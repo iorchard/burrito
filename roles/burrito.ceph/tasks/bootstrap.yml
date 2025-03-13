@@ -7,12 +7,13 @@
 
 - name: Bootstrap | set up insecure local registry for podman
   ansible.builtin.template:
-    dest: "{{ registry_conf_dir }}/999-local-registry.conf"
-    src: "999-local-registry.conf.j2"
+    dest: "{{ item.dest }}"
+    src: "{{ item.src }}"
     mode: "0644"
     owner: root
     group: root
   become: true
+  loop: "{{ ceph_bootstrap_templates }}"
   when:
     - offline
     - inventory_hostname in groups['ceph_servers']
@@ -28,7 +29,8 @@
         --skip-dashboard \
         --skip-firewalld \
         --skip-monitoring-stack \
-        --ssh-user {{ ansible_user }}
+        --ssh-user {{ ansible_user }} \
+        --ssh-config {{ ceph_ssh_config }}
   become: true
   register: _res
   delegate_to: "{{ groups['mons'][0] }}"
