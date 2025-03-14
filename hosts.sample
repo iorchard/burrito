@@ -71,3 +71,12 @@ node_labels={"openstack-network-plane":"enabled", "openstack-network-dvr":"enabl
 [compute-node:vars]
 node_labels={"openstack-compute-node":"enabled", "openstack-network-dvr":"enabled", "linuxbridge":"enabled", "openvswitch":"enabled"}
 
+# powerflex nodes
+[mdm]
+[sds]
+[sdc]
+[pfmp]
+[powerflex:children]
+mdm
+sds
+sdc

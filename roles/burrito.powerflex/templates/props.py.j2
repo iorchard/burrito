@@ -22,22 +22,22 @@ ROLES = {
 }
 # machine resources
 CORES = {
-        PREFIX + 'installer': 4,
-        PREFIX + 'mvm1': 8,
-        PREFIX + 'mvm2': 8,
-        PREFIX + 'mvm3': 8,
+        PREFIX + 'installer': {{ pfmp_vm_spec['installer']['cpu'] }},
+        PREFIX + 'mvm1': {{ pfmp_vm_spec['mvm']['cpu'] }},
+        PREFIX + 'mvm2': {{ pfmp_vm_spec['mvm']['cpu'] }},
+        PREFIX + 'mvm3': {{ pfmp_vm_spec['mvm']['cpu'] }},
 }
 MEM = {
-        PREFIX + 'installer': 8,
-        PREFIX + 'mvm1': 24,
-        PREFIX + 'mvm2': 24,
-        PREFIX + 'mvm3': 24,
+        PREFIX + 'installer': {{ pfmp_vm_spec['installer']['memory'] }},
+        PREFIX + 'mvm1': {{ pfmp_vm_spec['mvm']['memory'] }},
+        PREFIX + 'mvm2': {{ pfmp_vm_spec['mvm']['memory'] }},
+        PREFIX + 'mvm3': {{ pfmp_vm_spec['mvm']['memory'] }},
 }
 DISK = {
-        PREFIX + 'installer': 100,
-        PREFIX + 'mvm1': 150,
-        PREFIX + 'mvm2': 150,
-        PREFIX + 'mvm3': 150,
+        PREFIX + 'installer': {{ pfmp_vm_spec['installer']['disk'] }},
+        PREFIX + 'mvm1': {{ pfmp_vm_spec['mvm']['disk'] }},
+        PREFIX + 'mvm2': {{ pfmp_vm_spec['mvm']['disk'] }},
+        PREFIX + 'mvm3': {{ pfmp_vm_spec['mvm']['disk'] }},
 }
 # machine network
 NET = { 

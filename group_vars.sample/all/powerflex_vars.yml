@@ -34,4 +34,17 @@ calico_healthport: "{{ omit if 'powerflex' not in storage_backends else 9090 }}"
 # and 192.168.21.81 will be the ip address of the second pfmp virtual machine,
 # and so on.
 pfmp_vm_start_ip: "{{ default(omit) }}"
+# virtual machine spec
+pfmp_vm_spec:
+  installer:
+    cpu: 4
+    memory: 8
+    disk: 100
+  mvm:
+    cpu: 8
+    memory: 24
+    disk: 150
+# PFMP node bridge names
+pfmp_mgmt_bridge_name: "br_mgmt"
+pfmp_storage_bridge_name: "br_storage"
 ...
