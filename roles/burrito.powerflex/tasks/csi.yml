@@ -5,12 +5,10 @@
     state: "restarted"
     enabled: true
   become: true
-  when: inventory_hostname == groups['mdm'][0] or inventory_hostname == groups['mdm'][1]
 
 - name: CSI | install new mgmt certificate
   ansible.builtin.command: >-
     scli --add_certificate --certificate_file {{ mdm_certs.ca }}
-  when: inventory_hostname == groups['mdm'][0] or inventory_hostname == groups['mdm'][1]
 
 - name: CSI | get system id
   dellemc.powerflex.info:
