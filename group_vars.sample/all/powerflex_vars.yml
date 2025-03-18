@@ -25,7 +25,7 @@ storage_pool_name: "burrito_sp"
 # default lia port is 9099
 lia_port: 9099
 # set calico_healthport to 9090 not to conflict with lia port
-calico_healthport: "{{ omit if 'powerflex' not in storage_backends else 9090 }}"
+calico_healthport: "{{ 9090 if 'powerflex' in storage_backends else 9099 }}"
 # set the last octet of ip address for the first pfmp virtual machine
 # default: the next usable ip address will be picked up in powerflex_pfmp.yml
 # For example,
