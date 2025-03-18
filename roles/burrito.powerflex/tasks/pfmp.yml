@@ -35,17 +35,14 @@
     groups: "{{ pfmp_user_groups }}"
   become: true
 
-- name: PFMP | check pfmp image file exists
+- name: PFMP | check pfmp prerequisite files exist
   ansible.builtin.stat:
     path: "{{ pfmp_vm_image }}"
     get_checksum: false
-  register: _res
-  failed_when: not _res.stat.exists
-
-- name: PFMP | check pfmp tarball exists
-  ansible.builtin.stat:
-    path: "{{ pfmp_tarball }}"
-    get_checksum: false
+  loop:
+    - "{{ pfmp_installer_image }}"
+    - "{{ pfmp_vm_image }}"
+    - "{{ pfmp_tarball }}"
   register: _res
   failed_when: not _res.stat.exists
 
@@ -54,17 +51,26 @@
     path: "{{ pfmp_robot_base }}/pfmp"
     state: directory
 
-- name: PFMP | unarchive pfmp_robot tarball
+- name: PFMP | unarchive pfmp_robot tarball (offline)
   ansible.builtin.unarchive:
     src: "{{ pfmp_robot_tarball }}"
     dest: "{{ pfmp_robot_base }}"
+  when: offline
 
-- name: PFMP | install pfmp_robot requirements
+- name: PFMP | install pfmp_robot requirements (offline)
   ansible.builtin.pip:
     requirements: "{{ pfmp_robot_base }}/pfmp_robot/requirements.txt"
     extra_args: "--no-index --find-links {{ pfmp_robot_base }}/pfmp_robot/pypi"
     virtualenv: "{{ pfmp_venv_dir }}"
     virtualenv_command: "python3 -m venv"
+  when: offline
+
+- name: PFMP | install pfmp_robot requirements (online)
+  ansible.builtin.pip:
+    requirements: "{{ pfmp_robot_base }}/pfmp_robot/requirements.txt"
+    virtualenv: "{{ pfmp_venv_dir }}"
+    virtualenv_command: "python3 -m venv"
+  when: not offline
 
 - name: PFMP | templating template files
   ansible.builtin.template:
