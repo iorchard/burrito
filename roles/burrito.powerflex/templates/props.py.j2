@@ -49,6 +49,10 @@ IP = {{ pfmp_vm_start_ip }}  # The last octet of the IP address to begin.
 MGMT_BR = '{{ pfmp_mgmt_bridge_name }}'
 # storage network bridge name
 STRG_BR = '{{ pfmp_storage_bridge_name }}'
+# ssh port
+SSHPORT = "{{ ssh_port }}"
+# name server
+DNSSERVER = "{{ upstream_dns_servers[0] }}"
 
 #
 # Do not edit below this line!!!

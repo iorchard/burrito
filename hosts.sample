@@ -76,6 +76,9 @@ node_labels={"openstack-compute-node":"enabled", "openstack-network-dvr":"enable
 [sds]
 [sdc]
 [pfmp]
+[pfmp_installer]
+[pfmp_mvm]
+[pfmp_node]
 [powerflex:children]
 mdm
 sds
