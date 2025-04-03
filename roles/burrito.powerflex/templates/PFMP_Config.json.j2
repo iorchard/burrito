@@ -1,26 +1,18 @@
 {
-  "Nodes":
-  [
+  "Nodes": [
+{% for h in pfmp_mvm_node %}
     {
-      "hostname": "pfmp-mvm1",
-      "ipaddress": "{{ pfmp_mgmt_net_segment }}.{{ (pfmp_vm_start_ip|int + 1) }}"
-    },
-    {
-      "hostname": "pfmp-mvm2",
-      "ipaddress": "{{ pfmp_mgmt_net_segment }}.{{ (pfmp_vm_start_ip|int + 2) }}"
-    },
-    {
-      "hostname": "pfmp-mvm3",
-      "ipaddress": "{{ pfmp_mgmt_net_segment }}.{{ (pfmp_vm_start_ip|int + 3) }}"
-    }
+      "hostname": "{{ h.name }}",
+      "ipaddress": "{{ h.ip }}"
+    }{% if not loop.last %},{% endif %}
+{% endfor +%}
   ],
-
-  "ClusterReservedIPPoolCIDR" : "10.42.0.0/23",
-  "ServiceReservedIPPoolCIDR" : "10.43.0.0/23",
-  "RoutableIPPoolCIDR" : [
-    {"mgmt": "{{ pfmp_mgmt_net_segment }}.{{ (pfmp_vm_start_ip|int + 4) }}-{{ pfmp_mgmt_net_segment }}.{{ (pfmp_vm_start_ip|int + 6) }}"},
-    {"data": "{{ pfmp_storage_net_segment }}.{{ (pfmp_vm_start_ip|int + 4) }}-{{ pfmp_storage_net_segment }}.{{ (pfmp_vm_start_ip|int + 6) }}"}
+  "ClusterReservedIPPoolCIDR": "{{ pfmp_cluster_cidr }}",
+  "ServiceReservedIPPoolCIDR": "{{ pfmp_service_cidr }}",
+  "RoutableIPPoolCIDR": [
+    {"mgmt": "{{ pfmp_mgmt_net_segment }}.{{ pfmp_lb_start_ip }}-{{ pfmp_mgmt_net_segment }}.{{ (pfmp_lb_start_ip|int + 2) }}"},
+    {"data": "{{ pfmp_storage_net_segment }}.{{ pfmp_lb_start_ip }}-{{ pfmp_storage_net_segment }}.{{ (pfmp_lb_start_ip|int + 2) }}"}
   ],
-  "PFMPHostname" : "pfmp.cluster.local",
-  "PFMPHostIP" : "{{ pfmp_mgmt_net_segment }}.{{ (pfmp_vm_start_ip|int + 4) }}"
+  "PFMPHostname": "{{ pfmp_hostname }}",
+  "PFMPHostIP": "{{ pfmp_mgmt_net_segment }}.{{ pfmp_lb_start_ip }}"
 }

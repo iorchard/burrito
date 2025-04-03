@@ -1,6 +1,6 @@
 ---
 - name: powerflex pfmp playbook
-  hosts: mdm[0]:pfmp
+  hosts: mdm[0]:pfmp:pfmp_node
   any_errors_fatal: true
   tasks:
 
@@ -16,12 +16,8 @@
     - name: get the storage netmask prefix
       ansible.builtin.set_fact:
         pfmp_storage_net_prefix: "{{ hostvars[ groups['mdm'][0] ][ 'ansible_' + hostvars[ groups['mdm'][0] ].storage_iface_name].ipv4.prefix }}"
-    - name: get the next usable ip address
-      ansible.builtin.set_fact:
-        pfmp_vm_start_ip: "{{ (hostvars[groups['pfmp'][0]].ip + '/' + pfmp_mgmt_net_prefix)|ansible.utils.ipaddr('next_usable')|ansible.builtin.regex_replace('.*\\.(\\d+)$', '\\1') }}"
-      when: pfmp_vm_start_ip is undefined
 
-    - name: deploy powerflex pfmp
+    - name: deploy PowerFlex Management Platform on a single node
       include_role:
         name: burrito.powerflex
         tasks_from: pfmp
@@ -29,4 +25,13 @@
         - '"powerflex" in storage_backends'
         - inventory_hostname in groups['pfmp']
       tags: ['powerflex', 'pfmp']
+
+    - name: deploy PowerFlex Management Platform on already-prepared nodes
+      include_role:
+        name: burrito.powerflex
+        tasks_from: pfmp_node
+      when:
+        - '"powerflex" in storage_backends'
+        - inventory_hostname in groups['pfmp_node']
+      tags: ['powerflex', 'pfmp_node']
 ...

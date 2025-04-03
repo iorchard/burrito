@@ -84,6 +84,7 @@
           - hostvars[inventory_hostname]['ip'] == hostvars[inventory_hostname]['ansible_'+_mgmt_iface_name].ipv4.address
       vars:
         _mgmt_iface_name: "{% if ('pfmp' in groups and inventory_hostname in groups['pfmp']) %}{{ pfmp_mgmt_bridge_name }}{% else %}{{ mgmt_iface_name }}{% endif %}"
+      when: inventory_hostname not in groups['pfmp_node']
    
     - name: check if keepalived_vip is in management network range
       ansible.builtin.assert:
@@ -254,6 +255,21 @@
         - "'sds' in groups"
         - inventory_hostname in groups['sds']
 
+    - name: verify pfmp and pfmp_node should be mutually exclusive.
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        success_msg: >-
+          Confirmed pfmp and pfmp_node are mutually exclusive.
+        fail_msg: >-
+          Error: pfmp and pfmp_node are not mutually exclusive.
+          You should have host entries in one of the groups, not both.
+          pfmp: {{ groups['pfmp']|length }}
+          pfmp_node: {{ groups['pfmp_node']|length }}
+        that:
+          - not (groups['pfmp']|length > 0 and groups['pfmp_node']|length > 0)
+      delegate_to: localhost
+      run_once: true
+
     - name: check if memory is enough to hold virtual machines in PFMP node
       ansible.builtin.assert:
         quiet: "{{ checklist.quiet }}"
@@ -291,6 +307,75 @@
         - "'pfmp' in groups"
         - inventory_hostname in groups['pfmp']
 
+    - name: check if memory is enough in PFMP installer node
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        success_msg: >-
+          The PFMP installer node ({{ inventory_hostname }}) has enough memory
+          ({{ pfmp_memtotal }} MB >= {{ pfmp_minmem_threshold }} MB).
+        fail_msg: >-
+          The PFMP installer node ({{ inventory_hostname }}) does not have enough memory
+          ({{ pfmp_memtotal }} MB < {{ pfmp_minmem_threshold }} MB)
+        that:
+          - (pfmp_memtotal|int) >= (pfmp_minmem_threshold|int)
+      vars:
+        pfmp_memtotal: "{{ ansible_facts['memtotal_mb'] }}"
+        pfmp_minmem_threshold: "{{ ((pfmp_vm_spec['installer']['memory']-1)*1024) }}"
+      when:
+        - "'pfmp_installer' in groups"
+        - inventory_hostname in groups['pfmp_installer']
+    - name: check if disk is enough in PFMP installer node
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        success_msg: >-
+          The PFMP installer node ({{ inventory_hostname }}) has enough disk space
+          ({{ pfmp_disk_space }} GiB >= {{ pfmp_mindisk_threshold }} GiB).
+        fail_msg: >-
+          The PFMP installer node ({{ inventory_hostname }}) does not have enough disk space
+          ({{ pfmp_disk_space }} GiB < {{ pfmp_mindisk_threshold }} GiB)
+        that:
+          - (pfmp_disk_space|int) >= (pfmp_mindisk_threshold|int)
+      vars:
+        pfmp_disk_space: "{{ ((ansible_facts['mounts']|selectattr('mount', 'equalto', '/')|list)[0].size_total/(1024|pow(3)))|round|int }}"
+        pfmp_mindisk_threshold: "{{ (pfmp_vm_spec['installer']['disk']-5) }}"
+      when:
+        - "'pfmp_installer' in groups"
+        - inventory_hostname in groups['pfmp_installer']
+    - name: check if memory is enough in PFMP MVM node
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        success_msg: >-
+          The PFMP MVM node ({{ inventory_hostname }}) has enough memory
+          ({{ pfmp_memtotal }} MB >= {{ pfmp_minmem_threshold }} MB).
+        fail_msg: >-
+          The PFMP MVM node ({{ inventory_hostname }}) does not have enough memory
+          ({{ pfmp_memtotal }} MB < {{ pfmp_minmem_threshold }} MB)
+        that:
+          - (pfmp_memtotal|int) >= (pfmp_minmem_threshold|int)
+      vars:
+        pfmp_memtotal: "{{ ansible_facts['memtotal_mb'] }}"
+        pfmp_minmem_threshold: "{{ ((pfmp_vm_spec['mvm']['memory']-1)*1024) }}"
+      when:
+        - "'pfmp_mvm' in groups"
+        - inventory_hostname in groups['pfmp_mvm']
+
+    - name: check if disk is enough in PFMP installer node
+      ansible.builtin.assert:
+        quiet: "{{ checklist.quiet }}"
+        success_msg: >-
+          The PFMP MVM node ({{ inventory_hostname }}) has enough disk space
+          ({{ pfmp_disk_space }} GiB >= {{ pfmp_mindisk_threshold }} GiB).
+        fail_msg: >-
+          The PFMP MVM node ({{ inventory_hostname }}) does not have enough disk space
+          ({{ pfmp_disk_space }} GiB < {{ pfmp_mindisk_threshold }} GiB)
+        that:
+          - (pfmp_disk_space|int) >= (pfmp_mindisk_threshold|int)
+      vars:
+        pfmp_disk_space: "{{ ((ansible_facts['mounts']|selectattr('mount', 'equalto', '/')|list)[0].size_total/(1024|pow(3)))|round|int }}"
+        pfmp_mindisk_threshold: "{{ (pfmp_vm_spec['mvm']['disk']-5) }}"
+      when:
+        - "'pfmp_mvm' in groups"
+        - inventory_hostname in groups['pfmp_mvm']
     - name: check if purestorage api server is reachable
       ansible.builtin.uri:
         url: "https://{{ purestorage_mgmt_ip }}/"

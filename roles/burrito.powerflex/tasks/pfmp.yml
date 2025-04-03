@@ -2,6 +2,18 @@
 - name: PFMP | import common tasks
   ansible.builtin.import_tasks: "common.yml"
 
+- name: get the pfmp vm start ip address
+  ansible.builtin.set_fact:
+    pfmp_vm_start_ip: "{{ hostvars[groups['pfmp'][0]].ip|ansible.builtin.regex_replace('.*\\.(\\d+)$', '\\1')|int + 1 }}"
+  when: pfmp_vm_start_ip is undefined
+
+- name: set pfmp_mvm_node list
+  ansible.builtin.set_fact:
+    pfmp_mvm_node:
+      - {'name': 'pfmp-mvm1', ip: "{{ pfmp_mgmt_net_segment }}.{{ pfmp_vm_start_ip|int + 1 }}"}
+      - {'name': 'pfmp-mvm2', ip: "{{ pfmp_mgmt_net_segment }}.{{ pfmp_vm_start_ip|int + 2 }}"}
+      - {'name': 'pfmp-mvm3', ip: "{{ pfmp_mgmt_net_segment }}.{{ pfmp_vm_start_ip|int + 3 }}"}
+
 - name: PFMP | install pre-requisite packages for PFMP
   ansible.builtin.package:
     name: "{{ item }}"
@@ -37,7 +49,7 @@
 
 - name: PFMP | check pfmp prerequisite files exist
   ansible.builtin.stat:
-    path: "{{ pfmp_vm_image }}"
+    path: "{{ item }}"
     get_checksum: false
   loop:
     - "{{ pfmp_installer_image }}"
@@ -88,7 +100,7 @@
 - name: PFMP | wait for ssh port to be open on pfmp install virtual machine
   ansible.builtin.wait_for:
     host: pfmp-installer
-    port: 22
+    port: "{{ ssh_port }}"
     sleep: 5
     timeout: 120
 
@@ -100,18 +112,19 @@
 
 - name: PFMP | check PFMP tarball is already extracted
   ansible.builtin.command: >-
-    ssh {{ ansible_user }}@pfmp-installer \
+    ssh -p {{ ssh_port }} {{ ansible_user }}@pfmp-installer \
       "ls {{ pfmp_installer_root }}/.pfmp_untar_done"
   register: res
   failed_when: res.rc not in [0, 2]
 
 - name: PFMP | extract PFMP tarball into PFMP installer virtual machine
   ansible.builtin.shell: >-
-    ssh {{ ansible_user }}@pfmp-installer \
+    ssh -p {{ ssh_port }} {{ ansible_user }}@pfmp-installer \
       "sudo mkdir -p {{ pfmp_installer_root }} && \
        sudo chown {{ ansible_user }}:{{ansible_user }} \
          {{ pfmp_installer_root }}" && \
-    cat {{ pfmp_tarball }} | ssh {{ ansible_user }}@pfmp-installer \
+    cat {{ pfmp_tarball }} | ssh -p {{ ssh_port }} \
+      {{ ansible_user }}@pfmp-installer \
       "tar xzf - -C {{ pfmp_installer_root }} && \
        touch {{ pfmp_installer_root }}/.pfmp_untar_done"
   when: res.rc != 0

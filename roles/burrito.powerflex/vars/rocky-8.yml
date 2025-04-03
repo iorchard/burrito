@@ -33,5 +33,25 @@ pfmp_pkgs:
   - qemu-img
   - libvirt
   - libguestfs-tools-c
+pfmp_installer_pkgs:
+  - openssh-clients
+  - podman
+  - podman-docker
+  - sudo
+  - tar
+pfmp_mvm_pkgs:
+  - haproxy
+  - iptables
+  - jq
+  - keepalived
+  - lvm2
+  - nmap
+  - openssh-clients
+  - rsync
+  - skopeo
+  - sudo
+  - tar
+  - zstd
+
 bridge_conf: "/etc/qemu-kvm/bridge.conf"
 ...
