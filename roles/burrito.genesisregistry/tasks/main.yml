@@ -146,15 +146,6 @@
   delegate_to: localhost
   run_once: true
 
-- name: Genesis Registry | delete the current registry deployment
-  kubernetes.core.k8s:
-    state: absent
-    src: "{{ registry_manifest_dir }}/registry-rs.yml"
-    wait: true
-  become: true
-  delegate_to: localhost
-  run_once: true
-
 - name: Genesis Registry | update registry deployment spec.
   ansible.builtin.replace:
     path: "/etc/kubernetes/addons/registry/registry-rs.yml"
