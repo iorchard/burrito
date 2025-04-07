@@ -1,4 +1,12 @@
 ---
+- name: init | set size and min_size options
+  ansible.builtin.shell: >-
+    ceph config set mon osd_pool_default_size {{ ceph_pool_default_size }} && \
+    ceph config set mon osd_pool_default_min_size {{ ceph_pool_default_min_size }}
+  become: true
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
+
 - name: init | create pools
   ansible.builtin.command: ceph osd pool create {{ item.name }}
   become: true

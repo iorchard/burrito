@@ -1,0 +1,116 @@
+---
+- name: PFMP Node | import common tasks
+  ansible.builtin.import_tasks: "common.yml"
+
+- name: PFMP Node | set pfmp_mvm_node list
+  ansible.builtin.set_fact:
+    pfmp_mvm_node: "{% for h in groups['pfmp_mvm'] %}{'name': '{{ h }}', 'ip': '{{ hostvars[h].ip }}'}{% if not loop.last %},{% endif %}{% endfor %}"
+
+- name: PFMP Node | install pre-requisite packages for PFMP installer
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ pfmp_installer_pkgs }}"
+  when: inventory_hostname in groups['pfmp_installer']
+
+- name: PFMP Node | install pre-requisite packages for PFMP MVM
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: "{{ pkg_state }}"
+  register: _pkg
+  until: not _pkg.failed
+  retries: 3
+  delay: 3
+  become: true
+  loop: "{{ pfmp_mvm_pkgs }}"
+  when: inventory_hostname in groups['pfmp_mvm']
+
+- name: PFMP Node | check pfmp prerequisite files exist
+  ansible.builtin.stat:
+    path: "{{ pfmp_tarball }}"
+    get_checksum: false
+  register: _res
+  failed_when: not _res.stat.exists
+  delegate_to: localhost
+  run_once: true
+
+- name: PFMP Node | create nodocker file
+  ansible.builtin.file:
+    path: /etc/containers/nodocker
+    state: touch
+  become: true
+  when: inventory_hostname in groups['pfmp_installer']
+
+- name: PFMP Node | create PFMP installer root directory
+  ansible.builtin.file:
+    path: "{{ pfmp_installer_root }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: true
+  when: inventory_hostname in groups['pfmp_installer']
+
+- name: PFMP Node | check pfmp tarball is already extracted
+  ansible.builtin.stat:
+    path: "{{ pfmp_installer_root }}/.pfmp_untar_done"
+    get_checksum: false
+  register: _res
+  when: inventory_hostname in groups['pfmp_installer']
+
+- name: PFMP | check PFMP tarball is already extracted
+  ansible.builtin.command: >-
+    ssh -p {{ ssh_port }} {{ ansible_user }}@pfmp-installer \
+      "ls {{ pfmp_installer_root }}/.pfmp_untar_done"
+  register: res
+  failed_when: res.rc not in [0, 2]
+  delegate_to: localhost
+  run_once: true
+
+- name: PFMP | extract PFMP tarball into PFMP installer virtual machine
+  ansible.builtin.shell: >-
+    ssh -p {{ ssh_port }} {{ ansible_user }}@pfmp-installer \
+      "sudo mkdir -p {{ pfmp_installer_root }} && \
+       sudo chown {{ ansible_user }}:{{ansible_user }} \
+         {{ pfmp_installer_root }}" && \
+    cat {{ pfmp_tarball }} | ssh -p {{ ssh_port }} \
+      {{ ansible_user }}@pfmp-installer \
+      "tar xzf - -C {{ pfmp_installer_root }} && \
+       touch {{ pfmp_installer_root }}/.pfmp_untar_done"
+  when: res.rc != 0
+  delegate_to: localhost
+  run_once: true
+
+- name: PFMP Node | templating template files
+  ansible.builtin.template:
+    dest: "{{ pfmp_installer_root }}/PFMP_Installer/config/PFMP_Config.json"
+    src: "PFMP_Config.json.j2"
+    mode: "0644"
+  when: inventory_hostname in groups['pfmp_installer']
+
+- name: PFMP Node | copy files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  loop: "{{ pfmp_files }}"
+  when: inventory_hostname in groups['pfmp_installer']
+
+- name: PFMP Node | set /etc/resolv.conf
+  ansible.builtin.copy:
+    content: "nameserver {{ upstream_dns_servers[0] }}"
+    dest: "/etc/resolv.conf"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  become: true
+
+- name: PFMP Node | set immutable attribute on /etc/resolv.conf
+  ansible.builtin.file:
+    path: "/etc/resolv.conf"
+    attributes: "+i"
+  become: true
+...

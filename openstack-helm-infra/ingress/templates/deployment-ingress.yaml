@@ -440,7 +440,7 @@ spec:
           hostPath:
             path: /
       {{- end }}
-{{- if eq .Values.deployment.type "StatefulSet" }}
+{{- if and (.Values.manifests.pvc_client_body) (eq .Values.deployment.type "StatefulSet") }}
   volumeClaimTemplates:
   - metadata:
       name: ingress-client-body-vol

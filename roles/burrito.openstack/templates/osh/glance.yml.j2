@@ -18,10 +18,10 @@ images:
 nginx_deployment:
   type: {{ glance.nginx_deploy.type }}
   pvc:
-    enabled: true
-    class_name: {{ glance.nginx_deploy.class_name }}
-    access_modes: {{ glance.nginx_deploy.access_modes }}
-    size: {{ glance.nginx_deploy.size }}
+    enabled: {{ glance.nginx_deploy.pvc.enabled }}
+    class_name: {{ glance.nginx_deploy.pvc.class_name }}
+    access_modes: {{ glance.nginx_deploy.pvc.access_modes }}
+    size: {{ glance.nginx_deploy.pvc.size }}
 
 conf:
 {% if 'ceph' in storage_backends %}
@@ -104,7 +104,15 @@ conf:
       heartbeat_rate: {{ heartbeat_rate }}
   ceph:
     admin_keyring: {{ ceph_admin_key }}
-  rabbitmq: null
+  rabbitmq:
+    policies:
+      - vhost: "glance"
+        name: "ha_ttl_glance"
+        definition:
+          message-ttl: 70000
+        priority: 0
+        apply-to: all
+        pattern: '^(?!(amq\.|reply_)).*'
 {% raw %}
   nginx: |
     worker_processes 1;
@@ -145,6 +153,7 @@ conf:
 
         location / {
           proxy_pass_request_headers on;
+          proxy_request_buffering    off;
 
           proxy_http_version  1.1;
           proxy_pass          http://websocket;
@@ -159,6 +168,7 @@ network:
       annotations:
         nginx.ingress.kubernetes.io/proxy-body-size: "{{ glance.nginx.proxy_body_size }}"
         nginx.ingress.kubernetes.io/proxy-read-timeout: "{{ glance.nginx.proxy_read_timeout }}"
+        nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
         nginx.ingress.kubernetes.io/backend-protocol: "https"
 
 storage: {{ glance.storage }}

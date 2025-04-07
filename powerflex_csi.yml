@@ -1,0 +1,12 @@
+---
+- name: deploy powerflex csi
+  hosts: mdm
+  any_errors_fatal: true
+  tasks:
+    - name: deploy powerflex csi
+      include_role:
+        name: burrito.powerflex
+        tasks_from: csi
+      when: '"powerflex" in storage_backends'
+      tags: ['powerflex', 'csi']
+...

@@ -1,0 +1,18 @@
+{
+  "Nodes": [
+{% for h in pfmp_mvm_node %}
+    {
+      "hostname": "{{ h.name }}",
+      "ipaddress": "{{ h.ip }}"
+    }{% if not loop.last %},{% endif %}
+{% endfor +%}
+  ],
+  "ClusterReservedIPPoolCIDR": "{{ pfmp_cluster_cidr }}",
+  "ServiceReservedIPPoolCIDR": "{{ pfmp_service_cidr }}",
+  "RoutableIPPoolCIDR": [
+    {"mgmt": "{{ pfmp_mgmt_net_segment }}.{{ pfmp_lb_start_ip }}-{{ pfmp_mgmt_net_segment }}.{{ (pfmp_lb_start_ip|int + 2) }}"},
+    {"data": "{{ pfmp_storage_net_segment }}.{{ pfmp_lb_start_ip }}-{{ pfmp_storage_net_segment }}.{{ (pfmp_lb_start_ip|int + 2) }}"}
+  ],
+  "PFMPHostname": "{{ pfmp_hostname }}",
+  "PFMPHostIP": "{{ pfmp_mgmt_net_segment }}.{{ pfmp_lb_start_ip }}"
+}

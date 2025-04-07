@@ -61,9 +61,9 @@ console:
   console_kind: novnc
   novnc:
     compute:
-      vncserver_proxyclient_interface: {{ nova.vncserver_proxyclient_interface }}
+      vncserver_proxyclient_network_cidr: {{ nova.vncserver_proxyclient_network_cidr }}
     vncproxy:
-      vncserver_proxyclient_interface: {{ nova.vncserver_proxyclient_interface }}
+      vncserver_proxyclient_network_cidr: {{ nova.vncserver_proxyclient_network_cidr }}
 
 conf:
   enable_iscsi: {{ enable_iscsi }}
@@ -139,9 +139,9 @@ conf:
       a2enmod:
         - ssl
   hypervisor:
-    host_interface: {{ nova.hypervisor_host_interface }}
+    host_network_cidr: {{ nova.hypervisor_host_network_cidr }}
   libvirt:
-    live_migration_interface: {{ nova.libvirt_live_migration_interface }}
+    live_migration_network_cidr: {{ nova.libvirt_live_migration_network_cidr }}
 {% if "ceph" in storage_backends %}
   ceph:
     enabled: true
@@ -255,8 +255,15 @@ conf:
     workarounds:
       skip_cpu_compare_on_dest: true
       skip_cpu_compare_at_startup: true
-  rabbitmq: null
-
+  rabbitmq:
+    policies:
+      - vhost: "nova"
+        name: "ha_ttl_nova"
+        definition:
+          message-ttl: 70000
+        priority: 0
+        apply-to: all
+        pattern: '^(?!(amq\.|reply_)).*'
 endpoints:
   oslo_db:
     auth:

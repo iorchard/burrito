@@ -99,6 +99,9 @@ k8s_services:
   - {name: "kube-controller-manager", port: 10257}
   - {name: "kube-scheduler", port: 10259}
 
+# registry patch variables
+registry_manifest_dir: "/etc/kubernetes/addons/registry"
+
 # calico patch variables
 calico_artifacts_dir: "/etc/kubernetes"
 calico_manifests:

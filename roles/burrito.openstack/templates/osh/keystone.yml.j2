@@ -44,7 +44,15 @@ conf:
       heartbeat_timeout_threshold: {{ heartbeat_timeout_threshold }}
       heartbeat_rate: {{ heartbeat_rate }}
       heartbeat_in_pthread: true
-  rabbitmq: null
+  rabbitmq:
+    policies:
+      - vhost: "keystone"
+        name: "ha_ttl_keystone"
+        definition:
+          message-ttl: 70000
+        priority: 0
+        apply-to: all
+        pattern: '^(?!(amq\.|reply_)).*'
 {% raw %}
   wsgi_keystone: |
     {{- $portInt := tuple "identity" "service" "api" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}

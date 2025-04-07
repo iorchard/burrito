@@ -1,5 +1,25 @@
 #!/bin/bash
 
+function USAGE() {
+  echo "USAGE: $0 [-h|-f]" 1>&2
+  echo
+  echo " -h --help   Display this help message."
+  echo " -f --force  Force to delete all resources in openstack namespace."
+  echo "             (default: Wait for deleting all resources)"
+  echo
+}
+
+KUBECTL=$(type -p kubectl)
+if [[ -z ${KUBECTL} ]]; then
+  echo "Abort) kubectl command is not found."
+  exit 1
+fi
+HELM=$(type -p helm)
+if [[ -z ${HELM} ]]; then
+  echo "Abort) helm command is not found."
+  exit 1
+fi
+
 echo -n "Enter machine Hostname: "
 
 read hn
@@ -13,14 +33,6 @@ fi
 OPT=$1
 HELM_PARAM="--wait"
 KUBECTL_PARAM="--wait"
-function USAGE() {
-  echo "USAGE: $0 [-h|-f]" 1>&2
-  echo
-  echo " -h --help   Display this help message."
-  echo " -f --force  Force to delete all resources in openstack namespace."
-  echo "             (default: Wait for deleting all resources)"
-  echo
-}
 if [[ "x--help" = "x${OPT}" ]] || [[ "x-h" = "x${OPT}" ]]; then
   USAGE
   exit 0
@@ -31,18 +43,20 @@ if [[ "x--force" = "x${OPT}" ]] || [[ "x-f" = "x${OPT}" ]]; then
 fi
 
 # delete glance-storage-init job first
-sudo kubectl delete jobs glance-storage-init -n openstack ${KUBECTL_PARAM}
+if sudo ${KUBECTL} get jobs glance-storage-init -n openstack &>/dev/null; then
+  sudo ${KUBECTL} delete jobs glance-storage-init -n openstack ${KUBECTL_PARAM}
+fi
 
-for i in $(sudo helm list --all -q --namespace openstack)
+for i in $(sudo ${HELM} list --all -q --namespace openstack)
 do
-  sudo helm uninstall $i ${HELM_PARAM} --no-hooks --namespace openstack
+  sudo ${HELM} uninstall $i ${HELM_PARAM} --no-hooks --namespace openstack
 done
 
-sudo kubectl delete pvc --all -n openstack ${KUBECTL_PARAM}
-sudo kubectl delete configmap --all -n openstack ${KUBECTL_PARAM}
-sudo kubectl delete secret --all -n openstack ${KUBECTL_PARAM}
-sudo kubectl delete jobs --all -n openstack ${KUBECTL_PARAM}
-sudo kubectl delete pods --all -n openstack ${KUBECTL_PARAM}
+sudo ${KUBECTL} delete pvc --all -n openstack ${KUBECTL_PARAM}
+sudo ${KUBECTL} delete configmap --all -n openstack ${KUBECTL_PARAM}
+sudo ${KUBECTL} delete secret --all -n openstack ${KUBECTL_PARAM}
+sudo ${KUBECTL} delete jobs --all -n openstack ${KUBECTL_PARAM}
+sudo ${KUBECTL} delete pods --all -n openstack ${KUBECTL_PARAM}
 
 # Kill qemu-system-x86_64 process
 . ~/.envs/burrito/bin/activate && \

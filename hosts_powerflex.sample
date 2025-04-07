@@ -25,12 +25,6 @@ storage[1:3]
 control[1:3]
 compute[1:2]
 
-[gateway]
-storage[1:2]
-
-[presentation]
-storage3
-
 # kubernetes nodes
 [kube_control_plane]
 control[1:3]
@@ -66,8 +60,6 @@ clients
 mdm
 sds
 sdc
-gateway
-presentation
 
 [etcd:children]
 kube_control_plane

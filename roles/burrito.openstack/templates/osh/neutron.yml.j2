@@ -232,8 +232,6 @@ conf:
     openvswitch_agent:
       ovs:
         bridge_mappings: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.bridge }},{% endfor %}"
-      securitygroup:
-        firewall_driver: openvswitch
       agent:
         extensions: qos
         enable_distributed_routing: {{ ovs_dvr | ternary('True', 'False') }}
@@ -265,8 +263,15 @@ conf:
       nova_metadata_port: 8443
       auth_ca_cert: /etc/ssl/certs/openstack-helm.crt
       nova_metadata_protocol: https
-  rabbitmq: null
-
+  rabbitmq:
+    policies:
+      - vhost: "neutron"
+        name: "ha_ttl_neutron"
+        definition:
+          message-ttl: 70000
+        priority: 0
+        apply-to: all
+        pattern: '^(?!(amq\.|reply_)).*'
 endpoints:
   oslo_db:
     auth:
