@@ -104,7 +104,15 @@ conf:
       heartbeat_rate: {{ heartbeat_rate }}
   ceph:
     admin_keyring: {{ ceph_admin_key }}
-  rabbitmq: null
+  rabbitmq:
+    policies:
+      - vhost: "glance"
+        name: "ha_ttl_glance"
+        definition:
+          message-ttl: 70000
+        priority: 0
+        apply-to: all
+        pattern: '^(?!(amq\.|reply_)).*'
 {% raw %}
   nginx: |
     worker_processes 1;

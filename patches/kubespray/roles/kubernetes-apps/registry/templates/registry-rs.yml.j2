@@ -9,6 +9,8 @@ metadata:
     version: v{{ registry_image_tag }}
     addonmanager.kubernetes.io/mode: Reconcile
 spec:
+  strategy:
+    type: Recreate
 {% if registry_storage_class != "" and registry_storage_access_mode == "ReadWriteMany" %}
   replicas: {{ registry_replica_count }}
 {% else %}
@@ -24,6 +26,7 @@ spec:
         k8s-app: registry
         version: v{{ registry_image_tag }}
     spec:
+      priorityClassName: {% if registry_namespace == 'kube-system' %}system-cluster-critical{% else %}k8s-cluster-critical{% endif %}{{ '' }}
       nodeSelector:
         node-role.kubernetes.io/control-plane: ""
       serviceAccountName: registry

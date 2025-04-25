@@ -146,15 +146,20 @@
   delegate_to: localhost
   run_once: true
 
-- name: Genesis Registry | apply patch to registry
-  kubernetes.core.k8s_json_patch:
-    kind: Deployment
-    namespace: "{{ registry_namespace }}"
-    name: registry
-    patch:
-      - op: replace
-        path: /spec/template/spec/containers/0/image
-        value: "{{ containerd_insecure_registries.genesis_registry }}/library/registry:{{ registry_version }}"
+- name: Genesis Registry | update registry deployment spec.
+  ansible.builtin.replace:
+    path: "/etc/kubernetes/addons/registry/registry-rs.yml"
+    regexp: '(?P<image_url>image:).*'
+    replace: '\g<image_url> {{ containerd_insecure_registries.genesis_registry }}/library/registry:{{ registry_version }}'
+  become: true
+  delegate_to: localhost
+  run_once: true
+
+- name: Genesis Registry | apply a new registry deployment
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ registry_manifest_dir }}/registry-rs.yml"
+    wait: true
   become: true
   delegate_to: localhost
   run_once: true

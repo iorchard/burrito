@@ -1,28 +1,56 @@
 ---
 # MDM VIPs on storage networks
 mdm_ip: 
-  - "192.168.24.40"
+  - "192.168.24.70"
 storage_iface_names:
   - eth4
 sds_devices:
   - /dev/sdb
   - /dev/sdc
   - /dev/sdd
+## PowerFlex Management Platform info
+# pfmp_ip is the ip address of the first pfmp LB ip pool.
+pfmp_ip: "192.168.21.79"
+pfmp_hostname: "pfmp.cluster.local"
+pfmp_port: 443
+pfmp_username: "admin"
+pfmp_password: "<PFMP_ADMIN_PASSWORD>"
 
 #
 # Do Not Edit below
 #
-gateway_admin_password: "{{ vault_pfx_admin_password }}"
 mdm_password: "{{ vault_pfx_admin_password }}"
 lia_token: "{{ vault_pfx_lia_token }}"
 protection_domain_name: "burrito_domain"
 storage_pool_name: "burrito_sp"
-# default gateway http port is 80. change it to 8999.
-gateway_http_port: 8999
-# default gateway ssl port is 443. change it to 7443
-gateway_ssl_port: 7443
-# default lia port is 9099. change it to 9090
-lia_port: 9090
-# default presentation port is 8443. change it to 9443
-presentation_port: 9443
+# default lia port is 9099
+lia_port: 9099
+# set calico_healthport to 9090 not to conflict with lia port
+calico_healthport: "{{ 9090 if 'powerflex' in storage_backends else 9099 }}"
+## variables used in PFMP_Config.json
+# set the last octet of ip address for the first pfmp virtual machine
+# default: the next ip address after pfmp[0] will be picked up in pfmp.yml
+# For example,
+# if you set pfmp_vm_start_ip to "80",
+# 192.168.21.80 is the ip address of pfmp-installer virtual machine 
+# and 192.168.21.81 will be the ip address of pfmp-mvm1.
+# and so on.
+pfmp_vm_start_ip: "{{ default(omit) }}"
+# pfmp k8s loadbalancer start ip address
+pfmp_lb_start_ip: "{{ (pfmp_ip|split('.')).3 }}"
+pfmp_cluster_cidr: "10.42.0.0/23"
+pfmp_service_cidr: "10.43.0.0/23"
+# virtual machine spec
+pfmp_vm_spec:
+  installer:
+    cpu: 4
+    memory: 8
+    disk: 100
+  mvm:
+    cpu: 8
+    memory: 24
+    disk: 150
+# PFMP node bridge names
+pfmp_mgmt_bridge_name: "br_mgmt"
+pfmp_storage_bridge_name: "br_storage"
 ...

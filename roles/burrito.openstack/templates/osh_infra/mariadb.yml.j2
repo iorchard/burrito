@@ -2,7 +2,7 @@
 images:
   tags:
     mariadb: {{ docker_image_repo }}/jijisa/mariadb:11.4.4-noble
-    ingress: {{ kube_image_repo }}/ingress-nginx/controller:v1.12.0
+    ingress: {{ kube_image_repo }}/ingress-nginx/controller:v1.12.1
     error_pages: {{ kube_image_repo }}/defaultbackend:1.4
     prometheus_create_mysql_user: {{ docker_image_repo }}/jijisa/mariadb:11.4.4-noble
     dep_check: {{ quay_image_repo }}/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy

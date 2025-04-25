@@ -1,95 +1,73 @@
 ---
-- name: Setup | get powerflex info
-  dellemc.powerflex.info:
-    hostname: "{{ keepalived_vip }}"
-    port: "{{ gateway_ssl_port }}"
-    username: "admin"
-    password: "{{ gateway_admin_password }}"
-    validate_certs: "{{ validate_certs }}"
-  register: pfx_info
-  delegate_to: localhost
-  run_once: true
-
-- name: Setup | debug
-  ansible.builtin.debug:
-    var: pfx_info
-
 - name: Setup | create protection domain
-  dellemc.powerflex.protection_domain:
-    hostname: "{{ keepalived_vip }}"
-    port: "{{ gateway_ssl_port }}"
-    username: "admin"
-    password: "{{ gateway_admin_password }}"
-    validate_certs: "{{ validate_certs }}"
-    protection_domain_name: "{{ protection_domain_name }}"
-    state: present
-  delegate_to: localhost
+  ansible.builtin.shell: >-
+    scli --login --p12_path {{ mdm_certs.client }} \
+      --p12_password '{{ mdm_password }}' && \
+    scli --add_protection_domain \
+      --protection_domain_name {{ protection_domain_name }}
+  register: res
+  delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
+  failed_when: res.rc not in [0, 7]
+  changed_when: res.rc == 0
 
 - name: Setup | create storage pool
-  dellemc.powerflex.storagepool:
-    hostname: "{{ keepalived_vip }}"
-    port: "{{ gateway_ssl_port }}"
-    username: "admin"
-    password: "{{ gateway_admin_password }}"
-    validate_certs: "{{ validate_certs }}"
-    storage_pool_name: "{{ storage_pool_name }}"
-    protection_domain_name: "{{ protection_domain_name }}"
-    media_type: "{{ media_type }}"
-    state: present
-  delegate_to: localhost
-  run_once: true
-
-- name: Setup | reconfigure spare percentage
   ansible.builtin.shell: >-
-    scli --mdm_ip {{ mdm_ip[0] }} --login \
-      --username admin --password '{{ mdm_password }}' \
-      --approve_certificate && \
-    scli --mdm_ip {{ mdm_ip[0] }} --modify_spare_policy \
+    scli --login --p12_path {{ mdm_certs.client }} \
+      --p12_password '{{ mdm_password }}' && \
+    scli --add_storage_pool \
+      --protection_domain_name {{ protection_domain_name }} \
+      --media_type {{ media_type }} \
+      --storage_pool_name {{ storage_pool_name }}
+  register: res
+  delegate_to: "{{ groups['mdm'][0] }}"
+  run_once: true
+  failed_when: res.rc not in [0, 7]
+  changed_when: res.rc == 0
+
+- name: Setup | modify spare policy
+  ansible.builtin.shell: >-
+    scli --login --p12_path {{ mdm_certs.client }} \
+      --p12_password '{{ mdm_password }}' && \
+    scli --modify_spare_policy \
       --protection_domain_name {{ protection_domain_name }} \
       --storage_pool_name {{ storage_pool_name }} \
       --spare_percentage {{ spare_percentage }} \
       --i_am_sure
-  register: res
   delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
 
 - name: Setup | create SDS
-  dellemc.powerflex.sds:
-    hostname: "{{ keepalived_vip }}"
-    port: "{{ gateway_ssl_port }}"
-    username: "admin"
-    password: "{{ gateway_admin_password }}"
-    validate_certs: "{{ validate_certs }}"
-    sds_name: "{{ item }}-sds"
-    protection_domain_name: "{{ protection_domain_name }}"
-    sds_ip_list: >-
-      [{% for siface in storage_iface_names %}{{ {'ip': hostvars[item]['ansible_'+siface].ipv4.address, 'role': 'all'} }}{% if not loop.last %},{% endif %}{% endfor %}]
-    sds_ip_state: "present-in-sds"
-    state: present
-  delegate_to: localhost
+  ansible.builtin.shell: >-
+    scli --login --p12_path {{ mdm_certs.client }} \
+      --p12_password '{{ mdm_password }}' && \
+    scli --add_sds \
+      --sds_name {{ item }}-sds \
+      --sds_ip {% for siface in hostvars[item].storage_iface_names %}{{ hostvars[item]['ansible_'+siface].ipv4.address }}{% if not loop.last %},{% endif %}{% endfor %} \
+      --protection_domain_name {{ protection_domain_name }} \
+      --storage_pool_name {{ storage_pool_name }}
+  delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
   loop: "{{ groups['sds'] }}"
+  register: res
+  failed_when: res.rc not in [0, 7]
+  changed_when: res.rc == 0
 
 - name: Setup | add devices to each SDS
-  dellemc.powerflex.device:
-    hostname: "{{ keepalived_vip }}"
-    port: "{{ gateway_ssl_port }}"
-    username: "admin"
-    password: "{{ gateway_admin_password }}"
-    validate_certs: "{{ validate_certs }}"
-    protection_domain_name: "{{ protection_domain_name }}"
-    storage_pool_name: "{{ storage_pool_name }}"
-    sds_name: "{{ item.0 }}-sds"
-    device_name: "{{ item.0 }}-{{ item.1|basename }}"
-    current_pathname: "{{ item.1 }}"
-    media_type: "{{ media_type }}"
-    state: present
-  register: pfx_result
-  until: pfx_result is not failed
-  retries: 3
-  delay: 3
-  delegate_to: localhost
+  ansible.builtin.shell: >-
+    scli --login --p12_path {{ mdm_certs.client }} \
+      --p12_password '{{ mdm_password }}' && \
+    scli --add_sds_device \
+      --sds_name {{ item.0 }}-sds \
+      --storage_pool_name {{ storage_pool_name }} \
+      --device_name {{ item.0 }}-{{ item.1|basename }} \
+      --device_path {{ item.1 }} \
+      --media_type {{ media_type }} \
+      --force_device_takeover
+  delegate_to: "{{ groups['mdm'][0] }}"
   run_once: true
   loop: "{{ groups['sds'] | product(sds_devices) | list }}"
+  register: res
+  failed_when: res.rc not in [0, 7]
+  changed_when: res.rc == 0
 ...

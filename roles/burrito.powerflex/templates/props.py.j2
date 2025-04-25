@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+USERID = '{{ ansible_user }}'
+PREFIX = 'pfmp-'
+
+# VM location
+SRC_DIR = '{{ pfmp_vm_image|ansible.builtin.dirname }}'
+DST_DIR = '{{ ansible_env.HOME }}/vms/' + PREFIX + 'lab'
+
+# machine list.
+VMS = [
+        PREFIX + 'installer',
+        PREFIX + 'mvm1',
+        PREFIX + 'mvm2',
+        PREFIX + 'mvm3',
+]
+# machine role list.
+ROLES = {
+        PREFIX + 'installer': ['installer'],
+        PREFIX + 'mvm1': ['worker'],
+        PREFIX + 'mvm2': ['worker'],
+        PREFIX + 'mvm3': ['worker'],
+}
+# machine resources
+CORES = {
+        PREFIX + 'installer': {{ pfmp_vm_spec['installer']['cpu'] }},
+        PREFIX + 'mvm1': {{ pfmp_vm_spec['mvm']['cpu'] }},
+        PREFIX + 'mvm2': {{ pfmp_vm_spec['mvm']['cpu'] }},
+        PREFIX + 'mvm3': {{ pfmp_vm_spec['mvm']['cpu'] }},
+}
+MEM = {
+        PREFIX + 'installer': {{ pfmp_vm_spec['installer']['memory'] }},
+        PREFIX + 'mvm1': {{ pfmp_vm_spec['mvm']['memory'] }},
+        PREFIX + 'mvm2': {{ pfmp_vm_spec['mvm']['memory'] }},
+        PREFIX + 'mvm3': {{ pfmp_vm_spec['mvm']['memory'] }},
+}
+DISK = {
+        PREFIX + 'installer': {{ pfmp_vm_spec['installer']['disk'] }},
+        PREFIX + 'mvm1': {{ pfmp_vm_spec['mvm']['disk'] }},
+        PREFIX + 'mvm2': {{ pfmp_vm_spec['mvm']['disk'] }},
+        PREFIX + 'mvm3': {{ pfmp_vm_spec['mvm']['disk'] }},
+}
+# machine network
+NET = { 
+        'mgmt':     '{{ pfmp_mgmt_net_segment }}',
+        'storage':  '{{ pfmp_storage_net_segment }}',
+}
+IP = {{ pfmp_vm_start_ip }}  # The last octet of the IP address to begin.
+# Management network bridge name
+MGMT_BR = '{{ pfmp_mgmt_bridge_name }}'
+# storage network bridge name
+STRG_BR = '{{ pfmp_storage_bridge_name }}'
+# ssh port
+SSHPORT = "{{ ssh_port }}"
+# name server
+DNSSERVER = "{{ upstream_dns_servers[0] }}"
+
+#
+# Do not edit below this line!!!
+#
+REP_BR = MGMT_BR
+i = 0
+IPS = {}
+for vmname in VMS:
+    IPS[vmname] = {}
+    IPS[vmname][MGMT_BR] = {
+        'ip': NET['mgmt'] + '.' + str(IP+i),
+        'nm': {{ pfmp_mgmt_net_prefix }},
+        'gw': '{{ hostvars[groups['pfmp'][0]].ip }}',
+    }
+    if 'worker' in ROLES[vmname]:
+      IPS[vmname][STRG_BR] = {
+          'ip': NET['storage'] + '.' + str(IP+i),
+          'nm': {{ pfmp_storage_net_prefix }},
+      }
+    i += 1
+
+OS = 'Rocky Linux 8.10'
+INSTALLER_IMG = '{{ pfmp_installer_image|ansible.builtin.basename }}'
+IMG = '{{ pfmp_vm_image|ansible.builtin.basename }}'
+SSHKEY = '{{ ansible_env.HOME }}' + '/.ssh/id_rsa'

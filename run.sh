@@ -11,17 +11,19 @@ USAGE: $0 [playbook_name] <ansible_parameters>
 playbook_name
 =============
 -- installation playbooks --
-vault       - create an ansible vault
-ping        - ping to all nodes
-preflight   - play common tasks, i.e. repo settings
-ha          - play ha stack tasks, HAProxy/KeepAlived
-ceph        - play ceph tasks (when ceph in storage backend)
-k8s         - play kubernetes installation tasks
-storage     - play k8s storage csi tasks
-patch       - play kubernetes security patch tasks
-registry    - play local registry tasks (offline only)
-landing     - play localrepo/genesisregistry tasks (offline only)
-burrito     - play openstack installation tasks
+vault       	- create an ansible vault
+ping        	- ping to all nodes
+preflight   	- play common tasks, i.e. repo settings
+ha          	- play ha stack tasks, HAProxy/KeepAlived
+ceph        	- play ceph tasks (when ceph in storage backend)
+powerflex_pfmp	- play powerflex pfmp tasks (when powerflex in storage backend)
+k8s         	- play kubernetes installation tasks
+storage     	- play k8s storage csi tasks
+powerflex_csi	- play powerflex csi tasks (when powerflex in storage backend)
+patch       	- play kubernetes security patch tasks
+registry    	- play local registry tasks (offline only)
+landing     	- play localrepo/genesisregistry tasks (offline only)
+burrito     	- play openstack installation tasks
 
 -- operation playbooks --
 ceph_purge            - play ceph storage cluster purge tasks

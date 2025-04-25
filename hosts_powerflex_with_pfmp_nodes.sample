@@ -1,7 +1,10 @@
 pfx-1 ip=192.168.21.71 ansible_connection=local ansible_python_interpreter=/usr/bin/python3
 pfx-2 ip=192.168.21.72
 pfx-3 ip=192.168.21.73
-pfx-pfmp ip=192.168.21.74
+pfmp-installer ip=192.168.21.75
+pfmp-mvm1 ip=192.168.21.76
+pfmp-mvm2 ip=192.168.21.77
+pfmp-mvm3 ip=192.168.21.78
 
 # ceph nodes
 [mons]
@@ -21,10 +24,12 @@ pfx-[1:3]
 pfx-[1:3]
 
 [pfmp]
-pfx-pfmp
 
 [pfmp_installer]
+pfmp-installer
+
 [pfmp_mvm]
+pfmp-mvm[1:3]
 
 # kubernetes nodes
 [kube_control_plane]

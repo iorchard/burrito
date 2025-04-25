@@ -29,7 +29,7 @@ vrrp_instance VI_BURRITO_MGMT {
   unicast_peer { 
     {% for h in groups['kube_control_plane'] %}
       {% if inventory_hostname != h %}
-    {{ hostvars[h]['ansible_' + keepalived_interface].ipv4.address }}
+    {{ hostvars[h]['ansible_' + hostvars[h]['keepalived_interface']].ipv4.address }}
       {% endif %}
     {% endfor %}
   }
@@ -56,7 +56,7 @@ vrrp_instance VI_BURRITO_SVC {
   unicast_peer {
     {% for h in groups['kube_control_plane'] %}
       {% if inventory_hostname != h %}
-    {{ hostvars[h]['ansible_' + keepalived_interface_svc].ipv4.address }}
+    {{ hostvars[h]['ansible_' + hostvars[h]['keepalived_interface_svc']].ipv4.address }}
       {% endif %}
     {% endfor %}
   }
