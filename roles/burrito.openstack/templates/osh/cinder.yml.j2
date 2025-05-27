@@ -4,7 +4,7 @@ images:
     db_init: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
     cinder_db_sync: "{{ docker_image_repo }}/jijisa/cinder:2024.1-ubuntu_jammy"
     db_drop: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
-    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:4.0.5-management-alpine"
+    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.13.7-management"
     ks_user: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
     ks_service: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
     ks_endpoints: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
@@ -13,9 +13,9 @@ images:
     cinder_scheduler: "{{ docker_image_repo }}/jijisa/cinder:2024.1-ubuntu_jammy"
     cinder_volume: "{{ docker_image_repo }}/jijisa/cinder:2024.1-ubuntu_jammy"
     cinder_volume_usage_audit: "{{ docker_image_repo }}/jijisa/cinder:2024.1-ubuntu_jammy"
-    cinder_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.0-1-20250130"
+    cinder_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.2-1-20250414"
     cinder_backup: "{{ docker_image_repo }}/jijisa/cinder:2024.1-ubuntu_jammy"
-    cinder_backup_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.0-1-20250130"
+    cinder_backup_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.2-1-20250414"
     dep_check: "{{ quay_image_repo }}/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy"
 
 volume_deployment:
@@ -54,6 +54,7 @@ pod:
           capabilities:
             add: {{ cinder.volume_capabilities }}
           privileged: {{ ("powerflex" in storage_backends)|ternary(true, false) }}
+          #privileged: true
           readOnlyRootFilesystem: false
 {% if enable_iscsi %}
     cinder_volume:
@@ -214,7 +215,6 @@ conf:
       a2enmod:
         - ssl
       a2dismod: null
-{% raw %}
   mpm_event: |
     <IfModule mpm_event_module>
       ServerLimit         1024
@@ -226,10 +226,10 @@ conf:
       ThreadLimit         720
     </IfModule>
   wsgi_cinder: |
-    {{- $portInt := tuple "volume" "internal" "api" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-    Listen {{ $portInt }}
-    <VirtualHost *:{{ $portInt }}>
-      ServerName {{ printf "%s.%s.svc.%s" "cinder-api" .Release.Namespace .Values.endpoints.cluster_domain_suffix }}
+    {% raw %}{{- $portInt := tuple "volume" "internal" "api" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}{% endraw +%}
+    Listen {% raw %}{{ $portInt }}{% endraw +%}
+    <VirtualHost *:{% raw %}{{ $portInt }}{% endraw %}>
+      ServerName {% raw %}{{ printf "%s.%s.svc.%s" "cinder-api" .Release.Namespace .Values.endpoints.cluster_domain_suffix }}{% endraw +%}
       WSGIDaemonProcess cinder-api processes=1 threads=1 user=cinder display-name=%{GROUP}
       WSGIProcessGroup cinder-api
       WSGIScriptAlias /  /var/www/cgi-bin/cinder/cinder-wsgi
@@ -251,7 +251,6 @@ conf:
       SSLCipherSuite          ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
       SSLHonorCipherOrder     on
     </VirtualHost>
-{% endraw %}
   ceph:
     admin_keyring: {{ ceph_admin_key }}
     pools:

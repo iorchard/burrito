@@ -1,17 +1,17 @@
 ---
 images:
   tags:
-    mariadb: {{ docker_image_repo }}/jijisa/mariadb:11.4.4-noble
-    ingress: {{ kube_image_repo }}/ingress-nginx/controller:v1.12.1
-    error_pages: {{ kube_image_repo }}/defaultbackend:1.4
+    #mariadb: {{ docker_image_repo }}/jijisa/mariadb:11.4.4-ubuntu_noble
+    mariadb: {{ docker_image_repo }}/jijisa/mariadb:10.11.11-ubuntu_jammy
     prometheus_create_mysql_user: {{ docker_image_repo }}/jijisa/mariadb:11.4.4-noble
     dep_check: {{ quay_image_repo }}/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy
+    mariadb_backup: {{ quay_image_repo }}/airshipit/porthole-mysqlclient-utility:latest-ubuntu_jammy
     ks_user: {{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy
+    mariadb_controller: {{ docker_image_repo }}/jijisa/mariadb:10.11.11-ubuntu_jammy
 
 pod:
   replicas:
     server: {{ pod.quorum_replicas }}
-    ingress: {{ pod.replicas }}
   security_context:
     server:
       container:
@@ -25,9 +25,10 @@ volume:
   enabled: true
   class_name: {{ storageclass_name }}
   size: {{ mariadb.volume_size }}
-  log:
+  backup:
     class_name: {{ storageclass_name }}
-    size: 5Gi
+    size: {{ mariadb.volume_backup_size }}
+
 endpoints:
   oslo_db:
     host_fqdn_override:
@@ -49,9 +50,15 @@ monitoring:
     mysqld_exporter:
       scrape: false
 conf:
+  backup:
+    enabled: true
+    days_to_keep: 7
   db_acl:
     enabled: true
     cidr: {{ kube_pods_subnet }}
 manifests:
   certificates: true
+  cron_job_mariadb_backup: false
+  job_ks_user: false
+  pvc_backup: false
 ...

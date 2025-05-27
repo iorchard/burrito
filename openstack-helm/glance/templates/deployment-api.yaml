@@ -12,33 +12,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 
-{{- define "readinessProbeTemplate" }}
+{{- define "probeTemplate" }}
+{{- $health_path := tuple "image" "healthcheck" "internal" . | include "helm-toolkit.endpoints.keystone_endpoint_path_lookup" }}
+{{- $health_port := tuple "image" "service" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
 {{- if .Values.manifests.certificates }}
 exec:
   command:
     - python
     - -c
-    - "import requests; requests.get('http://127.0.0.1:{{ tuple "image" "service" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}')"
+    - "import requests; requests.get('http://127.0.0.1:{{ $health_port }}{{ $health_path }}')"
 {{- else }}
 httpGet:
+  path: {{ $health_path }}
   scheme: {{ tuple "image" "service" "api" . | include "helm-toolkit.endpoints.keystone_endpoint_scheme_lookup" | upper }}
-  path: /
-  port: {{ tuple "image" "service" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-{{- end }}
-{{- end }}
-
-{{- define "livenessProbeTemplate" }}
-{{- if .Values.manifests.certificates }}
-exec:
-  command:
-    - python
-    - -c
-    - "import requests; requests.get('http://127.0.0.1:{{ tuple "image" "service" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}')"
-{{- else }}
-httpGet:
-  scheme: {{ tuple "image" "service" "api" . | include "helm-toolkit.endpoints.keystone_endpoint_scheme_lookup" | upper }}
-  path: /
-  port: {{ tuple "image" "service" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+  port: {{ $health_port }}
 {{- end }}
 {{- end }}
 
@@ -79,6 +66,7 @@ spec:
 {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 8 }}
         configmap-bin-hash: {{ tuple "configmap-bin.yaml" . | include "helm-toolkit.utils.hash" }}
         configmap-etc-hash: {{ tuple "configmap-etc.yaml" . | include "helm-toolkit.utils.hash" }}
+{{ tuple "glance_api" . | include "helm-toolkit.snippets.custom_pod_annotations" | indent 8 }}
 {{ dict "envAll" $envAll "podName" "glance-api" "containerNames" ( list "glance-perms" "glance-api" "init" "nginx" ) | include "helm-toolkit.snippets.kubernetes_mandatory_access_control_annotation" | indent 8 }}
     spec:
       serviceAccountName: {{ $serviceAccountName }}
@@ -108,12 +96,12 @@ spec:
             - chown
             - -R
             - "glance:"
-            - {{ .Values.conf.glance.glance_store.filesystem_store_datadir }}
+            - {{ .Values.conf.glance.file.filesystem_store_datadir }}
           volumeMounts:
             - name: pod-tmp
               mountPath: /tmp
             - name: glance-images
-              mountPath: {{ .Values.conf.glance.glance_store.filesystem_store_datadir }}
+              mountPath: {{ .Values.conf.glance.file.filesystem_store_datadir }}
         {{ if has "rbd" .Values.storage }}
         - name: ceph-keyring-placement
 {{ tuple $envAll "glance_api" | include "helm-toolkit.snippets.image" | indent 10 }}
@@ -158,6 +146,7 @@ spec:
           readinessProbe:
             tcpSocket:
               port: {{ tuple "image" "service" "api" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
+            initialDelaySeconds: 30
           command:
             - /tmp/nginx.sh
             - start
@@ -186,8 +175,8 @@ spec:
 {{ tuple $envAll "glance_api" | include "helm-toolkit.snippets.image" | indent 10 }}
 {{ tuple $envAll $envAll.Values.pod.resources.api | include "helm-toolkit.snippets.kubernetes_resources" | indent 10 }}
 {{ dict "envAll" $envAll "application" "glance" "container" "glance_api" | include "helm-toolkit.snippets.kubernetes_container_security_context" | indent 10 }}
-{{ dict "envAll" $envAll "component" "api" "container" "glance-api" "type" "readiness" "probeTemplate" (include "readinessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | indent 10 }}
-{{ dict "envAll" $envAll "component" "api" "container" "glance-api" "type" "liveness" "probeTemplate" (include "livenessProbeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | indent 10 }}
+{{ dict "envAll" $envAll "component" "api" "container" "glance-api" "type" "readiness" "probeTemplate" (include "probeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | indent 10 }}
+{{ dict "envAll" $envAll "component" "api" "container" "glance-api" "type" "liveness" "probeTemplate" (include "probeTemplate" $envAll | fromYaml) | include "helm-toolkit.snippets.kubernetes_probe" | indent 10 }}
           command:
             - /tmp/glance-api.sh
             - start
@@ -221,6 +210,10 @@ spec:
             - name: glance-etc
               mountPath: /etc/glance/glance-api.conf
               subPath: glance-api.conf
+              readOnly: true
+            - name: glance-etc
+              mountPath: /etc/glance/glance-api-uwsgi.ini
+              subPath: glance-api-uwsgi.ini
               readOnly: true
             {{- if .Values.conf.glance.DEFAULT.log_config_append }}
             - name: glance-etc
@@ -262,11 +255,11 @@ spec:
             {{- end }}
             {{- end }}
             - name: glance-etc
-              mountPath: {{ .Values.conf.glance.glance_store.swift_store_config_file }}
+              mountPath: {{ .Values.conf.glance.swift.swift_store_config_file }}
               subPath: swift-store.conf
               readOnly: true
             - name: glance-images
-              mountPath: {{ .Values.conf.glance.glance_store.filesystem_store_datadir }}
+              mountPath: {{ .Values.conf.glance.file.filesystem_store_datadir }}
 {{- if has "cinder" .Values.storage }}
             - name: host-rootfs
               mountPath: /mnt/host-rootfs
@@ -347,6 +340,11 @@ spec:
         - name: glance-images
           persistentVolumeClaim:
             claimName: glance-images
+        {{ else if has "local" .Values.storage }}
+        - name: glance-images
+          hostPath:
+            path: {{ .Values.conf.glance.file.filesystem_store_datadir }}
+            type: DirectoryOrCreate
         {{- else }}
         - name: glance-images
           emptyDir: {}

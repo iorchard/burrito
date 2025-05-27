@@ -1,7 +1,7 @@
 ---
 ## common
-osh_infra_path: "{{ playbook_dir }}/openstack-helm-infra"
 osh_path: "{{ playbook_dir }}/openstack-helm"
+osh_infra_path: "{{ osh_path }}"
 btx_path: "{{ playbook_dir }}/btx/helm"
 os_artifacts_dir: "{{ ansible_env.HOME }}/openstack-artifacts"
 pod:
@@ -104,6 +104,7 @@ barbican:
 
 ## btx
 btx:
+  version: "3.0.0"
   pvc:
     size: "20Gi"
 
@@ -137,5 +138,5 @@ rabbit_retry_backoff: 2
 rabbit_interval_max: 30
 rabbit_quorum_queue: True
 heartbeat_timeout_threshold: 60
-heartbeat_rate: 2
+heartbeat_rate: 3
 ...

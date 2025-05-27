@@ -51,6 +51,9 @@ labels:
   scheduler:
     node_selector_key: openstack-control-plane
     node_selector_value: enabled
+  serialproxy:
+    node_selector_key: openstack-control-plane
+    node_selector_value: enabled
   spiceproxy:
     node_selector_key: openstack-control-plane
     node_selector_value: enabled
@@ -61,32 +64,33 @@ labels:
 images:
   pull_policy: IfNotPresent
   tags:
-    bootstrap: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
-    db_drop: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
-    db_init: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
-    dep_check: 'quay.io/airshipit/kubernetes-entrypoint:v1.0.0'
-    rabbit_init: docker.io/rabbitmq:3.7-management
-    ks_user: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
-    ks_service: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
-    nova_archive_deleted_rows: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
-    ks_endpoints: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
-    nova_api: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
-    nova_cell_setup: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
-    nova_cell_setup_init: docker.io/openstackhelm/heat:wallaby-ubuntu_focal
-    nova_compute: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
+    bootstrap: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    db_drop: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    db_init: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    dep_check: 'quay.io/airshipit/kubernetes-entrypoint:latest-ubuntu_focal'
+    rabbit_init: docker.io/rabbitmq:3.13-management
+    ks_user: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    ks_service: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    nova_archive_deleted_rows: quay.io/airshipit/nova:2024.1-ubuntu_jammy
+    ks_endpoints: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    nova_api: quay.io/airshipit/nova:2024.1-ubuntu_jammy
+    nova_cell_setup: quay.io/airshipit/nova:2024.1-ubuntu_jammy
+    nova_cell_setup_init: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    nova_compute: quay.io/airshipit/nova:2024.1-ubuntu_jammy
     nova_compute_ironic: 'docker.io/kolla/ubuntu-source-nova-compute-ironic:wallaby'
-    nova_compute_ssh: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
-    nova_conductor: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
-    nova_db_sync: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
-    nova_novncproxy: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
+    nova_compute_ssh: quay.io/airshipit/nova:2024.1-ubuntu_jammy
+    nova_conductor: quay.io/airshipit/nova:2024.1-ubuntu_jammy
+    nova_db_sync: quay.io/airshipit/nova:2024.1-ubuntu_jammy
+    nova_novncproxy: quay.io/airshipit/nova:2024.1-ubuntu_jammy
     nova_novncproxy_assets: 'docker.io/kolla/ubuntu-source-nova-novncproxy:wallaby'
-    nova_scheduler: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
-    nova_storage_init: 'docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_focal'
+    nova_scheduler: quay.io/airshipit/nova:2024.1-ubuntu_jammy
+    nova_storage_init: 'docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_jammy'
     # NOTE(portdirect): we simply use the ceph config helper here,
     # as it has both oscli and jq.
-    nova_service_cleaner: 'docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_focal'
-    nova_spiceproxy: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
-    nova_spiceproxy_assets: docker.io/openstackhelm/nova:wallaby-ubuntu_focal
+    nova_service_cleaner: 'docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_jammy'
+    nova_serialproxy: quay.io/airshipit/nova:2024.1-ubuntu_jammy
+    nova_spiceproxy: quay.io/airshipit/nova:2024.1-ubuntu_jammy
+    nova_spiceproxy_assets: quay.io/airshipit/nova:2024.1-ubuntu_jammy
     test: docker.io/xrally/xrally-openstack:2.0.0
     image_repo_sync: docker.io/docker:17.07.0
     nova_wait_for_computes_init: gcr.io/google_containers/hyperkube-amd64:v1.11.6
@@ -253,6 +257,17 @@ network:
     node_port:
       enabled: false
       port: 30680
+  serialproxy:
+    ingress:
+      public: true
+      classes:
+        namespace: "nginx"
+        cluster: "nginx-cluster"
+      annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+    node_port:
+      enabled: false
+      port: 30683
   spiceproxy:
     ingress:
       public: true
@@ -468,6 +483,12 @@ dependencies:
       services:
         - endpoint: internal
           service: oslo_db
+    serialproxy:
+      jobs:
+        - nova-db-sync
+      services:
+        - endpoint: internal
+          service: oslo_db
     spiceproxy:
       jobs:
         - nova-db-sync
@@ -506,6 +527,16 @@ console:
   # serial | spice | novnc | none
   console_kind: novnc
   serial:
+    compute:
+      # IF blank, search default routing interface
+      server_proxyclient_interface: null
+      # or set network cidr
+      server_proxyclient_network_cidr: 0/0
+    proxy:
+      # IF blank, search default routing interface
+      server_proxyclient_interface: null
+      # or set network cidr
+      server_proxyclient_network_cidr: 0/0
   spice:
     compute:
       # IF blank, search default routing interface
@@ -1397,21 +1428,16 @@ conf:
       disk_allocation_ratio: 1.0
       cpu_allocation_ratio: 3.0
       state_path: /var/lib/nova
-      instances_path: /var/lib/nova/instances
       osapi_compute_listen: 0.0.0.0
       # NOTE(portdirect): the bind port should not be defined, and is manipulated
       # via the endpoints section.
       osapi_compute_listen_port: null
       osapi_compute_workers: 1
       metadata_workers: 1
-      use_neutron: true
-      firewall_driver: nova.virt.firewall.NoopFirewallDriver
-      linuxnet_interface_driver: openvswitch
       compute_driver: libvirt.LibvirtDriver
       my_ip: 0.0.0.0
       instance_usage_audit: True
       instance_usage_audit_period: hour
-      notify_on_state_change: vm_and_task_state
       resume_guests_state_on_host_boot: True
     vnc:
       auth_schemes: none
@@ -1424,7 +1450,15 @@ conf:
       server_listen: 0.0.0.0
       # This would be set by each compute nodes's ip
       # server_proxyclient_address: 127.0.0.1
+    serial_console:
+      serialproxy_host: 0.0.0.0
+      # This would be set by each compute nodes's ip
+      # proxyclient_address: 127.0.0.1
     conductor:
+      workers: 1
+    scheduler:
+      max_attempts: 10
+      discover_hosts_in_cells_interval: -1
       workers: 1
     oslo_policy:
       policy_file: /etc/nova/policy.yaml
@@ -1576,6 +1610,38 @@ conf:
     before:
       enabled: false
       date: 'nil'
+  nova_api_uwsgi:
+    uwsgi:
+      add-header: "Connection: close"
+      buffer-size: 65535
+      die-on-term: true
+      enable-threads: true
+      exit-on-reload: false
+      hook-master-start: unix_signal:15 gracefully_kill_them_all
+      lazy-apps: true
+      log-x-forwarded-for: true
+      master: true
+      procname-prefix-spaced: "nova-api:"
+      route-user-agent: '^kube-probe.* donotlog:'
+      thunder-lock: true
+      worker-reload-mercy: 80
+      wsgi-file: /var/lib/openstack/bin/nova-api-wsgi
+  nova_metadata_uwsgi:
+    uwsgi:
+      add-header: "Connection: close"
+      buffer-size: 65535
+      die-on-term: true
+      enable-threads: true
+      exit-on-reload: false
+      hook-master-start: unix_signal:15 gracefully_kill_them_all
+      lazy-apps: true
+      log-x-forwarded-for: true
+      master: true
+      procname-prefix-spaced: "nova-metadata:"
+      route-user-agent: '^kube-probe.* donotlog:'
+      thunder-lock: true
+      worker-reload-mercy: 80
+      wsgi-file: /var/lib/openstack/bin/nova-metadata-wsgi
 
 # Names of secrets used by bootstrap and environmental checks
 secrets:
@@ -1604,6 +1670,8 @@ secrets:
       novncproxy:
         public: nova-novncproxy-tls-public
         internal: nova-novncproxy-tls-proxy
+      vencrypt:
+        internal: nova-novncproxy-vencrypt
     compute_metadata:
       metadata:
         public: metadata-tls-public
@@ -1612,6 +1680,10 @@ secrets:
       spiceproxy:
         public: nova-spiceproxy-tls-public
         internal: nova-spiceproxy-tls-proxy
+    compute_serial_proxy:
+      serialproxy:
+        public: nova-serialproxy-tls-public
+        internal: nova-serialproxy-tls-proxy
   oci_image_registry:
     nova: nova-oci-image-registry
 
@@ -1897,18 +1969,32 @@ endpoints:
       novnc_proxy:
         default: 6080
         public: 80
-# We are using the external vencrypt certificates - vnc-client-secret.
-#  # This endpoint is only to allow configuring the cert used specifically for
-#  # vencrypt.  Specifically, the same CA/issuer needs to be used to sign both
-#  # this cert, and the libvirt/qemu certs.
-#  compute_novnc_vencrypt:
-#    hosts:
-#      default: nova-novncproxy
-#    host_fqdn_override:
-#      default:
-#        commonName: nova-novncproxy
-#        usages:
-#          - client auth
+  # This endpoint is only to allow configuring the cert used specifically for
+  # vencrypt.  Specifically, the same CA/issuer needs to be used to sign both
+  # this cert, and the libvirt/qemu certs.
+  compute_novnc_vencrypt:
+    hosts:
+      default: nova-novncproxy
+    host_fqdn_override:
+      default:
+        commonName: nova-novncproxy
+        usages:
+          - client auth
+  compute_serial_proxy:
+    name: nova
+    hosts:
+      default: nova-serialproxy
+      public: serialproxy
+    host_fqdn_override:
+      default: null
+    scheme:
+      default: 'ws'
+    path:
+      default: /serial_auto.html
+    port:
+      serial_proxy:
+        default: 6083
+        public: 80
   compute_spice_proxy:
     name: nova
     hosts:
@@ -2018,17 +2104,15 @@ pod:
     compute:
       default:
         liveness:
-          enabled: true
+          enabled: True
           params:
-            failureThreshold: 10
-            periodSeconds: 30
-            timeoutSeconds: 20
+            periodSeconds: 90
+            timeoutSeconds: 70
         readiness:
           enabled: True
           params:
-            failureThreshold: 10
-            periodSeconds: 30
-            timeoutSeconds: 20
+            periodSeconds: 90
+            timeoutSeconds: 70
         startup:
           enabled: True
           params:
@@ -2041,47 +2125,43 @@ pod:
         liveness:
           enabled: True
           params:
-            initialDelaySeconds: 30
-            periodSeconds: 60
-            timeoutSeconds: 15
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
         readiness:
           enabled: True
           params:
-            initialDelaySeconds: 30
-            periodSeconds: 60
-            timeoutSeconds: 15
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
     api-osapi:
       default:
         liveness:
           enabled: True
           params:
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            failureThreshold: 2
-            timeoutSeconds: 15
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
         readiness:
           enabled: True
           params:
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            failureThreshold: 2
-            timeoutSeconds: 15
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
     conductor:
       default:
         liveness:
           enabled: True
           params:
-            failureThreshold: 2
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 20
+            initialDelaySeconds: 120
+            periodSeconds: 90
+            timeoutSeconds: 70
         readiness:
           enabled: True
           params:
-            failureThreshold: 2
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 20
+            initialDelaySeconds: 80
+            periodSeconds: 90
+            timeoutSeconds: 70
     novncproxy:
       default:
         liveness:
@@ -2101,17 +2181,29 @@ pod:
         liveness:
           enabled: True
           params:
-            failureThreshold: 10
-            initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 20
+            initialDelaySeconds: 120
+            periodSeconds: 90
+            timeoutSeconds: 70
         readiness:
           enabled: True
           params:
-            failureThreshold: 10
+            initialDelaySeconds: 80
+            periodSeconds: 90
+            timeoutSeconds: 70
+    serialproxy:
+      default:
+        liveness:
+          enabled: True
+          params:
             initialDelaySeconds: 30
-            periodSeconds: 30
-            timeoutSeconds: 20
+            periodSeconds: 60
+            timeoutSeconds: 15
+        readiness:
+          enabled: True
+          params:
+            initialDelaySeconds: 30
+            periodSeconds: 60
+            timeoutSeconds: 15
     compute-spice-proxy:
       default:
         liveness:
@@ -2141,6 +2233,9 @@ pod:
           readOnlyRootFilesystem: true
           runAsUser: 0
         nova_compute_vnc_init:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        nova_compute_serial_init:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         nova_compute_spice_init:
@@ -2176,6 +2271,12 @@ pod:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         nova_scheduler:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        nova_serialproxy_init:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        nova_serialproxy:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
         nova_spiceproxy_init:
@@ -2336,6 +2437,11 @@ pod:
           - hostPath:
               path: /etc/localtime
             name: timezone
+    nova_serialproxy:
+      init_serialproxy: null
+      nova_serialproxy:
+        volumeMounts:
+        volumes:
     nova_spiceproxy:
       init_spiceproxy: null
       nova_spiceproxy:
@@ -2354,6 +2460,7 @@ pod:
     conductor: 1
     scheduler: 1
     novncproxy: 1
+    serialproxy: 1
     spiceproxy: 1
   lifecycle:
     upgrades:
@@ -2431,6 +2538,13 @@ pod:
         memory: "1024Mi"
         cpu: "2000m"
     novncproxy:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "1024Mi"
+        cpu: "2000m"
+    serialproxy:
       requests:
         memory: "128Mi"
         cpu: "100m"
@@ -2577,10 +2691,12 @@ manifests:
   deployment_api_osapi: true
   deployment_conductor: true
   deployment_novncproxy: true
+  deployment_serialproxy: true
   deployment_spiceproxy: true
   deployment_scheduler: true
   ingress_metadata: true
   ingress_novncproxy: true
+  ingress_serialproxy: true
   ingress_spiceproxy: true
   ingress_osapi: true
   job_bootstrap: true
@@ -2607,10 +2723,12 @@ manifests:
   secret_registry: true
   service_ingress_metadata: true
   service_ingress_novncproxy: true
+  service_ingress_serialproxy: true
   service_ingress_spiceproxy: true
   service_ingress_osapi: true
   service_metadata: true
   service_novncproxy: true
+  service_serialproxy: true
   service_spiceproxy: true
   service_osapi: true
   statefulset_compute_ironic: false

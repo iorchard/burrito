@@ -25,7 +25,7 @@ metadata:
     helm.sh/resource-policy: keep
   {{- end }}
 spec:
-  accessModes: [ "{{ .Values.nginx_deployment.pvc.access_modes }}" ]
+  accessModes: "{{ .Values.volume.access_modes }}"
   resources:
     requests:
       storage: {{ .Values.volume.size }}

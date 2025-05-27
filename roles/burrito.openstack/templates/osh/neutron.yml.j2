@@ -1,28 +1,29 @@
 ---
 images:
   tags:
-    nginx: "{{ docker_image_repo }}/library/nginx:1.27.3-alpine"
+    nginx: "{{ docker_image_repo }}/library/nginx:1.27.5"
     bootstrap: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
     db_init: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
+    neutron_db_sync: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     db_drop: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
+    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.13.7-management"
     ks_user: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
     ks_service: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
     ks_endpoints: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
-    neutron_db_sync: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
+    neutron_server: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
+    neutron_rpc_server: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_dhcp: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
-    neutron_l3: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
-    neutron_l2gw: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
-    neutron_linuxbridge_agent: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_metadata: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_ovn_metadata: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
+    neutron_ovn_vpn: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
+    neutron_l3: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
+    neutron_l2gw: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_openvswitch_agent: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
-    neutron_rpc_server: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
+    neutron_linuxbridge_agent: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_bagpipe_bgp: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
-    neutron_netns_cleanup_cron: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
-    neutron_server: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_bgp_dragent: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
+    neutron_netns_cleanup_cron: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     dep_check: "{{ quay_image_repo }}/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy"
-    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:4.0.5-management-alpine"
 
 network:
   server:
@@ -30,7 +31,7 @@ network:
       annotations:
         nginx.ingress.kubernetes.io/backend-protocol: "https"
   backend:
-  - {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
+  - {{ is_ovn|ternary('ovn', 'openvswitch') }}
   share_namespaces: true
   interface:
     tunnel: {{ neutron.tunnel }}
@@ -71,12 +72,19 @@ pod:
         cpu: "2000m"
   replicas:
     server: {{ pod.replicas }}
+    rpc_server: {{ pod.replicas }}
   security_context:
     neutron_server:
       pod:
         runAsUser: 0
       container:
         neutron_server:
+          readOnlyRootFilesystem: false
+    neutron_rpc_server:
+      pod:
+        runAsUser: 0
+      container:
+        neutron_rpc_server:
           readOnlyRootFilesystem: false
   mounts:
     neutron_server:
@@ -92,7 +100,9 @@ pod:
 conf:
   db_acl:
     enabled: true
-{% raw %}
+  neutron_api_uwsgi:
+    uwsgi:
+      http-socket: 127.0.0.1:9696
   nginx: |
     worker_processes 1;
     daemon off;
@@ -121,7 +131,7 @@ conf:
       }
 
       server {
-        server_name {{ printf "%s.%s.svc.%s" "${SHORTNAME}" .Release.Namespace .Values.endpoints.cluster_domain_suffix }};
+        server_name {% raw %}{{ printf "%s.%s.svc.%s" "${SHORTNAME}" .Release.Namespace .Values.endpoints.cluster_domain_suffix }}{% endraw %};
         listen $POD_IP:$PORT ssl;
 
         client_max_body_size  0;
@@ -139,24 +149,15 @@ conf:
         }
       }
     }
-{% endraw %}
   neutron:
     DEFAULT:
       bind_host: 127.0.0.1
       debug: True
-      router_distributed: {{ ovs_dvr|ternary('True', 'False') }}
       core_plugin: ml2
       global_physnet_mtu: {{ openstack_mtu }}
 {% if overlay_iface_name %}
-      service_plugins: {{ bgp_dragent|ternary('neutron_dynamic_routing.services.bgp.bgp_plugin.BgpPlugin,neutron.services.l3_router.l3_router_plugin.L3RouterPlugin', 'router,metering,qos') }}
-      l3_ha: true
-      l3_ha_network_type: vxlan
-{% else %}
-      service_plugins: []
+      service_plugins: ovn-router
 {% endif %}
-      dhcp_agents_per_network: 2
-    experimental:
-      linuxbridge: true
     nova:
       cafile: /etc/neutron/certs/ca.crt
     keystone_authtoken:
@@ -182,87 +183,35 @@ conf:
       quota_security_group: -1
       quota_security_group_rule: -1
 
-{% if not is_ovs %}
-  auto_bridge_add: {}
-{% endif %}
-
-{% if is_ovs %}
-  auto_bridge_add:
-{% for b in ovs_provider %}
-    {{ b.bridge }}:{{ b.iface }}
-{% endfor %}
-{% endif %}
-
   plugins:
     ml2_conf:
       ml2:
+        mechanism_drivers: {{ is_ovn|ternary("ovn", "openvswitch") }}
+        type_drivers: flat{% if ovs_provider[0].vlan_ranges %},vlan{% endif %}{% if (overlay_iface_name and is_ovn) %},geneve{% else %},vxlan{% endif +%}
         extension_drivers: port_security,qos
-        type_drivers: flat{% if ovs_provider[0].vlan_ranges %},vlan{% endif %}{% if overlay_iface_name %},vxlan{% endif %}
 
-        tenant_network_types: {{ overlay_iface_name|ternary('vxlan', []) }}
-
-        mechanism_drivers: {{ is_ovs|ternary("openvswitch", "linuxbridge") }},l2population
+        tenant_network_types: {{ (overlay_iface_name and is_ovn)|ternary('geneve', 'vxlan') }}
+        overlay_ip_version: 4
       ml2_type_flat:
         flat_networks: "*"
-{% if is_ovs %}
+{% if not is_ovn %}
 {% if ovs_provider[0].vlan_ranges %}
       ml2_type_vlan:
         network_vlan_ranges: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.vlan_ranges }}{% if not loop.last %},{% endif %}{% endfor %}"
 {% endif %}
 {% endif %}
 {% if overlay_iface_name %}
+{% if is_ovn %}
+      ml2_type_geneve:
+        vni_ranges: "1:1000"
+        max_header_size: 38
+{% else %}
       ml2_type_vxlan:
         vni_ranges: "1:1000"
 {% endif %}
+{% endif %}
       securitygroup:
         enable_ipset: false
-    linuxbridge_agent:
-      agent:
-        extensions: qos
-      linux_bridge:
-        bridge_mappings: []
-        physical_interface_mappings: "{{ lb_iface_mappings|join(',') }}"
-      securitygroup:
-        enable_security_group: true
-        firewall_driver: iptables
-      vxlan:
-        enable_vxlan: {{ overlay_iface_name|ternary('true', 'false') }}
-        l2_population: true
-        arp_responder: false
-    openvswitch_agent:
-      ovs:
-        bridge_mappings: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.bridge }},{% endfor %}"
-      agent:
-        extensions: qos
-        enable_distributed_routing: {{ ovs_dvr | ternary('True', 'False') }}
-        tunnel_types: {{ overlay_iface_name|ternary('vxlan', '') }}
-        l2_population: true
-        arp_responder: true
-{% if overlay_iface_name %}
-  l3_agent:
-    DEFAULT:
-      interface_driver: {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
-      agent_mode: {{ ovs_dvr | ternary('dvr', 'legacy') }}
-    agent:
-      extensions: fip_qos, gateway_ip_qos
-{% endif %}
-{% if bgp_dragent %}
-  bgp_dragent:
-    DEFAULT:
-      debug: true
-    bgp:
-      bgp_speaker_driver: neutron_dynamic_routing.services.bgp.agent.driver.os_ken.driver.OsKenBgpDriver
-      bgp_router_id: 127.0.0.1
-{% endif %}
-  dhcp_agent:
-    DEFAULT:
-      interface_driver: {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
-      force_metadata: true
-  metadata_agent:
-    DEFAULT:
-      nova_metadata_port: 8443
-      auth_ca_cert: /etc/ssl/certs/openstack-helm.crt
-      nova_metadata_protocol: https
   rabbitmq:
     policies:
       - vhost: "neutron"
@@ -354,11 +303,16 @@ endpoints:
         default: 8443
 
 manifests:
-  daemonset_lb_agent: {{ is_ovs|ternary('false', 'true') }}
-  daemonset_ovs_agent: {{ is_ovs|ternary('true', 'false') }}
-  daemonset_l3_agent: {{ overlay_iface_name|ternary('true', 'false') }}
-  daemonset_sriov_agent: false
-  daemonset_metadata_agent: true
-  daemonset_bgp_dragent: {{ bgp_dragent }}
   certificates: true
+  daemonset_dhcp_agent: false
+  daemonset_l3_agent: false
+  daemonset_lb_agent: false
+  daemonset_metadata_agent: false
+  daemonset_ovs_agent: false
+  daemonset_sriov_agent: false
+  daemonset_l2gw_agent: false
+  daemonset_bagpipe_bgp: false
+  daemonset_bgp_dragent: false
+  daemonset_netns_cleanup_cron: true
+  daemonset_ovn_metadata_agent: true
 ...

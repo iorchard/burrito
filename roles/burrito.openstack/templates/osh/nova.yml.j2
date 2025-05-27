@@ -8,7 +8,7 @@ images:
     ks_service: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
     ks_endpoints: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
     dep_check: "{{ quay_image_repo }}/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy"
-    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:4.0.5-management-alpine"
+    rabbit_init: "{{ docker_image_repo }}/library/rabbitmq:3.13.7-management"
     nova_api: "{{ docker_image_repo }}/jijisa/nova:2024.1-ubuntu_jammy"
     nova_cell_setup: "{{ docker_image_repo }}/jijisa/nova:2024.1-ubuntu_jammy"
     nova_cell_setup_init: "{{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy"
@@ -21,8 +21,8 @@ images:
     nova_scheduler: "{{ docker_image_repo }}/jijisa/nova:2024.1-ubuntu_jammy"
     nova_spiceproxy: "{{ docker_image_repo }}/jijisa/nova:2024.1-ubuntu_jammy"
     nova_spiceproxy_assets: "{{ docker_image_repo }}/jijisa/nova:2024.1-ubuntu_jammy"
-    nova_service_cleaner: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.0-1-20250130"
-    nova_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.0-1-20250130"
+    nova_service_cleaner: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.2-1-20250414"
+    nova_storage_init: "{{ docker_image_repo }}/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.2-1-20250414"
 
 
 volume:
@@ -40,7 +40,7 @@ bootstrap:
         m1_xlarge: null
 network:
   backend:
-  - {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
+    - ovn
   osapi:
     ingress:
       annotations:
@@ -69,7 +69,6 @@ conf:
   enable_iscsi: {{ enable_iscsi }}
   db_acl:
     enabled: true
-{% raw %}
   mpm_event: |
     <IfModule mpm_event_module>
       ServerLimit         1024
@@ -81,10 +80,10 @@ conf:
       ThreadLimit         720
     </IfModule>
   wsgi_nova_api: |
-    {{- $portInt := tuple "compute" "service" "api" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-    Listen {{ $portInt }}
-    <VirtualHost *:{{ $portInt }}>
-      ServerName {{ printf "%s.%s.svc.%s" "nova-api" .Release.Namespace .Values.endpoints.cluster_domain_suffix }}
+    {% raw %}{{- $portInt := tuple "compute" "service" "api" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}{% endraw +%}
+    Listen {% raw %}{{ $portInt }}{% endraw +%}
+    <VirtualHost *:{% raw %}{{ $portInt }}{% endraw %}>
+      ServerName {% raw %}{{ printf "%s.%s.svc.%s" "nova-api" .Release.Namespace .Values.endpoints.cluster_domain_suffix }}{% endraw +%}
       WSGIDaemonProcess nova-api processes=1 threads=1 user=nova display-name=%{GROUP}
       WSGIProcessGroup nova-api
       WSGIScriptAlias /  /var/www/cgi-bin/nova/nova-api-wsgi
@@ -107,10 +106,10 @@ conf:
       SSLHonorCipherOrder     on
     </VirtualHost>
   wsgi_nova_metadata: |
-    {{- $portInt := tuple "compute_metadata" "service" "metadata" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}
-    Listen {{ $portInt }}
-    <VirtualHost *:{{ $portInt }}>
-      ServerName {{ printf "%s.%s.svc.%s" "nova-metadata" .Release.Namespace .Values.endpoints.cluster_domain_suffix }}
+    {% raw %}{{- $portInt := tuple "compute_metadata" "service" "metadata" $ | include "helm-toolkit.endpoints.endpoint_port_lookup" }}{% endraw +%}
+    Listen {% raw %}{{ $portInt }}{% endraw +%}
+    <VirtualHost *:{% raw %}{{ $portInt }}{% endraw %}>
+      ServerName {% raw %}{{ printf "%s.%s.svc.%s" "nova-metadata" .Release.Namespace .Values.endpoints.cluster_domain_suffix }}{% endraw +%}
       WSGIDaemonProcess nova-metadata processes=1 threads=1 user=nova display-name=%{GROUP}
       WSGIProcessGroup nova-metadata
       WSGIScriptAlias /  /var/www/cgi-bin/nova/nova-metadata-wsgi
@@ -132,7 +131,6 @@ conf:
       SSLCipherSuite          ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
       SSLHonorCipherOrder     on
     </VirtualHost>
-{% endraw %}
 
   software:
     apache2:
@@ -216,13 +214,12 @@ conf:
       password: {{ nova.password }}
     vnc:
       auth_schemes: vencrypt
-      vencrypt_client_key: /etc/pki/nova-novncproxy/client-key.pem
-      vencrypt_client_cert: /etc/pki/nova-novncproxy/client-cert.pem
-      vencrypt_ca_certs: /etc/pki/nova-novncproxy/ca-cert.pem
+      #vencrypt_client_key: /etc/pki/nova-novncproxy/client-key.pem
+      #vencrypt_client_cert: /etc/pki/nova-novncproxy/client-cert.pem
+      #vencrypt_ca_certs: /etc/pki/nova-novncproxy/ca-cert.pem
       novncproxy_base_url: https://{{ keepalived_vip_svc|ternary(keepalived_vip_svc, keepalived_vip) }}:30608/vnc_auto.html
     libvirt:
       volume_use_multipath: {{ enable_multipath }}
-      connection_uri: "qemu+tcp://127.0.0.1/system"
       images_type: {{ (storage_backends[0] == 'ceph')|ternary('rbd', 'qcow2') }}
 {% if "ceph" in storage_backends %}
       images_rbd_pool: vms
@@ -380,6 +377,16 @@ endpoints:
     port:
       metadata:
         public: 8443
+  compute_novnc_vencrypt:
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: nova-novncproxy-vencrypt
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
   compute_novnc_proxy:
     host_fqdn_override:
       default:
@@ -407,6 +414,18 @@ endpoints:
             kind: ClusterIssuer
     scheme:
       default: https
+  compute_serial_proxy:
+    host_fqdn_override:
+      default:
+        tls:
+          secretName: nova-tls-serialproxy
+          duration: {{ tls.duration }}
+          renewBefore: {{ tls.renewBefore }}
+          issuerRef:
+            name: ca-issuer
+            kind: ClusterIssuer
+    scheme:
+      default: wss
   placement:
     scheme:
       default: https
@@ -437,24 +456,7 @@ pod:
     conductor: 1
     scheduler: 1
     novncproxy: {{ pod.replicas }}
-  mounts:
-    nova_novncproxy:
-      nova_novncproxy:
-        volumeMounts:
-          - name: vnc-client-secret
-            mountPath: /etc/pki/nova-novncproxy
-            readOnly: true
-        volumes:
-          - name: vnc-client-secret
-            secret:
-              secretName: vnc-client-secret
-              items:
-                - key: ca_crt
-                  path: ca-cert.pem
-                - key: client_crt
-                  path: client-cert.pem
-                - key: client_key
-                  path: client-key.pem
+
 {% if "powerflex" in storage_backends %}
     nova_compute:
       nova_compute:

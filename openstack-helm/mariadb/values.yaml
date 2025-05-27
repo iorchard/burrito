@@ -313,7 +313,6 @@ conf:
     name: "mysqld"
     install_db: "mysql_install_db"
     upgrade: "mysql_upgrade"
-  mysql_binary_name: "mysqld"
   db_acl:
     enabled: false
     cidr: 10.233.64.0/18

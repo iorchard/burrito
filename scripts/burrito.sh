@@ -4,38 +4,39 @@ set -e
 
 CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
 
-OSH_INFRA_PATH=${CURRENT_DIR}/../openstack-helm-infra
-OSH_PATH=${CURRENT_DIR}/../openstack-helm
-BTX_PATH=${CURRENT_DIR}/../btx/helm
+OSH_INFRA="osh_infra"
+OSH="osh"
+BTX="btx"
 TOP_PATH=${CURRENT_DIR}/..
 OVERRIDE_PATH=$HOME/openstack-artifacts
 
 declare -A path_arr=(
-  [ingress]=$OSH_INFRA_PATH
-  [ceph-provisioners]=$OSH_INFRA_PATH
-  [mariadb]=$OSH_INFRA_PATH
-  [rabbitmq]=$OSH_INFRA_PATH
-  [memcached]=$OSH_INFRA_PATH
-  [openvswitch]=$OSH_INFRA_PATH
-  [libvirt]=$OSH_INFRA_PATH
+  [ingress]=$OSH_INFRA
+  [ceph-provisioners]=$OSH_INFRA
+  [mariadb]=$OSH_INFRA
+  [rabbitmq]=$OSH_INFRA
+  [memcached]=$OSH_INFRA
+  [openvswitch]=$OSH_INFRA
+  [ovn]=$OSH_INFRA
+  [libvirt]=$OSH_INFRA
 
-  [keystone]=$OSH_PATH
-  [glance]=$OSH_PATH
-  [placement]=$OSH_PATH
-  [neutron]=$OSH_PATH
-  [nova]=$OSH_PATH
-  [cinder]=$OSH_PATH
-  [horizon]=$OSH_PATH
-  [barbican]=$OSH_PATH
+  [keystone]=$OSH
+  [glance]=$OSH
+  [placement]=$OSH
+  [neutron]=$OSH
+  [nova]=$OSH
+  [cinder]=$OSH
+  [horizon]=$OSH
+  [barbican]=$OSH
 
-  [btx]=$BTX_PATH
+  [btx]=$BTX
 )
 display_help() {
   echo "Usage: $0 <action> <chart_name>" >&2
   echo "    <action>: install, uninstall"
   echo "    <chart_name>"
   echo "    ingress, ceph-provisioners, mariadb, rabbitmq, memcached"
-  echo "    openvswitch, libvirt, keystone, glance, placement"
+  echo "    openvswitch, ovn, libvirt, keystone, glance, placement"
   echo "    neutron, nova, cinder, horizon, barbican, btx"
 
 }
@@ -43,13 +44,13 @@ install() {
   # check the group - osh-infra, osh, btx
   TAG_OPTS="--tags=openstack"
   KEY=""
-  if [ x"${path_arr[$NAME]}" = x"$OSH_INFRA_PATH" ]; then
+  if [ x"${path_arr[$NAME]}" = x"$OSH_INFRA" ]; then
     TAG_OPTS="${TAG_OPTS},osh-infra --skip-tags=osh,btx"
     KEY="osh_infra_charts"
-  elif [ x"${path_arr[$NAME]}" = x"$OSH_PATH" ]; then
+  elif [ x"${path_arr[$NAME]}" = x"$OSH" ]; then
     TAG_OPTS="${TAG_OPTS},osh --skip-tags=osh-infra,btx"
     KEY="osh_charts"
-  elif [ x"${path_arr[$NAME]}" = x"$BTX_PATH" ]; then
+  elif [ x"${path_arr[$NAME]}" = x"$BTX" ]; then
     TAG_OPTS="${TAG_OPTS},btx --skip-tags=osh-infra,osh"
     KEY="btx_charts"
   else

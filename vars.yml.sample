@@ -154,8 +154,9 @@ calico_mtu: 1500
 openstack_mtu: 1500
 
 ### neutron
-# is_ovs: set false for linuxbridge(default), set true for openvswitch 
-is_ovs: false
+# is_ovs: always true from burrito camellia release
+is_ovs: true
+is_ovn: true
 
 ### vault passwords
 ansible_password: "{{ vault_ssh_password }}"
@@ -521,14 +522,14 @@ glance_storage:
   purestorage: 'cinder'
   powerstore: 'cinder'
 glance_nginx_deploy_types:
-  ceph: 'StatefulSet'
+  ceph: 'Deployment'
   netapp: 'Deployment'
-  powerflex: 'StatefulSet'
-  hitachi: 'StatefulSet'
-  primera: 'StatefulSet'
-  lvm: 'StatefulSet'
-  purestorage: 'StatefulSet'
-  powerstore: 'StatefulSet'
+  powerflex: 'Deployment'
+  hitachi: 'Deployment'
+  primera: 'Deployment'
+  lvm: 'Deployment'
+  purestorage: 'Deployment'
+  powerstore: 'Deployment'
 glance_enabled_backends_str: "{% for s in storage_backends %}{% if s == 'netapp' %}{{ netapp_backend_names|product([glance_store_types[s]])|map('join', ':')|join(',') }}{% elif s == 'powerstore' %}{{ powerstore_backend_names|product([glance_store_types[s]])|map('join', ':')|join(',') }}{% else %}{{ s }}:{{ glance_store_types[s] }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
 
 glance:
@@ -540,12 +541,15 @@ glance:
     proxy_body_size: 0
     proxy_read_timeout: "3600"
   volume_size: "500Gi"
+  access_modes:
+    - "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
   nginx_deploy:
     type: "{{ storage_backends|map('extract', glance_nginx_deploy_types)|first }}"
     pvc:
       enabled: false
       class_name: "{{ storageclass_name }}"
-      access_modes: "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
+      access_modes:
+        - "{{ storage_backends|map('extract', pvc_access_modes_map)|first }}"
       size: "200Gi"
   pvc_nginx_client_tmp: false
 glance_job_storage_init: "{{ ('rbd' in glance.storage) | ternary(true, false) }}"
@@ -576,8 +580,6 @@ ovs_provider:
     bridge: br-ex
     iface: "{{ provider_iface_name }}"
     vlan_ranges: ""
-lb_iface_mappings:
-  - "external:{{ provider_iface_name }}"
 
 # nova
 nova_pvc_instances:
@@ -644,7 +646,7 @@ cinder_pvc_conversion:
   purestorage: false
   powerstore: false
 cinder_volume_capabilities_map:
-  ceph: []
+  ceph: ['SYS_ADMIN', 'NET_ADMIN']
   netapp: ['SYS_ADMIN', 'NET_ADMIN', 'DAC_OVERRIDE', 'DAC_READ_SEARCH']
   powerflex: ['SYS_ADMIN']
   hitachi: []
@@ -677,7 +679,7 @@ barbican:
 
 ### btx
 btx:
-  version: "2.1.0"
+  version: "3.0.0"
   pvc:
     size: "200Gi"
 

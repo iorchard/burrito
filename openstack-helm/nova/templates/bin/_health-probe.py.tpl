@@ -102,8 +102,10 @@ def check_service_status(transport):
         sys.stderr.write("Health probe caught exception sending message to"
                          " service")
         sys.exit(0)
+
     finally:
-        transport.cleanup()
+        if transport:
+            transport.cleanup()
 
 
 def tcp_socket_status(process, ports):

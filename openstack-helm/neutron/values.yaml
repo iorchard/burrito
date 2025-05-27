@@ -20,32 +20,34 @@ release_group: null
 
 images:
   tags:
-    bootstrap: docker.io/openstackhelm/heat:stein-ubuntu_bionic
+    bootstrap: quay.io/airshipit/heat:2024.1-ubuntu_jammy
     test: docker.io/xrally/xrally-openstack:2.0.0
     purge_test: docker.io/openstackhelm/ospurge:latest
-    db_init: docker.io/openstackhelm/heat:stein-ubuntu_bionic
-    neutron_db_sync: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    db_drop: docker.io/openstackhelm/heat:stein-ubuntu_bionic
-    rabbit_init: docker.io/rabbitmq:3.7-management
-    ks_user: docker.io/openstackhelm/heat:stein-ubuntu_bionic
-    ks_service: docker.io/openstackhelm/heat:stein-ubuntu_bionic
-    ks_endpoints: docker.io/openstackhelm/heat:stein-ubuntu_bionic
+    db_init: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    neutron_db_sync: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    db_drop: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    rabbit_init: docker.io/rabbitmq:3.13-management
+    ks_user: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    ks_service: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    ks_endpoints: quay.io/airshipit/heat:2024.1-ubuntu_jammy
     netoffload: ghcr.io/vexxhost/netoffload:v1.0.1
-    neutron_server: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_dhcp: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_metadata: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_ovn_metadata: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_l3: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_l2gw: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_openvswitch_agent: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_linuxbridge_agent: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_sriov_agent: docker.io/openstackhelm/neutron:stein-18.04-sriov
-    neutron_sriov_agent_init: docker.io/openstackhelm/neutron:stein-18.04-sriov
-    neutron_bagpipe_bgp: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_bgp_dragent: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_ironic_agent: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    neutron_netns_cleanup_cron: docker.io/openstackhelm/neutron:stein-ubuntu_bionic
-    dep_check: quay.io/airshipit/kubernetes-entrypoint:v1.0.0
+    neutron_server: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_rpc_server: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_dhcp: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_metadata: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_ovn_metadata: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_ovn_vpn: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_l3: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_l2gw: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_openvswitch_agent: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_linuxbridge_agent: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_sriov_agent: quay.io/airshipit/neutron:stein-18.04-sriov
+    neutron_sriov_agent_init: quay.io/airshipit/neutron:stein-18.04-sriov
+    neutron_bagpipe_bgp: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_bgp_dragent: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_ironic_agent: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    neutron_netns_cleanup_cron: quay.io/airshipit/neutron:2024.1-ubuntu_jammy
+    dep_check: quay.io/airshipit/kubernetes-entrypoint:latest-ubuntu_focal
     image_repo_sync: docker.io/docker:17.07.0
   pull_policy: "IfNotPresent"
   local_registry:
@@ -66,6 +68,9 @@ labels:
       node_selector_key: openstack-control-plane
       node_selector_value: enabled
     l2gw:
+      node_selector_key: openstack-control-plane
+      node_selector_value: enabled
+    ovn_vpn:
       node_selector_key: openstack-control-plane
       node_selector_value: enabled
   job:
@@ -91,6 +96,9 @@ labels:
     node_selector_key: openstack-compute-node
     node_selector_value: enabled
   server:
+    node_selector_key: openstack-control-plane
+    node_selector_value: enabled
+  rpc_server:
     node_selector_key: openstack-control-plane
     node_selector_value: enabled
   ironic_agent:
@@ -300,6 +308,17 @@ dependencies:
           service: compute_metadata
         - endpoint: internal
           service: network
+    ovn_vpn_agent:
+      pod:
+        - requireSameNode: true
+          labels:
+            application: ovn
+            component: ovn-controller
+      services:
+        - endpoint: internal
+          service: oslo_messaging
+        - endpoint: internal
+          service: network
     ovs_agent:
       jobs:
         - neutron-rabbit-init
@@ -318,6 +337,19 @@ dependencies:
         - neutron-db-sync
         - neutron-ks-user
         - neutron-ks-endpoints
+        - neutron-rabbit-init
+      services:
+        - endpoint: internal
+          service: oslo_db
+        - endpoint: internal
+          service: oslo_messaging
+        - endpoint: internal
+          service: oslo_cache
+        - endpoint: internal
+          service: identity
+    rpc_server:
+      jobs:
+        - neutron-db-sync
         - neutron-rabbit-init
       services:
         - endpoint: internal
@@ -394,6 +426,20 @@ pod:
           enabled: true
     metadata_agent:
       metadata_agent:
+        readiness:
+          enabled: true
+          params:
+            initialDelaySeconds: 30
+            periodSeconds: 190
+            timeoutSeconds: 185
+        liveness:
+          enabled: true
+          params:
+            initialDelaySeconds: 120
+            periodSeconds: 600
+            timeoutSeconds: 580
+    ovn_vpn_agent:
+      ovn_vpn_agent:
         readiness:
           enabled: true
           params:
@@ -485,6 +531,19 @@ pod:
             initialDelaySeconds: 60
             periodSeconds: 15
             timeoutSeconds: 10
+    rpc_server:
+      rpc_server:
+        readiness:
+          enabled: true
+          params:
+            periodSeconds: 15
+            timeoutSeconds: 10
+        liveness:
+          enabled: true
+          params:
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            timeoutSeconds: 10
   security_context:
     neutron_dhcp_agent:
       pod:
@@ -553,6 +612,13 @@ pod:
         neutron_ovn_metadata_agent_init:
           runAsUser: 0
           readOnlyRootFilesystem: true
+    ovn_vpn_agent:
+      pod:
+        runAsUser: 42424
+      container:
+        ovn_vpn_agent_init:
+          runAsUser: 0
+          readOnlyRootFilesystem: true
     neutron_ovs_agent:
       pod:
         runAsUser: 42424
@@ -583,6 +649,13 @@ pod:
           runAsUser: 0
           readOnlyRootFilesystem: false
         neutron_server:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+    neutron_rpc_server:
+      pod:
+        runAsUser: 42424
+      container:
+        neutron_rpc_server:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
     neutron_sriov_agent:
@@ -634,6 +707,11 @@ pod:
       neutron_server:
         volumeMounts:
         volumes:
+    neutron_rpc_server:
+      init_container: null
+      neutron_rpc_server:
+        volumeMounts:
+        volumes:
     neutron_dhcp_agent:
       init_container: null
       neutron_dhcp_agent:
@@ -657,6 +735,11 @@ pod:
     neutron_ovn_metadata_agent:
       init_container: null
       neutron_ovn_metadata_agent:
+        volumeMounts:
+        volumes:
+    ovn_vpn_agent:
+      init_container: null
+      ovn_vpn_agent:
         volumeMounts:
         volumes:
     neutron_ovs_agent:
@@ -714,6 +797,7 @@ pod:
         volumes:
   replicas:
     server: 1
+    rpc_server: 1
     ironic_agent: 1
   lifecycle:
     upgrades:
@@ -745,6 +829,10 @@ pod:
           enabled: true
           min_ready_seconds: 0
           max_unavailable: 1
+        ovn_vpn_agent:
+          enabled: true
+          min_ready_seconds: 0
+          max_unavailable: 1
         ovs_agent:
           enabled: true
           min_ready_seconds: 0
@@ -762,6 +850,8 @@ pod:
         min_available: 0
     termination_grace_period:
       server:
+        timeout: 30
+      rpc_server:
         timeout: 30
       ironic_agent:
         timeout: 30
@@ -797,6 +887,13 @@ pod:
           memory: "1024Mi"
           cpu: "2000m"
       ovn_metadata:
+        requests:
+          memory: "128Mi"
+          cpu: "100m"
+        limits:
+          memory: "1024Mi"
+          cpu: "2000m"
+      ovn_vpn:
         requests:
           memory: "128Mi"
           cpu: "100m"
@@ -1257,6 +1354,22 @@ conf:
       paste.app_factory: neutron.api.v2.router:APIRouter.factory
     filter:osprofiler:
       paste.filter_factory: osprofiler.web:WsgiMiddleware.factory
+  neutron_api_uwsgi:
+    uwsgi:
+      add-header: "Connection: close"
+      buffer-size: 65535
+      die-on-term: true
+      enable-threads: true
+      exit-on-reload: false
+      hook-master-start: unix_signal:15 gracefully_kill_them_all
+      lazy-apps: true
+      log-x-forwarded-for: true
+      master: true
+      procname-prefix-spaced: "neutron-api:"
+      route-user-agent: '^kube-probe.* donotlog:'
+      thunder-lock: true
+      worker-reload-mercy: 80
+      wsgi-file: /var/lib/openstack/bin/neutron-api
   policy: {}
   api_audit_map:
     DEFAULT:
@@ -1317,13 +1430,6 @@ conf:
     # INFO means log all usage
     # ERROR means only log unsuccessful attempts
     syslog_log_level=ERROR
-
-    [xenapi]
-    # XenAPI configuration is only required by the L2 agent if it is to
-    # target a XenServer/XCP compute host's dom0.
-    xenapi_connection_url=<None>
-    xenapi_connection_username=root
-    xenapi_connection_password=<None>
   rootwrap_filters:
     debug:
       pods:
@@ -1332,6 +1438,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1360,6 +1467,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1386,6 +1494,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1408,6 +1517,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1499,6 +1609,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
         - netns_cleanup_cron
@@ -1522,6 +1633,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
         - netns_cleanup_cron
@@ -1572,6 +1684,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1593,6 +1706,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1630,6 +1744,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1668,6 +1783,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
       content: |
@@ -1706,6 +1822,7 @@ conf:
         - lb_agent
         - metadata_agent
         - ovn_metadata_agent
+        - ovn_vpn_agent
         - ovs_agent
         - sriov_agent
         - netns_cleanup_cron
@@ -1850,6 +1967,8 @@ conf:
       allow_reverse_dns_lookup: true
     ironic:
       endpoint_type: internal
+      auth_type: password
+      auth_version: v3
     keystone_authtoken:
       service_token_roles: service
       service_token_roles_required: true
@@ -2007,6 +2126,14 @@ conf:
       #dhcp-option=3,10.10.10.1
       #dhcp-option-force=26,1450
 
+  neutron_vpnaas: null
+  ovn_vpn_agent:
+    DEFAULT:
+      interface_driver: openvswitch
+    vpnagent:
+      vpn_device_driver: neutron_vpnaas.services.vpn.device_drivers.ovn_ipsec.OvnStrongSwanDriver
+    ovs:
+      ovsdb_connection: unix:/run/openvswitch/db.sock
   l3_agent:
     DEFAULT:
       # (NOTE)portdirect: if unset this is populated dyanmicly from the value in
@@ -2016,6 +2143,7 @@ conf:
   metering_agent: null
   metadata_agent:
     DEFAULT:
+      log_config_append: /etc/neutron/logging.conf
       # we cannot change the proxy socket path as it is declared
       # as a hostPath volume from agent daemonsets
       metadata_proxy_socket: /var/lib/neutron/openstack-helm/metadata_proxy
@@ -2316,7 +2444,7 @@ endpoints:
         user_domain_name: default
         project_domain_name: default
       neutron:
-        role: admin
+        role: admin,service
         region_name: RegionOne
         username: neutron
         password: password
@@ -2520,8 +2648,11 @@ manifests:
   daemonset_bagpipe_bgp: false
   daemonset_bgp_dragent: false
   daemonset_netns_cleanup_cron: true
+  daemonset_ovn_metadata_agent: false
+  daemonset_ovn_vpn_agent: false
   deployment_ironic_agent: false
   deployment_server: true
+  deployment_rpc_server: true
   ingress_server: true
   job_bootstrap: true
   job_db_init: true

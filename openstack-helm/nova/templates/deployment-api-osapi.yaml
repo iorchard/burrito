@@ -57,6 +57,7 @@ spec:
 {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 8 }}
         configmap-bin-hash: {{ tuple "configmap-bin.yaml" . | include "helm-toolkit.utils.hash" }}
         configmap-etc-hash: {{ tuple "configmap-etc.yaml" . | include "helm-toolkit.utils.hash" }}
+{{ tuple "nova_api_osapi" . | include "helm-toolkit.snippets.custom_pod_annotations" | indent 8 }}
 {{ dict "envAll" $envAll "podName" "nova-api-osapi" "containerNames" (list "nova-osapi" "init") | include "helm-toolkit.snippets.kubernetes_mandatory_access_control_annotation" | indent 8 }}
     spec:
       serviceAccountName: {{ $serviceAccountName }}
@@ -107,6 +108,10 @@ spec:
             - name: nova-etc
               mountPath: /etc/nova/nova.conf
               subPath: nova.conf
+              readOnly: true
+            - name: nova-etc
+              mountPath: /etc/nova/nova-api-uwsgi.ini
+              subPath: nova-api-uwsgi.ini
               readOnly: true
             {{- if .Values.conf.nova.DEFAULT.log_config_append }}
             - name: nova-etc

@@ -103,8 +103,10 @@ def check_agent_status(transport):
         sys.stderr.write("Health probe caught exception sending message to"
                          " agent")
         sys.exit(0)
+
     finally:
-        transport.cleanup()
+        if transport:
+            transport.cleanup()
 
 
 def sriov_readiness_check():
@@ -219,10 +221,6 @@ def test_socket_liveness():
                                           required=False))
     cfg.CONF(sys.argv[1:])
 
-    if "ovn_metadata_agent.ini" not in ','.join(sys.argv):
-        agentq = "metadata_agent"
-        tcp_socket_state_check(agentq)
-
     try:
         metadata_proxy_socket = cfg.CONF.metadata_proxy_socket
     except cfg.NoSuchOptError:
@@ -246,8 +244,8 @@ def test_socket_liveness():
               "Neutron Metadata agent: "
         if se.strerror:
             sys.stderr.write(msg + se.strerror)
-        elif getattr(se, "message", False):
-            sys.stderr.write(msg + se.message)
+        else:
+            sys.stderr.write(msg + getattr(se, "message"))
         sys.exit(1)  # return failure
     except Exception as ex:
         message = getattr(ex, "message", str(ex))
@@ -317,16 +315,20 @@ if __name__ == "__main__":
     data = {}
     if os.path.isfile(pidfile):
         with open(pidfile,'r') as f:
-            data = json.load(f)
-        if check_pid_running(data['pid']):
-            if data['exit_count'] > 1:
-                # Third time in, kill the previous process
-                os.kill(int(data['pid']), signal.SIGTERM)
-            else:
-                data['exit_count'] = data['exit_count'] + 1
-                with open(pidfile, 'w') as f:
-                    json.dump(data, f)
-                sys.exit(0)
+            file_content = f.read().strip()
+            if file_content:
+                data = json.loads(file_content)
+
+    if 'pid' in data and check_pid_running(data['pid']):
+        if 'exit_count' in data and data['exit_count'] > 1:
+            # Third time in, kill the previous process
+            os.kill(int(data['pid']), signal.SIGTERM)
+        else:
+            data['exit_count'] = data.get('exit_count', 0) + 1
+            with open(pidfile, 'w') as f:
+                json.dump(data, f)
+            sys.exit(0)
+
     data['pid'] = os.getpid()
     data['exit_count'] = 0
     with open(pidfile, 'w') as f:
