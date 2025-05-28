@@ -1,7 +1,7 @@
 ---
 registry_conf_dir: "/etc/containers/registries.conf.d"
 quay_image_repo: "quay.io"
-ceph_version: "v19.2.1"
+ceph_version: "v19.2.2"
 ceph_conf_dir: "/etc/ceph"
 ceph_ssh_config: "{{ ceph_conf_dir }}/ssh_config"
 ceph_bootstrap_templates:
