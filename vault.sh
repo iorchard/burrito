@@ -6,13 +6,14 @@ if [ -f .vaultpass ]; then
   echo "Error: .vaultpass file exists. Remove it first."
   exit 1
 fi
-CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
+CURRENT_DIR=$(dirname "$(readlink -f "$0")")
 VAULTFILE="${CURRENT_DIR}/group_vars/all/vault.yml"
+NOVA_SSH_KEY="/tmp/nova_sshkey"
 PASSLENGTH=12
 COMP="A-Za-z0-9"
 
 # Create vault file
-mkdir -p ${CURRENT_DIR}/group_vars/all
+mkdir -p $(dirname "${VAULTFILE}")
 read -s -p "$USER password: " USERPASS; echo ""
 read -s -p 'openstack admin password: ' OS_ADMIN_PASS; echo ""
 MARIADB_ROOT_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
@@ -27,6 +28,7 @@ CINDER_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 HORIZON_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 BARBICAN_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 BARBICAN_KEK=$(head /dev/urandom |tr -dc ${COMP} |head -c 32)
+ssh-keygen -f ${NOVA_SSH_KEY} -C 'nova-ssh-public-key' -N '' &> /dev/null
 
 echo "---" > $VAULTFILE
 echo "vault_ssh_password: '$USERPASS'" >> $VAULTFILE
@@ -46,7 +48,13 @@ echo "vault_barbican_password: '$BARBICAN_PASS'" >> $VAULTFILE
 echo "vault_barbican_kek: '$BARBICAN_KEK'" >> $VAULTFILE
 echo "vault_pfx_admin_password: '$OS_ADMIN_PASS'" >> $VAULTFILE
 echo "vault_pfx_lia_token: '$OS_ADMIN_PASS'" >> $VAULTFILE
+echo "vault_nova_ssh_private_key: >-" >> $VAULTFILE
+sed 's/^/  /g' ${NOVA_SSH_KEY} >> $VAULTFILE
+echo "vault_nova_ssh_public_key: >-" >> $VAULTFILE
+sed 's/^/  /g' ${NOVA_SSH_KEY}.pub >> $VAULTFILE
 echo -n "..." >> $VAULTFILE
+rm -f ${NOVA_SSH_KEY} ${NOVA_SSH_KEY}.pub
+
 head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH} > .vaultpass
 chmod 0400 .vaultpass
 sudo chattr +i .vaultpass
