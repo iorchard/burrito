@@ -94,16 +94,21 @@ FLAGS="${FLAGS} $@"
 if type -p helm &>/dev/null; then
   HELMDIFF="1"
 fi
-if [[ -n "${HELMDIFF}" && -n "${OFFLINE_VARS}" ]]; then
+if [[ -n "${HELMDIFF}" ]]; then
   if ! (sudo helm plugin list | grep -q ^diff); then
-    # install helm diff plugin
-    HELM_DIFF_TARBALL="/mnt/files/github.com/databus23/helm-diff/releases/download/*/helm-diff-linux-amd64.tgz"
-    HELM_PLUGINS=$(sudo helm env | grep HELM_PLUGINS |cut -d'"' -f2)
-    sudo mkdir -p ${HELM_PLUGINS}
-    sudo tar -C ${HELM_PLUGINS} -xzf ${HELM_DIFF_TARBALL}
-    sudo chown -R root:root ${HELM_PLUGINS}
-    sudo helm plugin list
+    if [[ -n "${OFFLINE_VARS}" ]]; then
+      # install helm diff plugin
+      HELM_DIFF_TARBALL="/mnt/files/github.com/databus23/helm-diff/releases/download/*/helm-diff-linux-amd64.tgz"
+      HELM_PLUGINS=$(sudo helm env | grep HELM_PLUGINS |cut -d'"' -f2)
+      sudo mkdir -p ${HELM_PLUGINS}
+      sudo tar -C ${HELM_PLUGINS} -xzf ${HELM_DIFF_TARBALL}
+      sudo chown -R root:root ${HELM_PLUGINS}
+    else
+      # install helm diff plugin
+      sudo helm plugin install https://github.com/databus23/helm-diff
+    fi
   fi
+  sudo helm plugin list
 fi
 
 . ~/.envs/burrito/bin/activate
