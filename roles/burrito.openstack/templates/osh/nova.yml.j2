@@ -57,6 +57,13 @@ network:
     node_port:
       enabled: true
       port: 30608
+  ssh:
+    enabled: {{ nova.ssh.enabled }}
+    port: {{ nova.ssh.port }}
+    from_subnet: {{ nova.ssh.from_subnet }}
+    private_key: {{ nova.ssh.private_key }}
+    public_key: {{ nova.ssh.public_key }}
+
 console:
   console_kind: novnc
   novnc:
