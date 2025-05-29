@@ -370,6 +370,11 @@ calico_pool_blocksize: "{{ kube_network_node_prefix }}"
 # override nodeSelector of calico-kube-controllers
 calico_policy_controller_deployment_nodeselector: 'node-role.kubernetes.io/control-plane: ""'
 
+## coredns
+# default is 'kubernetes.io/os: linux' but we override it to run coredns 
+# pods in control plane nodes.
+coredns_deployment_nodeselector: 'node-role.kubernetes.io/control-plane: ""'
+
 ## etcd patch variables
 # etcd_nice is a nice value from -20(most favorable) to 19(least favorable).
 etcd_nice: -10
