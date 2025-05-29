@@ -345,7 +345,7 @@ kubelet_seccomp_default: true
 kubelet_systemd_hardening: true
 kubelet_secure_addresses: "localhost link-local {{ kube_pods_subnet }} {{ keepalived_vip }} {{ kube_node_addresses }}"
 kubelet_csr_approver_repository_url: https://postfinance.github.io/kubelet-csr-approver
-kubelet_csr_approver_chart_version: 1.0.6
+kubelet_csr_approver_chart_version: 1.2.5
 kubelet_csr_approver_values:
   image:
     repository: "{{ docker_image_repo }}/postfinance/kubelet-csr-approver"
@@ -608,6 +608,13 @@ nova:
   password: "{{ vault_nova_password }}"
   volume_size: "500Gi"
   pvc_instances: "{{ storage_backends|map('extract', nova_pvc_instances)|list|first }}"
+  ssh:
+    enabled: true
+    port: 8022
+    from_subnet: "{{ ntp_allowed_cidr }}"
+    private_key: "{{ vault_nova_ssh_private_key }}"
+    public_key: "{{ vault_nova_ssh_public_key }}"
+
 
 # nova_compute_sshkey_copy
 nova_uid: 42424
@@ -646,7 +653,7 @@ cinder_pvc_conversion:
   purestorage: false
   powerstore: false
 cinder_volume_capabilities_map:
-  ceph: ['SYS_ADMIN', 'NET_ADMIN']
+  ceph: ['SYS_ADMIN', 'NET_ADMIN', 'DAC_OVERRIDE', 'DAC_READ_SEARCH']
   netapp: ['SYS_ADMIN', 'NET_ADMIN', 'DAC_OVERRIDE', 'DAC_READ_SEARCH']
   powerflex: ['SYS_ADMIN']
   hitachi: []
@@ -684,7 +691,7 @@ btx:
     size: "200Gi"
 
 ### dasel binary - used by k8spatch.
-dasel_version: v2.5.0
+dasel_version: v2.8.1
 dasel_download_url: "https://github.com/TomWright/dasel/releases/download/{{ dasel_version }}/dasel_linux_amd64"
 ### Dell/EMC PowerStore dellfcopy binary download url
 # If you want to use Dell/EMC PowerStore NFS backend, 
