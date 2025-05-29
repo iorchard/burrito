@@ -69,12 +69,6 @@
   delegate_to: localhost
   run_once: true
 
-- name: OpenStack | add openvswitch to osh_infra_charts if neutron_ml2_plugin is ovs
-  ansible.builtin.set_fact:
-    osh_infra_charts: "{{ is_ovs|ternary(osh_infra_charts|union(['openvswitch']), osh_infra_charts) }}"
-  delegate_to: localhost
-  run_once: true
-
 - name: OpenStack | add ovn to osh_infra_charts if neutron_ml2_plugin is ovn
   ansible.builtin.set_fact:
     osh_infra_charts: "{{ is_ovn|ternary(osh_infra_charts|union(['ovn']), osh_infra_charts) }}"

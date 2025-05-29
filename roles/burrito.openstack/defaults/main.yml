@@ -57,7 +57,6 @@ placement:
   password: ~
 
 ## neutron
-is_ovs: true
 neutron:
   tunnel: ~
   tunnel_compute: ~
@@ -108,8 +107,6 @@ btx:
   pvc:
     size: "20Gi"
 
-# openvswitch chart will be added dynamically if neutron_ml2_plugin == ovs.
-# See "OpenStack | add openvswitch to osh_infra_charts" task
 # ceph-provisioners chart will be added if "ceph" in storage_backends.
 # See "OpenStack | add ceph-provisioners to osh_infra_charts" task
 is_ceph: "{{ 'ceph' in storage_backends }}"
@@ -118,6 +115,7 @@ osh_infra_charts:
   - mariadb
   - rabbitmq
   - memcached
+  - openvswitch
   - libvirt
 
 osh_charts:
