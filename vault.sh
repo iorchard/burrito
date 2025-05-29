@@ -48,9 +48,9 @@ echo "vault_barbican_password: '$BARBICAN_PASS'" >> $VAULTFILE
 echo "vault_barbican_kek: '$BARBICAN_KEK'" >> $VAULTFILE
 echo "vault_pfx_admin_password: '$OS_ADMIN_PASS'" >> $VAULTFILE
 echo "vault_pfx_lia_token: '$OS_ADMIN_PASS'" >> $VAULTFILE
-echo "vault_nova_ssh_private_key: >-" >> $VAULTFILE
+echo "vault_nova_ssh_private_key: |" >> $VAULTFILE
 sed 's/^/  /g' ${NOVA_SSH_KEY} >> $VAULTFILE
-echo "vault_nova_ssh_public_key: >-" >> $VAULTFILE
+echo "vault_nova_ssh_public_key: >" >> $VAULTFILE
 sed 's/^/  /g' ${NOVA_SSH_KEY}.pub >> $VAULTFILE
 echo -n "..." >> $VAULTFILE
 rm -f ${NOVA_SSH_KEY} ${NOVA_SSH_KEY}.pub

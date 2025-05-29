@@ -61,8 +61,10 @@ network:
     enabled: {{ nova.ssh.enabled }}
     port: {{ nova.ssh.port }}
     from_subnet: {{ nova.ssh.from_subnet }}
-    private_key: {{ nova.ssh.private_key }}
-    public_key: {{ nova.ssh.public_key }}
+    private_key: |
+{{ nova.ssh.private_key|indent(6, true) }}
+    public_key: >
+{{ nova.ssh.public_key|indent(6, true) }}
 
 console:
   console_kind: novnc
