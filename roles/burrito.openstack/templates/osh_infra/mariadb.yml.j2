@@ -25,9 +25,6 @@ volume:
   enabled: true
   class_name: {{ storageclass_name }}
   size: {{ mariadb.volume_size }}
-  backup:
-    class_name: {{ storageclass_name }}
-    size: {{ mariadb.volume_backup_size }}
 
 endpoints:
   oslo_db:
