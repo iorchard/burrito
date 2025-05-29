@@ -41,7 +41,7 @@ function start () {
           --remote=punix:${OVS_SOCKET} \
           --remote=db:Open_vSwitch,Open_vSwitch,manager_options \
 {{- if .Values.conf.openvswitch_db_server.ptcp_port }}
-          --remote=ptcp:127.0.0.1:{{ .Values.conf.openvswitch_db_server.ptcp_port }} \
+          --remote=ptcp:{{ .Values.conf.openvswitch_db_server.ptcp_port }}:127.0.0.1 \
 {{- end }}
           --private-key=db:Open_vSwitch,SSL,private_key \
           --certificate=db:Open_vSwitch,SSL,certificate \
