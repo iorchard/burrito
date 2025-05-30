@@ -14,4 +14,4 @@ https://github.com/opencontainers/runc/releases/download/v1.2.6/runc.amd64
 https://github.com/projectcalico/calico/archive/v3.29.3.tar.gz
 https://github.com/projectcalico/calico/releases/download/v3.29.3/calicoctl-linux-amd64
 https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_amd64
-https://postfinance.github.io/kubelet-csr-approver/kubelet-csr-approver-1.2.5.tgz
+https://postfinance.github.io/kubelet-csr-approver/kubelet-csr-approver-1.2.10.tgz

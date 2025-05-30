@@ -20,7 +20,7 @@ docker.io/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.2-1-20250414
 docker.io/openstackhelm/libvirt:2024.1-ubuntu_jammy-20250510
 docker.io/openstackhelm/openvswitch:ubuntu_jammy-20250426
 docker.io/openstackhelm/ovn:ubuntu_jammy-20250426
-docker.io/postfinance/kubelet-csr-approver:v1.2.5
+docker.io/postfinance/kubelet-csr-approver:v1.2.10
 quay.io/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy
 quay.io/calico/cni:v3.29.3
 quay.io/calico/kube-controllers:v3.29.3
