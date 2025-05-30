@@ -345,7 +345,7 @@ kubelet_seccomp_default: true
 kubelet_systemd_hardening: true
 kubelet_secure_addresses: "localhost link-local {{ kube_pods_subnet }} {{ keepalived_vip }} {{ kube_node_addresses }}"
 kubelet_csr_approver_repository_url: https://postfinance.github.io/kubelet-csr-approver
-kubelet_csr_approver_chart_version: 1.2.5
+kubelet_csr_approver_chart_version: 1.2.10
 kubelet_csr_approver_values:
   image:
     repository: "{{ docker_image_repo }}/postfinance/kubelet-csr-approver"
