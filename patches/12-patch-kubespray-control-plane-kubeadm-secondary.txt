@@ -1,14 +1,17 @@
---- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2025-01-31 13:59:14.989046108 +0900
-+++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2025-02-03 16:23:39.179263415 +0900
-@@ -84,6 +84,7 @@
-     - kubeadm_use_file_discovery
-     - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
- 
-+
- - name: Joining control plane node to the cluster.
-   command: >-
-     {{ bin_dir }}/kubeadm join
-@@ -99,3 +100,24 @@
+--- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2025-06-02 17:00:58.576582970 +0900
++++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2025-06-02 17:07:22.478085354 +0900
+@@ -36,7 +36,9 @@
+     dest: "{{ kube_config_dir }}/kubeadm-controlplane.yaml"
+     mode: "0640"
+     backup: true
+-    validate: "{{ kubeadm_config_validate_enabled | ternary(bin_dir + '/kubeadm config validate --config %s', omit) }}"
++    # HC: cannot add validate since cluster-info-discovery-kubeconfig.yaml
++    # is not created yet.
++    # validate: "{{ bin_dir }}/kubeadm config validate --config %s"
+   when:
+     - inventory_hostname != first_kube_control_plane
+     - not kubeadm_already_run.stat.exists
+@@ -99,3 +101,24 @@
    when:
      - inventory_hostname != first_kube_control_plane
      - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists
