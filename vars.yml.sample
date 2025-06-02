@@ -246,8 +246,6 @@ ceph_keys: "{% if enable_cinder_backup %}{{ ceph_basic_keys + [ceph_cinder_backu
 pod:
   replicas: "{{ (groups['kube_control_plane']|length<2)|ternary(1, 2) }}"
   quorum_replicas: "{{ (groups['kube_control_plane']|length<3) |ternary(1, 3) }}"
-# disable anonymous access
-remove_anonymous_access: true
 # enable metrics server
 metrics_server_enabled: true
 # The default upstream dns servers in containers.
@@ -261,7 +259,7 @@ quay_image_repo: "quay.io"
 download_run_once: false
 # Override bin_dir to mitigate the conflict with ceph in HCI architecture.
 bin_dir: /usr/sbin
-kube_version: v1.32.0
+kube_version: 1.32.5
 kube_proxy_strict_arp: true
 kubeconfig_localhost: true
 kubectl_localhost: true
@@ -360,7 +358,7 @@ kube_pod_security_use_default: true
 kube_pod_security_default_enforce: restricted
 
 ## calico
-calico_version: "v3.29.1"
+calico_version: 3.29.3
 calico_network_backend: bird
 calico_ipip_mode: 'Never'
 calico_vxlan_mode: 'Never'
