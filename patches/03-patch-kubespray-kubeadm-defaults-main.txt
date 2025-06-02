@@ -1,5 +1,5 @@
---- kubespray/roles/kubernetes/kubeadm/defaults/main.yml	2023-09-18 18:10:45.088000000 +0900
-+++ patches/kubespray/roles/kubernetes/kubeadm/defaults/main.yml	2023-09-18 18:42:03.431000000 +0900
+--- kubespray/roles/kubernetes/kubeadm/defaults/main.yml	2025-06-02 14:26:14.020043359 +0900
++++ patches/kubespray/roles/kubernetes/kubeadm/defaults/main.yml	2025-06-02 18:14:37.944343165 +0900
 @@ -1,4 +1,9 @@
  ---
 +# discovery_type: token(default) or file
