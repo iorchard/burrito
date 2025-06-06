@@ -120,13 +120,6 @@ else:
 if check_env_var("MYSQL_DBAUDIT_PASSWORD"):
     mysql_dbaudit_password = os.environ['MYSQL_DBAUDIT_PASSWORD']
 
-if check_env_var("MYSQL_ACL_CIDR"):
-    mysql_acl_cidr = "{0}/{1}".format(
-        IPv4Network(os.environ['MYSQL_ACL_CIDR']).network_address,
-        IPv4Network(os.environ['MYSQL_ACL_CIDR']).netmask)
-else:
-    mysql_acl_cidr = "%"
-
 mysql_x509 = os.getenv('MARIADB_X509', "")
 MYSQL_SSL_CMD_OPTS=["--ssl-verify-server-cert=false",
                     "--ssl-ca=/etc/mysql/certs/ca.crt",
@@ -333,15 +326,30 @@ def mysqld_bootstrap():
             MYSQL_BINARY_INSTALL_DB, '--user=mysql',
             "--datadir={0}".format(mysql_data_dir)
         ], logger)
+        acl_tmpl = ()
+        if os.environ['MYSQL_ACL_CIDR'] == '%':
+            mysql_acl_cidr = '%'
+            acl_tmpl = (
+                "CREATE OR REPLACE USER '{0}'@'{3}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
+                "GRANT ALL ON *.* TO '{0}'@'{3}' {2} WITH GRANT OPTION; \n"
+                .format(mysql_dbadmin_username, mysql_dbadmin_password, mysql_x509, mysql_acl_cidr),)
+        else:
+            for acl in os.environ['MYSQL_ACL_CIDR'].split(','):
+                mysql_acl_cidr = "{0}/{1}".format(
+                    IPv4Network(acl).network_address,
+                    IPv4Network(acl).netmask)
+                acl_tmpl += (
+                    "CREATE OR REPLACE USER '{0}'@'{3}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
+                    "GRANT ALL ON *.* TO '{0}'@'{3}' {2} WITH GRANT OPTION; \n"
+                    .format(mysql_dbadmin_username, mysql_dbadmin_password, mysql_x509, mysql_acl_cidr),)
         if not mysql_dbaudit_username:
             template = (
                 # NOTE: since mariadb 10.4.13 definer of view
                 # mysql.user is not root but mariadb.sys user
                 # it is safe not to remove it because the account by default
                 # is locked and cannot login
-                "DELETE FROM mysql.user WHERE user != 'mariadb.sys' ;\n"  # nosec
-                "CREATE OR REPLACE USER '{0}'@'{5}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
-                "GRANT ALL ON *.* TO '{0}'@'{5}' {4} WITH GRANT OPTION; \n"
+                "DELETE FROM mysql.user WHERE user != 'mariadb.sys' ;\n", 
+                ''.join(acl_tmpl),
                 "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {4} WITH GRANT OPTION; \n"
                 "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
@@ -353,29 +361,29 @@ def mysqld_bootstrap():
                 "FLUSH PRIVILEGES ;\n"
                 "SHUTDOWN ;".format(mysql_dbadmin_username, mysql_dbadmin_password,
                                     mysql_dbsst_username, mysql_dbsst_password,
-                                    mysql_x509, mysql_acl_cidr))
+                                    mysql_x509))
         else:
+            acl_tmpl += (
+                "CREATE OR REPLACE USER '{0}'@'{3}' IDENTIFIED VIA ed25519 USING PASSWORD('{1}');\n"
+                "GRANT SELECT ON *.* TO '{0}'@'{3}' {2};\n"
+                .format(mysql_dbaudit_username, mysql_dbaudit_password, mysql_x509, mysql_acl_cidr),)
             template = (
-                "DELETE FROM mysql.user WHERE user != 'mariadb.sys' ;\n"  # nosec
-                "CREATE OR REPLACE USER '{0}'@'{7}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
-                "GRANT ALL ON *.* TO '{0}'@'{7}' {6} WITH GRANT OPTION;\n"
+                "DELETE FROM mysql.user WHERE user != 'mariadb.sys' ;\n",
+                ''.join(acl_tmpl),
                 "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
-                "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {6} WITH GRANT OPTION;\n"
+                "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {4} WITH GRANT OPTION;\n"
                 "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
-                "GRANT ALL ON *.* TO '{0}'@'localhost' {6} WITH GRANT OPTION;\n"
+                "GRANT ALL ON *.* TO '{0}'@'localhost' {4} WITH GRANT OPTION;\n"
                 "DROP DATABASE IF EXISTS test ;\n"
                 "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD('{3}');\n"
                 "GRANT PROCESS, RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO '{2}'@'127.0.0.1' ;\n"
-                "CREATE OR REPLACE USER '{4}'@'{7}' IDENTIFIED VIA ed25519 USING PASSWORD('{5}');\n"
-                "GRANT SELECT ON *.* TO '{4}'@'{7}' {6};\n"
                 "FLUSH PRIVILEGES ;\n"
                 "SHUTDOWN ;".format(mysql_dbadmin_username, mysql_dbadmin_password,
                                     mysql_dbsst_username, mysql_dbsst_password,
-                                    mysql_dbaudit_username, mysql_dbaudit_password,
-                                    mysql_x509, mysql_acl_cidr))
+                                    mysql_x509))
         bootstrap_sql_file = tempfile.NamedTemporaryFile(suffix='.sql').name
         with open(bootstrap_sql_file, 'w') as f:
-            f.write(template)
+            f.write(''.join(template))
             f.close()
         run_cmd_with_logging([
             MYSQL_BINARY_NAME, '--user=mysql', '--bind-address=127.0.0.1',
@@ -904,10 +912,26 @@ def run_mysqld(cluster='existing'):
     db_test_dir = "{0}/mysql".format(mysql_data_dir)
     if os.path.isdir(db_test_dir):
         logger.info("Setting the admin passwords to the current value and upgrade mysql if needed")
+        acl_tmpl = ()
+        if os.environ['MYSQL_ACL_CIDR'] == '%':
+            mysql_acl_cidr = '%'
+            acl_tmpl = (
+                "CREATE OR REPLACE USER '{0}'@'{3}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
+                "GRANT ALL ON *.* TO '{0}'@'{3}' {2} WITH GRANT OPTION; \n"
+                .format(mysql_dbadmin_username, mysql_dbadmin_password, mysql_x509, mysql_acl_cidr),)
+        else:
+            for acl in os.environ['MYSQL_ACL_CIDR'].split(','):
+                mysql_acl_cidr = "{0}/{1}".format(
+                    IPv4Network(acl).network_address,
+                    IPv4Network(acl).netmask)
+                acl_tmpl += (
+                    "CREATE OR REPLACE USER '{0}'@'{3}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
+                    "GRANT ALL ON *.* TO '{0}'@'{3}' {2} WITH GRANT OPTION; \n"
+                    .format(mysql_dbadmin_username, mysql_dbadmin_password, mysql_x509, mysql_acl_cidr),)
+
         if not mysql_dbaudit_username:
             template = (
-                "CREATE OR REPLACE USER '{0}'@'{5}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
-                "GRANT ALL ON *.* TO '{0}'@'{5}' {4} WITH GRANT OPTION ;\n"
+                ''.join(acl_tmpl),
                 "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
                 "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {4} WITH GRANT OPTION ;\n"
                 "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
@@ -916,26 +940,26 @@ def run_mysqld(cluster='existing'):
                 "GRANT PROCESS, RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO '{2}'@'127.0.0.1' ;\n"
                 "FLUSH PRIVILEGES ;".format(mysql_dbadmin_username, mysql_dbadmin_password,
                                     mysql_dbsst_username, mysql_dbsst_password,
-                                    mysql_x509, mysql_acl_cidr))
+                                    mysql_x509))
         else:
+            acl_tmpl += (
+                "CREATE OR REPLACE USER '{0}'@'{3}' IDENTIFIED VIA ed25519 USING PASSWORD('{1}');\n"
+                "GRANT SELECT ON *.* TO '{0}'@'{3}' {2};\n"
+                .format(mysql_dbaudit_username, mysql_dbaudit_password, mysql_x509, mysql_acl_cidr),)
             template = (
-                "CREATE OR REPLACE USER '{0}'@'{7}' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
-                "GRANT ALL ON *.* TO '{0}'@'{7}' {6} WITH GRANT OPTION ;\n"
+                ''.join(acl_tmpl),
                 "CREATE OR REPLACE USER '{0}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
-                "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {6} WITH GRANT OPTION ;\n"
+                "GRANT ALL ON *.* TO '{0}'@'127.0.0.1' {4} WITH GRANT OPTION ;\n"
                 "CREATE OR REPLACE USER '{0}'@'localhost' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\');\n"
-                "GRANT ALL ON *.* TO '{0}'@'localhost' {6} WITH GRANT OPTION ;\n"
+                "GRANT ALL ON *.* TO '{0}'@'localhost' {4} WITH GRANT OPTION ;\n"
                 "CREATE OR REPLACE USER '{2}'@'127.0.0.1' IDENTIFIED VIA ed25519 USING PASSWORD('{3}');\n"
                 "GRANT PROCESS, RELOAD, LOCK TABLES, REPLICATION CLIENT ON *.* TO '{2}'@'127.0.0.1' ;\n"
-                "CREATE OR REPLACE USER '{4}'@'{7}' IDENTIFIED VIA ed25519 USING PASSWORD('{5}');\n"
-                "GRANT SELECT ON *.* TO '{4}'@'{7}' {6};\n"
                 "FLUSH PRIVILEGES ;".format(mysql_dbadmin_username, mysql_dbadmin_password,
                                     mysql_dbsst_username, mysql_dbsst_password,
-                                    mysql_dbaudit_username, mysql_dbaudit_password,
-                                    mysql_x509, mysql_acl_cidr))
+                                    mysql_x509))
         bootstrap_sql_file = tempfile.NamedTemporaryFile(suffix='.sql').name
         with open(bootstrap_sql_file, 'w') as f:
-            f.write(template)
+            f.write(''.join(template))
             f.close()
         run_cmd_with_logging_thread = threading.Thread(target=run_cmd_with_logging, args=([
             MYSQL_BINARY_NAME, '--bind-address=127.0.0.1', '--wsrep-on=false',

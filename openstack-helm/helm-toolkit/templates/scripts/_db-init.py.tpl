@@ -47,14 +47,6 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
-# Get the MYSQL_ACL_CIDR to set the ACL
-if "MYSQL_ACL_CIDR" in os.environ:
-    mysql_acl_cidr = "{0}/{1}".format(
-        IPv4Network(os.environ['MYSQL_ACL_CIDR']).network_address,
-        IPv4Network(os.environ['MYSQL_ACL_CIDR']).netmask)
-else:
-    mysql_acl_cidr = "%"
-
 # Get the connection string for the service db root user
 if "ROOT_DB_CONNECTION" in os.environ:
     db_connection = os.environ['ROOT_DB_CONNECTION']
@@ -147,11 +139,23 @@ except:
 # Create DB User
 try:
     with root_engine.connect() as connection:
-        connection.execute(
-            text("CREATE USER IF NOT EXISTS \'{0}\'@\'{3}\' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\') {2}".format(
-                user, password, mysql_x509, mysql_acl_cidr)))
-        connection.execute(
-            text("GRANT ALL ON `{0}`.* TO \'{1}\'@\'{2}\'".format(database, user, mysql_acl_cidr)))
+        if os.environ['MYSQL_ACL_CIDR'] == '%':
+            mysql_acl_cidr = '%'
+            connection.execute(
+                text("CREATE USER IF NOT EXISTS \'{0}\'@\'{3}\' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\') {2}".format(
+                    user, password, mysql_x509, mysql_acl_cidr)))
+            connection.execute(
+                text("GRANT ALL ON `{0}`.* TO \'{1}\'@\'{2}\'".format(database, user, mysql_acl_cidr)))
+        else:
+            for acl in os.environ['MYSQL_ACL_CIDR'].split(','):
+                mysql_acl_cidr = "{0}/{1}".format(
+                    IPv4Network(acl).network_address,
+                    IPv4Network(acl).netmask)
+                connection.execute(
+                    text("CREATE USER IF NOT EXISTS \'{0}\'@\'{3}\' IDENTIFIED VIA ed25519 USING PASSWORD(\'{1}\') {2}".format(
+                        user, password, mysql_x509, mysql_acl_cidr)))
+                connection.execute(
+                    text("GRANT ALL ON `{0}`.* TO \'{1}\'@\'{2}\'".format(database, user, mysql_acl_cidr)))
         try:
             connection.commit()
         except AttributeError:
