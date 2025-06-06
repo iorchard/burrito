@@ -27,6 +27,10 @@ volume:
   size: {{ mariadb.volume_size }}
 
 endpoints:
+  local_image_registry: null
+  monitoring: null
+  prometheus_mysql_exporter: null
+  identity: null
   oslo_db:
     host_fqdn_override:
       default:
@@ -48,14 +52,62 @@ monitoring:
       scrape: false
 conf:
   backup:
-    enabled: true
+    enabled: false
     days_to_keep: 7
   db_acl:
     enabled: true
-    cidr: {{ kube_pods_subnet }}
+    cidr: "{{ kube_pods_subnet }},{{ ntp_allowed_cidr }},{{ svc_cidr }}"
+
+network_policy:
+  mariadb:
+    egress: null
+    ingress:
+      - from:
+        - podSelector:
+            matchLabels:
+              application: mariadb
+        - podSelector:
+            matchLabels:
+              application: keystone
+        - podSelector:
+            matchLabels:
+              application: placement
+        - podSelector:
+            matchLabels:
+              application: glance
+        - podSelector:
+            matchLabels:
+              application: cinder
+        - podSelector:
+            matchLabels:
+              application: nova
+        - podSelector:
+            matchLabels:
+              application: neutron
+        - podSelector:
+            matchLabels:
+              application: horizon
+        - podSelector:
+            matchLabels:
+              application: barbican
+        - podSelector:
+            matchLabels:
+              application: btx
+        ports:
+          - protocol: TCP
+            port: 3306
+          - protocol: TCP
+            port: 4444
+          - protocol: TCP
+            port: 4567
+          - protocol: TCP
+            port: 4568
+  prometheus-mysql-exporter: null
+
 manifests:
   certificates: true
   cron_job_mariadb_backup: false
   job_ks_user: false
   pvc_backup: false
+  network_policy: true
 ...
