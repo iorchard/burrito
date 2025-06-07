@@ -24,10 +24,14 @@ ingress:
 ceph_public_network: ~
 ceph_cluster_network: ~
 
-## mariadba
+## mariadb
 mariadb:
   volume_size: "30Gi"
   admin_password: ~
+db_acl_cidrs:
+  - "{{ kube_pods_subnet }}"
+  - "{{ ntp_allowed_cidr }}"
+  - "{{ svc_cidr }}"
 
 ## rabbitmq
 rabbitmq:

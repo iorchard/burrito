@@ -51,10 +51,6 @@ monitoring:
     mysqld_exporter:
       scrape: false
 
-db_acl_cidrs:
-  - "{{ kube_pods_subnet }}"
-  - "{{ ntp_allowed_cidr }}"
-  - "{{ svc_cidr }}"
 conf:
   backup:
     enabled: false
