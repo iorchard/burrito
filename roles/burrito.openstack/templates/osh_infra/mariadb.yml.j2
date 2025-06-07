@@ -50,13 +50,18 @@ monitoring:
     enabled: false
     mysqld_exporter:
       scrape: false
+
+db_acl_cidrs:
+  - "{{ kube_pods_subnet }}"
+  - "{{ ntp_allowed_cidr }}"
+  - "{{ svc_cidr }}"
 conf:
   backup:
     enabled: false
     days_to_keep: 7
   db_acl:
     enabled: true
-    cidr: "{{ kube_pods_subnet }},{{ ntp_allowed_cidr }},{{ svc_cidr }}"
+    cidr: "{{ db_acl_cidrs|ansible.builtin.unique|join(',') }}"
 
 network_policy:
   mariadb:
