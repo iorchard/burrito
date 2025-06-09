@@ -15,6 +15,7 @@ images:
     neutron_dhcp: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_metadata: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_ovn_metadata: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
+    neutron_ovn_db_sync: "{{ docker_image_repo }}/openstackhelm/neutron:2024.1-ubuntu_jammy"
     neutron_ovn_vpn: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_l3: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
     neutron_l2gw: "{{ docker_image_repo }}/jijisa/neutron:2024.1-ubuntu_jammy"
@@ -304,6 +305,7 @@ endpoints:
 
 manifests:
   certificates: true
+  cron_job_ovn_db_sync: true
   daemonset_dhcp_agent: false
   daemonset_l3_agent: false
   daemonset_lb_agent: false
