@@ -66,10 +66,10 @@ kube_node
 node_labels={"openstack-control-plane":"enabled"}
 
 [network-node:vars]
-node_labels={"openstack-network-plane":"enabled", "openstack-network-dvr":"enabled", "linuxbridge":"enabled", "openvswitch":"enabled"}
+node_labels={"openstack-network-plane":"enabled"}
 
 [compute-node:vars]
-node_labels={"openstack-compute-node":"enabled", "openstack-network-dvr":"enabled", "linuxbridge":"enabled", "openvswitch":"enabled"}
+node_labels={"openstack-compute-node":"enabled", "openvswitch":"enabled"}
 
 # powerflex nodes
 [mdm]
