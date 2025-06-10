@@ -111,15 +111,17 @@ btx:
   pvc:
     size: "20Gi"
 
-# ceph-provisioners chart will be added if "ceph" in storage_backends.
-# See "OpenStack | add ceph-provisioners to osh_infra_charts" task
+# ceph-provisioners chart will be removed if ceph not in storage_backends.
+# See "OpenStack | remove ceph-provisioners from osh_infra_charts" task
 is_ceph: "{{ 'ceph' in storage_backends }}"
 osh_infra_charts:
   - ingress
+  - ceph-provisioners
   - mariadb
   - rabbitmq
   - memcached
   - openvswitch
+  - ovn
   - libvirt
 
 osh_charts:
@@ -130,6 +132,7 @@ osh_charts:
   - glance
   - cinder
   - horizon
+  - barbican
 
 btx_charts:
   - btx
