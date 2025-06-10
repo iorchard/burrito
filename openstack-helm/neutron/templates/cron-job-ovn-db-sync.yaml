@@ -150,6 +150,12 @@ spec:
                   subPath: l2gw_plugin.ini
                   readOnly: true
                 {{ end }}
+                {{- if .Values.conf.neutron.DEFAULT.log_config_append }}
+                - name: neutron-etc
+                  mountPath: {{ .Values.conf.neutron.DEFAULT.log_config_append }}
+                  subPath: {{ base .Values.conf.neutron.DEFAULT.log_config_append }}
+                  readOnly: true
+                {{- end }}
 {{- dict "enabled" .Values.manifests.certificates "name" .Values.endpoints.oslo_db.auth.admin.secret.tls.internal "path" "/etc/mysql/certs" | include "helm-toolkit.snippets.tls_volume_mount" | indent 16 }}
 {{- dict "enabled" (or .Values.manifests.certificates .Values.tls.identity) "name" .Values.secrets.tls.network.server.internal "path" "/etc/neutron/certs" | include "helm-toolkit.snippets.tls_volume_mount" | indent 16 }}
 {{- dict "enabled" $envAll.Values.manifests.certificates "name" $envAll.Values.endpoints.oslo_messaging.auth.admin.secret.tls.internal "path" "/etc/rabbitmq/certs" | include "helm-toolkit.snippets.tls_volume_mount" | indent 16 }}

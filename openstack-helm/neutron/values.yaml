@@ -1040,6 +1040,10 @@ pod:
         limits:
           memory: "1024Mi"
           cpu: "2000m"
+  priorityClassName:
+    neutron_ovn_db_sync: {}
+  runtimeClassName:
+    neutron_ovn_db_sync: {}
 
 conf:
   rally_tests:
