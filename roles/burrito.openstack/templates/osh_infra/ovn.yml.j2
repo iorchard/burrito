@@ -21,15 +21,12 @@ labels:
   ovn_controller:
     node_selector_key: openvswitch
     node_selector_value: enabled
-  ovn_controller_gw:
-    node_selector_key: openstack-network-plane
-    node_selector_value: enabled
 
 pod:
   replicas:
-    ovn_ovsdb_nb: 1
-    ovn_ovsdb_sb: 1
-    ovn_northd: 1
+    ovn_ovsdb_nb: {{ pod.quorum_replicas }}
+    ovn_ovsdb_sb: {{ pod.quorum_replicas }}
+    ovn_northd: {{ pod.replicas }}
 
 volume:
   ovn_ovsdb_nb:
