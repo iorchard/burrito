@@ -21,6 +21,9 @@ labels:
   ovn_controller:
     node_selector_key: openvswitch
     node_selector_value: enabled
+  ovn_controller_gw:
+    node_selector_key: openvswitch
+    node_selector_value: enabled
 
 pod:
   replicas:
