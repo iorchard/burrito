@@ -213,6 +213,11 @@ conf:
 {% endif %}
       securitygroup:
         enable_ipset: false
+  ovn_metadata_agent:
+    DEFAULT:
+      nova_metadata_port: 8443
+      auth_ca_cert: /etc/ssl/certs/openstack-helm.crt
+      nova_metadata_protocol: https
   rabbitmq:
     policies:
       - vhost: "neutron"
@@ -302,6 +307,10 @@ endpoints:
     port:
       ingress:
         default: 8443
+
+jobs:
+  ovn_db_sync:
+    sync_mode: repair
 
 manifests:
   certificates: true
