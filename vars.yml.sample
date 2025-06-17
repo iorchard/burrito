@@ -534,8 +534,18 @@ glance_nginx_deploy_types:
   purestorage: 'Deployment'
   powerstore: 'Deployment'
 glance_enabled_backends_str: "{% for s in storage_backends %}{% if s == 'netapp' %}{{ netapp_backend_names|product([glance_store_types[s]])|map('join', ':')|join(',') }}{% elif s == 'powerstore' %}{{ powerstore_backend_names|product([glance_store_types[s]])|map('join', ':')|join(',') }}{% else %}{{ s }}:{{ glance_store_types[s] }}{% endif %}{% if not loop.last %},{% endif %}{% endfor %}"
+glance_api_use_hostnet:
+  ceph: false
+  netapp: false
+  powerflex: false
+  hitachi: true
+  primera: false
+  lvm: true
+  purestorage: true
+  powerstore: true
 
 glance:
+  api_use_hostnet: "{{ storage_backends|map('extract', glance_api_use_hostnet)|list is any }}"
   storage: "{{ storage_backends|map('extract', glance_storage)|list }}"
   enabled_backends: "{{ glance_enabled_backends_str|split(',') }}"
   default_backend: "{{ storage_backends[0] }}"

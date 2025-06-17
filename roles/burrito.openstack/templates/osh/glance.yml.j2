@@ -255,7 +255,7 @@ endpoints:
       replicas: {{ pod.quorum_replicas }}
 pod:
   useHostNetwork:
-    api: {{ ('cinder' in glance.storage) | ternary('true', 'false') }}
+    api: {{ glance.api_use_hostnet }}
   security_context:
     glance:
       pod:
