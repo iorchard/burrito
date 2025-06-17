@@ -12,7 +12,7 @@
 
 ---
 apiVersion: v2
-appVersion: v2.17.9
+appVersion: "v3.3.0"
 description: OpenStack-Helm OpenVSwitch
 name: openvswitch
 version: 2025.1.0

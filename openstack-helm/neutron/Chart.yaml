@@ -12,7 +12,7 @@
 
 ---
 apiVersion: v2
-appVersion: v1.0.0
+appVersion: "v24.1.1"
 description: OpenStack-Helm Neutron
 name: neutron
 version: 2025.1.0

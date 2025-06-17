@@ -12,7 +12,7 @@
 
 ---
 apiVersion: v2
-appVersion: v1.0.0
+appVersion: "v24.0.1"
 description: OpenStack-Helm Horizon
 name: horizon
 version: 2025.1.0

@@ -12,7 +12,7 @@
 
 ---
 apiVersion: v2
-appVersion: v23.3.0
+appVersion: "v22.03.3"
 description: OpenStack-Helm OVN
 name: ovn
 version: 2025.1.0

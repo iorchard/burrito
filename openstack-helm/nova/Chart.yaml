@@ -12,7 +12,7 @@
 
 ---
 apiVersion: v2
-appVersion: v1.0.0
+appVersion: "v29.2.1"
 description: OpenStack-Helm Nova
 name: nova
 version: 2025.1.0

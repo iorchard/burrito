@@ -474,6 +474,10 @@ conf:
     # Changing the following options will not really affect the security of the
     # server, but might make attacks slightly more difficult in some cases.
 
+    # LimitRequestBody for security measure - Heechul
+    # 2.4.54+ has the default 1073741824 (1GiB)
+    LimitRequestBody 1073741824
+
     #
     # ServerTokens
     # This directive configures what you return as the Server HTTP response

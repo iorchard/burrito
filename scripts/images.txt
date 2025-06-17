@@ -7,7 +7,7 @@ docker.io/jijisa/glance:2024.1-ubuntu_jammy
 docker.io/jijisa/heat:2024.1-ubuntu_jammy
 docker.io/jijisa/horizon:2024.1-ubuntu_jammy
 docker.io/jijisa/keystone:2024.1-ubuntu_jammy
-docker.io/jijisa/mariadb:10.11.11-ubuntu_jammy
+docker.io/jijisa/mariadb:10.11.13-ubuntu_jammy
 docker.io/jijisa/neutron:2024.1-ubuntu_jammy
 docker.io/jijisa/nova:2024.1-ubuntu_jammy
 docker.io/jijisa/placement:2024.1-ubuntu_jammy

@@ -12,7 +12,7 @@
 
 ---
 apiVersion: v2
-appVersion: v1.12.1
+appVersion: "v1.12.1"
 description: OpenStack-Helm Ingress Controller
 name: ingress
 version: 0.3.0

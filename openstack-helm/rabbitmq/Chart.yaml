@@ -12,7 +12,7 @@
 
 ---
 apiVersion: v2
-appVersion: v3.13.7
+appVersion: "v3.13.7"
 description: OpenStack-Helm RabbitMQ
 name: rabbitmq
 version: 2025.1.0
