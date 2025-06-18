@@ -168,6 +168,7 @@ conf:
     ironic:
       cafile: /etc/nova/certs/ca.crt
     neutron:
+      metadata_proxy_shared_secret: "{{ nova.metadata_secret }}"
       cafile: /etc/nova/certs/ca.crt
     keystone_authtoken:
       cafile: /etc/nova/certs/ca.crt

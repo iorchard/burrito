@@ -23,6 +23,7 @@ KEYSTONE_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 GLANCE_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 PLACEMENT_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 NEUTRON_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
+NEUTRON_METADATA_SECRET=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 NOVA_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 CINDER_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
 HORIZON_PASS=$(head /dev/urandom |tr -dc ${COMP} |head -c ${PASSLENGTH})
@@ -43,6 +44,7 @@ echo "vault_placement_password: '$PLACEMENT_PASS'" >> $VAULTFILE
 echo "vault_neutron_password: '$NEUTRON_PASS'" >> $VAULTFILE
 echo "vault_cinder_password: '$CINDER_PASS'" >> $VAULTFILE
 echo "vault_nova_password: '$NOVA_PASS'" >> $VAULTFILE
+echo "vault_neutron_metadata_secret: '$NEUTRON_METADATA_SECRET'" >> $VAULTFILE
 echo "vault_horizon_password: '$HORIZON_PASS'" >> $VAULTFILE
 echo "vault_barbican_password: '$BARBICAN_PASS'" >> $VAULTFILE
 echo "vault_barbican_kek: '$BARBICAN_KEK'" >> $VAULTFILE

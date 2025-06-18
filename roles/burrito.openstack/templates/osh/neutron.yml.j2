@@ -215,7 +215,7 @@ conf:
         enable_ipset: false
   ovn_metadata_agent:
     DEFAULT:
-      nova_metadata_port: 8443
+      metadata_proxy_shared_secret: "{{ neutron.metadata_secret }}"
       auth_ca_cert: /etc/ssl/certs/openstack-helm.crt
       nova_metadata_protocol: https
   rabbitmq:

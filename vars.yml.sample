@@ -587,6 +587,7 @@ neutron:
   tunnel: "{{ overlay_iface_name }}"
   tunnel_compute: "{{ overlay_iface_name }}"
   password: "{{ vault_neutron_password }}"
+  metadata_secret: "{{ vault_neutron_metadata_secret }}"
 ovs_dvr: false
 ovs_provider:
   - name: external
@@ -619,6 +620,7 @@ nova:
   hypervisor_host_network_cidr: "{{ ntp_allowed_cidr }}"
   libvirt_live_migration_network_cidr: "{{ ntp_allowed_cidr }}"
   password: "{{ vault_nova_password }}"
+  metadata_secret: "{{ vault_neutron_metadata_secret }}"
   volume_size: "500Gi"
   pvc_instances: "{{ storage_backends|map('extract', nova_pvc_instances)|list|first }}"
   ssh:
