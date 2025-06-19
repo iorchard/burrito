@@ -191,21 +191,23 @@ conf:
         type_drivers: flat{% if ovs_provider[0].vlan_ranges %},vlan{% endif %}{% if (overlay_iface_name and is_ovn) %},geneve{% else %},vxlan{% endif +%}
         extension_drivers: port_security,qos
 
-        tenant_network_types: {{ (overlay_iface_name and is_ovn)|ternary('geneve', 'vxlan') }}
+        tenant_network_types: {{ overlay_iface_name|ternary('geneve', 'flat') }}
         overlay_ip_version: 4
       ml2_type_flat:
         flat_networks: "*"
-{% if not is_ovn %}
 {% if ovs_provider[0].vlan_ranges %}
       ml2_type_vlan:
         network_vlan_ranges: "{%- for b in ovs_provider %}{{ b.name }}:{{ b.vlan_ranges }}{% if not loop.last %},{% endif %}{% endfor %}"
-{% endif %}
 {% endif %}
 {% if overlay_iface_name %}
 {% if is_ovn %}
       ml2_type_geneve:
         vni_ranges: "1:1000"
         max_header_size: 38
+      ovn:
+        enable_distributed_floating_ip: true
+        neutron_sync_mode: "repair"
+        ovn_metadata_enabled: true
 {% else %}
       ml2_type_vxlan:
         vni_ranges: "1:1000"
