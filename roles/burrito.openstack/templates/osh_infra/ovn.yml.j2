@@ -25,12 +25,6 @@ labels:
     node_selector_key: openvswitch
     node_selector_value: enabled
 
-pod:
-  replicas:
-    ovn_ovsdb_nb: {{ pod.quorum_replicas }}
-    ovn_ovsdb_sb: {{ pod.quorum_replicas }}
-    ovn_northd: {{ pod.replicas }}
-
 volume:
   ovn_ovsdb_nb:
     enabled: true
