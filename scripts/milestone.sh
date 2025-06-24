@@ -19,6 +19,15 @@ function create() {
     ${MILESTONE_URL_PATH} \
     -f title="$1" -f state='open' -f description="$1 milestone"
 }
+function close() {
+  # get number from the title
+  NO=$(gh api --method GET -H "Accept: application/vnd.github.v3+json" \
+    ${MILESTONE_URL_PATH} | \
+    jq  --arg TITLE "$1" '.[] | select(.title==$TITLE) | .number')
+  gh api --method PATCH -H "Accept: application/vnd.github.v3+json" \
+    ${MILESTONE_URL_PATH}/${NO} \
+	-f "state=close"
+}
 function delete() {
   # get number from the title
   NO=$(gh api --method GET -H "Accept: application/vnd.github.v3+json" \
@@ -37,6 +46,7 @@ function USAGE() {
   echo "USAGE: $0 [-h|-d|-u]" 1>&2
   echo
   echo " -h --help                  Display this help message."
+  echo " close  MILESTONE           Close a milestone."
   echo " create MILESTONE           Create a milestone."
   echo " delete MILESTONE           Delete a milestone."
   echo " list                       List milestones."
@@ -56,6 +66,10 @@ do
     -h | --help)
       USAGE
       exit 0
+      ;;
+    close)
+      close "$@"
+      break
       ;;
     create)
       create "$@"
