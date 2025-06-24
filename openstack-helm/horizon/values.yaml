@@ -138,6 +138,10 @@ conf:
       # Changing the following options will not really affect the security of the
       # server, but might make attacks slightly more difficult in some cases.
 
+      # LimitRequestBody for security measure - Heechul
+      # Set it to 150 GiB for big image upload
+      LimitRequestBody 161061273600
+
       #
       # ServerTokens
       # This directive configures what you return as the Server HTTP response
