@@ -5,6 +5,7 @@ prereq_pkgs:
   - gnupg2
   - curl
   - rsync
+  - python3-libselinux
 
 packages:
   - rsyslog
