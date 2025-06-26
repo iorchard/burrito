@@ -62,6 +62,10 @@ network_policy:
     egress: null
     ingress:
       - from:
+{% for cidr in mariadb.netpol_cidr %}
+        - ipBlock:
+            cidr: {{ cidr }}
+{% endfor %}
         - podSelector:
             matchLabels:
               application: mariadb
