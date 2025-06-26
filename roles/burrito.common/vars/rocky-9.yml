@@ -1,0 +1,12 @@
+---
+pkg_state: "latest"
+prereq_pkgs:
+  - ca-certificates
+  - gnupg2
+  - curl
+  - rsync
+  - python3-libselinux
+
+packages:
+  - rsyslog
+...

@@ -1,7 +1,11 @@
 ---
 images:
   tags:
-    openvswitch_db_server: {{ docker_image_repo }}/openstackhelm/openvswitch:latest-ubuntu_jammy
-    openvswitch_vswitchd: {{ docker_image_repo }}/openstackhelm/openvswitch:latest-ubuntu_jammy
-    dep_check: {{quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0
+    openvswitch_db_server: {{ docker_image_repo }}/openstackhelm/openvswitch:ubuntu_jammy-20250426
+    openvswitch_vswitchd: {{ docker_image_repo }}/openstackhelm/openvswitch:ubuntu_jammy-20250426
+    dep_check: {{quay_image_repo }}/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy
+
+conf:
+  openvswitch_db_server:
+    ptcp_port: 6640
 ...

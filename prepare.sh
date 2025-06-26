@@ -20,10 +20,10 @@ function get_package_manager() {
       sudo $PKG_MGR update
       ;;
     rocky)
-      OFFLINE_PKGS="python3.11"
-      ONLINE_PKGS="python3.11 epel-release"
+      OFFLINE_PKGS="python3.12"
+      ONLINE_PKGS="python3.12 epel-release"
       PKG_MGR="dnf"
-      PYTHON_CMD="python3.11"
+      PYTHON_CMD="python3.12"
       ;;
     *)
       echo "Unsupported linux distro."

@@ -32,7 +32,7 @@
 - name: Setup | copy helm chart
   ansible.builtin.copy:
     dest: "{{ artifacts_dir }}/"
-    src: "charts"
+    src: "csi-powerstore"
     mode: "0600"
     directory_mode: "0700"
   delegate_to: localhost
@@ -80,7 +80,7 @@
 - name: Setup | deploy helm chart
   kubernetes.core.helm:
     release_name: "csi-powerstore"
-    chart_ref: "{{ artifacts_dir }}/charts"
+    chart_ref: "{{ artifacts_dir }}/csi-powerstore"
     release_namespace: "{{ powerstore_namespace }}"
     timeout: "10m0s"
     values_files:

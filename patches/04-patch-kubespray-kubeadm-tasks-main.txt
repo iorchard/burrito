@@ -1,6 +1,6 @@
---- kubespray/roles/kubernetes/kubeadm/tasks/main.yml	2024-07-25 16:55:51.948646891 +0900
-+++ patches/kubespray/roles/kubernetes/kubeadm/tasks/main.yml	2024-07-25 17:05:46.869817328 +0900
-@@ -11,6 +11,19 @@
+--- kubespray/roles/kubernetes/kubeadm/tasks/main.yml	2025-06-02 14:26:14.021043352 +0900
++++ patches/kubespray/roles/kubernetes/kubeadm/tasks/main.yml	2025-06-02 18:29:59.463748233 +0900
+@@ -11,6 +11,20 @@
    tags:
      - facts
  
@@ -14,70 +14,46 @@
 +- name: Create discovery file from admin.conf
 +  ansible.builtin.copy:
 +    dest: "{{ discovery_file }}"
-+    content: "{{ admin_conf_str.content|b64decode|replace('127.0.0.1', hostvars[groups['kube_control_plane'][0]].ip) }}"
++    content: "{{ admin_conf_str.content|b64decode|replace('127.0.0.1', hostvars
++groups['kube_control_plane'][0]].ip) }}"
 +  when: discovery_type == 'file'
 +
  - name: Check if kubelet.conf exists
    stat:
      path: "{{ kube_config_dir }}/kubelet.conf"
-@@ -104,7 +117,7 @@
-   when: not is_kube_master and (not kubelet_conf.stat.exists)
-   block:
- 
--    - name: Join to cluster
+@@ -88,12 +102,29 @@
+     ignored:
+       - DirAvailable--etc-kubernetes-manifests
+       - "{{ kubeadm_ignore_preflight_errors }}"
+-  command: >-
+-    timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
+-    {{ bin_dir }}/kubeadm join
+-    --config {{ kube_config_dir }}/kubeadm-client.conf
+-    --ignore-preflight-errors={{ ignored | flatten | join(',') }}
+-    --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
++  block:
 +    - name: Join to cluster using token-based discovery
-       command: >-
-         timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
-         {{ bin_dir }}/kubeadm join
-@@ -113,10 +126,21 @@
-         --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
-       register: kubeadm_join
-       changed_when: kubeadm_join is success
++      command: >-
++        timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
++        {{ bin_dir }}/kubeadm join
++        --config {{ kube_config_dir }}/kubeadm-client.conf
++        --ignore-preflight-errors={{ ignored | flatten | join(',') }}
++        --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
 +      when: discovery_type == 'token'
 +    - name: Join to cluster using file-based discovery
 +      command: >-
 +        timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
 +        {{ bin_dir }}/kubeadm join
 +        --discovery-file {{ discovery_file }}
-+        --ignore-preflight-errors=DirAvailable--etc-kubernetes-manifests
++        --ignore-preflight-errors={{ ignored | flatten | join(',') }}
 +        --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
-+      register: kubeadm_join
-+      changed_when: kubeadm_join is success
 +      when: discovery_type == 'file'
- 
-   rescue:
- 
--    - name: Join to cluster with ignores
-+    - name: Join to cluster with ignores using token-based discovery
-       command: >-
-         timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
-         {{ bin_dir }}/kubeadm join
-@@ -125,6 +149,17 @@
-         --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
-       register: kubeadm_join
-       changed_when: kubeadm_join is success
-+      when: discovery_type == 'token'
-+    - name: Join to cluster with ignores using file-based discovery
-+      command: >-
-+        timeout -k {{ kubeadm_join_timeout }} {{ kubeadm_join_timeout }}
-+        {{ bin_dir }}/kubeadm join
-+        --discovery-file {{ discovery_file }}
-+        --ignore-preflight-errors=all
-+        --skip-phases={{ kubeadm_join_phases_skip | join(',') }}
-+      register: kubeadm_join
-+      changed_when: kubeadm_join is success
-+      when: discovery_type == 'file'
- 
-   always:
- 
-@@ -134,6 +169,10 @@
-         msg: |
-           Joined with warnings
-           {{ kubeadm_join.stderr_lines }}
++  always:
 +    - name: Delete the temporary discovery file
 +      ansible.builtin.file:
 +        path: "{{ discovery_file }}"
 +        state: absent
++      when: discovery_type == 'file'
  
  - name: Update server field in kubelet kubeconfig
    lineinfile:

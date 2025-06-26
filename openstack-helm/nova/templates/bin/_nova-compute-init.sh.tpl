@@ -40,11 +40,6 @@ if [ -z "${migration_address}" ] ; then
   exit 1
 fi
 
-tee > /tmp/pod-shared/nova-libvirt.conf << EOF
-[libvirt]
-live_migration_inbound_addr = $migration_address
-EOF
-
 hypervisor_interface="{{- .Values.conf.hypervisor.host_interface -}}"
 if [[ -z $hypervisor_interface ]]; then
     # search for interface with default routing
@@ -62,6 +57,12 @@ if [ -z "${hypervisor_address}" ] ; then
   echo "Var my_ip is empty"
   exit 1
 fi
+
+tee > /tmp/pod-shared/nova-libvirt.conf << EOF
+[libvirt]
+live_migration_inbound_addr = $migration_address
+connection_uri = qemu+tcp://${hypervisor_address}/system
+EOF
 
 tee > /tmp/pod-shared/nova-hypervisor.conf << EOF
 [DEFAULT]

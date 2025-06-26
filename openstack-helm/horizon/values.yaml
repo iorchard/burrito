@@ -18,12 +18,12 @@
 ---
 images:
   tags:
-    db_init: docker.io/openstackhelm/heat:stein-ubuntu_bionic
-    horizon_db_sync: docker.io/openstackhelm/horizon:stein-ubuntu_bionic
-    db_drop: docker.io/openstackhelm/heat:stein-ubuntu_bionic
-    horizon: docker.io/openstackhelm/horizon:stein-ubuntu_bionic
-    test: docker.io/openstackhelm/osh-selenium:latest-ubuntu_focal
-    dep_check: quay.io/airshipit/kubernetes-entrypoint:v1.0.0
+    db_init: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    horizon_db_sync: quay.io/airshipit/horizon:2024.1-ubuntu_jammy
+    db_drop: quay.io/airshipit/heat:2024.1-ubuntu_jammy
+    horizon: quay.io/airshipit/horizon:2024.1-ubuntu_jammy
+    test: docker.io/openstackhelm/osh-selenium:latest-ubuntu_jammy
+    dep_check: quay.io/airshipit/kubernetes-entrypoint:latest-ubuntu_focal
     image_repo_sync: docker.io/docker:17.07.0
   pull_policy: "IfNotPresent"
   local_registry:
@@ -57,6 +57,7 @@ network:
         cluster: "nginx-cluster"
       annotations:
         nginx.ingress.kubernetes.io/rewrite-target: /
+        nginx.ingress.kubernetes.io/proxy-body-size: 300m
   external_policy_local: false
   node_port:
     enabled: false
@@ -79,6 +80,8 @@ conf:
         - status
   horizon:
     branding:
+      # favicon must be a base64 encoded .ico string
+      # logo and logo_splash must be base64 encoded .svg string
       logo:
       logo_splash:
       favicon:
@@ -94,8 +97,9 @@ conf:
       CustomLog /dev/stdout proxy env=forwarded
 
       <VirtualHost *:{{ tuple "dashboard" "internal" "web" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}>
+          WSGIApplicationGroup %{GLOBAL}
           WSGIScriptReloading On
-          WSGIDaemonProcess horizon-http processes=5 threads=1 user=horizon group=horizon display-name=%{GROUP} python-path=/var/lib/kolla/venv/lib/python2.7/site-packages
+          WSGIDaemonProcess horizon-http processes=5 threads=1 user=horizon group=horizon display-name=%{GROUP}
           WSGIProcessGroup horizon-http
           WSGIScriptAlias / /var/www/cgi-bin/horizon/django.wsgi
           WSGIPassAuthorization On
@@ -137,6 +141,10 @@ conf:
 
       # Changing the following options will not really affect the security of the
       # server, but might make attacks slightly more difficult in some cases.
+
+      # LimitRequestBody for security measure - Heechul
+      # Set it to 150 GiB for big image upload
+      LimitRequestBody 161061273600
 
       #
       # ServerTokens
@@ -186,6 +194,14 @@ conf:
       # site as frames. This defends against clickjacking attacks.
       # Requires mod_headers to be enabled.
       #
+    custom_panels: {}
+      ## For example, _5000_disable_project_vg_snapshots.py
+      # _5000_disable_project_vg_snapshots: |
+      #   PANEL = 'vg_snapshots'
+      #   PANEL_DASHBOARD = 'project'
+      #   PANEL_GROUP = 'volumes'
+      #   REMOVE_PANEL = True
+      ## https://docs.openstack.org/horizon/latest/configuration/pluggable_panels.html#id2
     local_settings_d: {}
       ## For example, _50_monasca_ui_settings.py
       # _50_monasca_ui_settings: |
@@ -198,7 +214,6 @@ conf:
       config:
         # Use "True" and "False" as Titlecase strings with quotes, boolean
         # values will not work
-        timezone: "UTC"
         horizon_secret_key: 9aee62c0-5253-4a86-b189-e0fb71fa503c
         debug: "False"
         use_ssl: "False"
@@ -209,6 +224,7 @@ conf:
         show_openrc_file: "True"
         csrf_cookie_secure: "False"
         csrf_cookie_httponly: "False"
+        csrf_trusted_origins: []
         enforce_password_check: "True"
         # Set enable_pwd_validator to true to enforce password validator settings.
         enable_pwd_validator: false
@@ -256,7 +272,7 @@ conf:
       template: |
         import os
 
-        from django.utils.translation import ugettext_lazy as _
+        from django.utils.translation import gettext_lazy as _
 
         from openstack_dashboard import exceptions
 
@@ -303,6 +319,9 @@ conf:
         SESSION_COOKIE_SECURE = {{ .Values.conf.horizon.local_settings.config.session_cookie_secure }}
 
         SESSION_COOKIE_HTTPONLY = {{ .Values.conf.horizon.local_settings.config.session_cookie_httponly }}
+
+        # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-trusted-origins
+        CSRF_TRUSTED_ORIGINS = [{{ include "helm-toolkit.utils.joinListWithCommaAndSingleQuotes" .Values.conf.horizon.local_settings.config.csrf_trusted_origins }}]
 
         # Overrides for OpenStack API versions. Use this setting to force the
         # OpenStack dashboard to use a specific API version for a given service API.
@@ -388,7 +407,7 @@ conf:
 
         CACHES = {
             'default': {
-                'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+                'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
                 'LOCATION': '{{ tuple "oslo_cache" "internal" "memcache" . | include "helm-toolkit.endpoints.host_and_port_endpoint_uri_lookup" }}',
             }
         }
@@ -446,6 +465,11 @@ conf:
 
         # Determines which authentication choice to show as default.
         WEBSSO_INITIAL_CHOICE = "{{ .Values.conf.horizon.local_settings.config.auth.sso.initial_choice }}"
+
+        {{- if .Values.conf.horizon.local_settings.config.auth.sso.websso_keystone_url }}
+        # The full auth URL for the Keystone endpoint used for web single-sign-on authentication.
+        WEBSSO_KEYSTONE_URL = "{{ .Values.conf.horizon.local_settings.config.auth.sso.websso_keystone_url }}"
+        {{- end }}
 
         # The list of authentication mechanisms
         # which include keystone federation protocols.
@@ -666,7 +690,6 @@ conf:
         #    'image': 'glance_policy.yaml',
         #    'orchestration': 'heat_policy.yaml',
         #    'network': 'neutron_policy.yaml',
-        #    'telemetry': 'ceilometer_policy.yaml',
         #}
 
         # Trove user and database extension support. By default support for
@@ -734,22 +757,12 @@ conf:
                     'level': '{{ .Values.conf.horizon.local_settings.config.log_level }}',
                     'propagate': False,
                 },
-                'glanceclient': {
-                    'handlers': ['console'],
-                    'level': '{{ .Values.conf.horizon.local_settings.config.log_level }}',
-                    'propagate': False,
-                },
                 'neutronclient': {
                     'handlers': ['console'],
                     'level': '{{ .Values.conf.horizon.local_settings.config.log_level }}',
                     'propagate': False,
                 },
                 'heatclient': {
-                    'handlers': ['console'],
-                    'level': '{{ .Values.conf.horizon.local_settings.config.log_level }}',
-                    'propagate': False,
-                },
-                'ceilometerclient': {
                     'handlers': ['console'],
                     'level': '{{ .Values.conf.horizon.local_settings.config.log_level }}',
                     'propagate': False,

@@ -1,5 +1,5 @@
---- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-fix-apiserver.yml	2024-10-23 15:05:20.591875641 +0900
-+++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-fix-apiserver.yml	2024-10-23 15:05:03.125871601 +0900
+--- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-fix-apiserver.yml	2025-01-31 13:40:07.907750713 +0900
++++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-fix-apiserver.yml	2025-01-31 17:02:18.168436200 +0900
 @@ -1,5 +1,4 @@
  ---
 -
@@ -7,9 +7,9 @@
    lineinfile:
      dest: "{{ kube_config_dir }}/{{ item }}"
 @@ -15,3 +14,10 @@
-     - "Master | Restart kube-controller-manager"
-     - "Master | Restart kube-scheduler"
-     - "Master | reload kubelet"
+     - "Control plane | Restart kube-controller-manager"
+     - "Control plane | Restart kube-scheduler"
+     - "Control plane | reload kubelet"
 +
 +- name: Update etcd-servers for apiserver
 +  ansible.builtin.replace:

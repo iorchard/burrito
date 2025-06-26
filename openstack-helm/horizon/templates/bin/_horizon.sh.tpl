@@ -18,12 +18,15 @@ set -ex
 COMMAND="${@:-start}"
 
 function start () {
-  SITE_PACKAGES_ROOT=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+  SITE_PACKAGES_ROOT=$(python -c "from sysconfig import get_path; print(get_path('platlib'))")
   rm -f ${SITE_PACKAGES_ROOT}/openstack_dashboard/local/local_settings.py
   ln -s /etc/openstack-dashboard/local_settings ${SITE_PACKAGES_ROOT}/openstack_dashboard/local/local_settings.py
   ln -s  ${SITE_PACKAGES_ROOT}/openstack_dashboard/conf/default_policies  /etc/openstack-dashboard/default_policies
   {{- range $key, $value := .Values.conf.horizon.local_settings_d }}
   ln -s /etc/openstack-dashboard/local_settings.d/{{ $key }}.py ${SITE_PACKAGES_ROOT}/openstack_dashboard/local/local_settings.d/{{ $key }}.py
+  {{- end }}
+  {{- range $key, $value := .Values.conf.horizon.custom_panels }}
+  ln -s /etc/openstack-dashboard/custom_panels/{{ $key }}.py ${SITE_PACKAGES_ROOT}/openstack_dashboard/local/enabled/{{ $key }}.py
   {{- end }}
   # wsgi/horizon-http needs open files here, including secret_key_store
   chown -R horizon ${SITE_PACKAGES_ROOT}/openstack_dashboard/local/
@@ -87,9 +90,15 @@ function start () {
 
   # Copy custom logo images
   {{- if .Values.manifests.configmap_logo }}
-  cp /tmp/favicon.ico ${SITE_PACKAGES_ROOT}/openstack_dashboard/static/dashboard/img/favicon.ico
-  cp /tmp/logo.svg ${SITE_PACKAGES_ROOT}/openstack_dashboard/static/dashboard/img/logo.svg
-  cp /tmp/logo-splash.svg ${SITE_PACKAGES_ROOT}/openstack_dashboard/static/dashboard/img/logo-splash.svg
+  if [[ -f /tmp/favicon.ico ]]; then
+    cp /tmp/favicon.ico ${SITE_PACKAGES_ROOT}/openstack_dashboard/static/dashboard/img/favicon.ico
+  fi
+  if [[ -f /tmp/logo.svg ]]; then
+    cp /tmp/logo.svg ${SITE_PACKAGES_ROOT}/openstack_dashboard/static/dashboard/img/logo.svg
+  fi
+  if [[ -f /tmp/logo-splash.svg ]]; then
+    cp /tmp/logo-splash.svg ${SITE_PACKAGES_ROOT}/openstack_dashboard/static/dashboard/img/logo-splash.svg
+  fi
   {{- end }}
 
   # Compress Horizon's assets.

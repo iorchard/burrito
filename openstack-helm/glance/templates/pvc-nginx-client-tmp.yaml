@@ -20,7 +20,7 @@ apiVersion: v1
 metadata:
   name: nginx-client-tmp-pvc
 spec:
-  accessModes: ["{{ .Values.nginx_deployment.pvc.access_modes }}"]
+  accessModes: "{{ .Values.nginx_deployment.pvc.access_modes }}"
   resources:
     requests:
       storage: {{ .Values.nginx_deployment.pvc.size }}

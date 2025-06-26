@@ -1,7 +1,7 @@
 ---
 ## common
-osh_infra_path: "{{ playbook_dir }}/openstack-helm-infra"
 osh_path: "{{ playbook_dir }}/openstack-helm"
+osh_infra_path: "{{ osh_path }}"
 btx_path: "{{ playbook_dir }}/btx/helm"
 os_artifacts_dir: "{{ ansible_env.HOME }}/openstack-artifacts"
 pod:
@@ -24,10 +24,14 @@ ingress:
 ceph_public_network: ~
 ceph_cluster_network: ~
 
-## mariadba
+## mariadb
 mariadb:
   volume_size: "30Gi"
   admin_password: ~
+db_acl_cidrs:
+  - "{{ kube_pods_subnet }}"
+  - "{{ ntp_allowed_cidr }}"
+  - "{{ svc_cidr }}"
 
 ## rabbitmq
 rabbitmq:
@@ -57,7 +61,6 @@ placement:
   password: ~
 
 ## neutron
-is_ovs: true
 neutron:
   tunnel: ~
   tunnel_compute: ~
@@ -104,19 +107,21 @@ barbican:
 
 ## btx
 btx:
+  version: "3.0.0"
   pvc:
     size: "20Gi"
 
-# openvswitch chart will be added dynamically if neutron_ml2_plugin == ovs.
-# See "OpenStack | add openvswitch to osh_infra_charts" task
-# ceph-provisioners chart will be added if "ceph" in storage_backends.
-# See "OpenStack | add ceph-provisioners to osh_infra_charts" task
+# ceph-provisioners chart will be removed if ceph not in storage_backends.
+# See "OpenStack | remove ceph-provisioners from osh_infra_charts" task
 is_ceph: "{{ 'ceph' in storage_backends }}"
 osh_infra_charts:
   - ingress
+  - ceph-provisioners
   - mariadb
   - rabbitmq
   - memcached
+  - openvswitch
+  - ovn
   - libvirt
 
 osh_charts:
@@ -127,6 +132,7 @@ osh_charts:
   - glance
   - cinder
   - horizon
+  - barbican
 
 btx_charts:
   - btx
@@ -137,5 +143,5 @@ rabbit_retry_backoff: 2
 rabbit_interval_max: 30
 rabbit_quorum_queue: True
 heartbeat_timeout_threshold: 60
-heartbeat_rate: 2
+heartbeat_rate: 3
 ...

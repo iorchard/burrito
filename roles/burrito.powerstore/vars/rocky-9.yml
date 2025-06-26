@@ -1,0 +1,8 @@
+---
+packages:
+  - device-mapper-multipath
+  - sg3_utils
+  - lsscsi
+  - sysfsutils
+  - iscsi-initiator-utils
+...

@@ -10,6 +10,7 @@
     backup: "{{ kube_dir }}/kube-apiserver.yaml.{{ ansible_date_time.iso8601 }}"
     apiserver_regexp:
       - {match: '^(\s+- --anonymous-auth=).*$', replace: '\1false'}
+      - {match: '^(\s+- --apiserver-count=.*)$', replace: ''}
       - {match: '^(\s+- --default-not-ready-toleration-seconds=).*$', replace: '\g<1>{{ kube_apiserver_pod_eviction_not_ready_timeout_seconds }}'}
       - {match: '^(\s+- --default-unreachable-toleration-seconds=).*$', replace: '\g<1>{{ kube_apiserver_pod_eviction_unreachable_timeout_seconds }}'}
     apiserver_dasel:

@@ -22,13 +22,19 @@ rules:
 - apiGroups: ["scheduling.k8s.io"]
   resources: ["priorityclasses"]
   verbs: ["get", "watch", "list"]
+- apiGroups: ["policy"]
+  resources: ["poddisruptionbudgets"]
+  verbs: ["get", "watch", "list"]
 - apiGroups: ["coordination.k8s.io"]
   resources: ["leases"]
-  verbs: ["create"]
+  verbs: ["create", "update"]
 - apiGroups: ["coordination.k8s.io"]
   resources: ["leases"]
   resourceNames: ["descheduler"]
-  verbs: ["get", "patch", "delete", "update"]
+  verbs: ["get", "patch", "delete"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["nodes", "pods"]
+  verbs: ["get", "list"]
 ---
 apiVersion: v1
 kind: ServiceAccount

@@ -57,6 +57,7 @@ spec:
 {{ tuple $envAll | include "helm-toolkit.snippets.release_uuid" | indent 8 }}
         configmap-bin-hash: {{ tuple "configmap-bin.yaml" . | include "helm-toolkit.utils.hash" }}
         configmap-etc-hash: {{ tuple "configmap-etc.yaml" . | include "helm-toolkit.utils.hash" }}
+{{ tuple "nova_api_metadata" . | include "helm-toolkit.snippets.custom_pod_annotations" | indent 8 }}
 {{ dict "envAll" $envAll "podName" "nova-api-metadata" "containerNames" (list "nova-api-metadata-init" "nova-api" "init") | include "helm-toolkit.snippets.kubernetes_mandatory_access_control_annotation" | indent 8 }}
     spec:
       serviceAccountName: {{ $serviceAccountName }}
@@ -119,6 +120,10 @@ spec:
             - name: nova-bin
               mountPath: /tmp/nova-api-metadata.sh
               subPath: nova-api-metadata.sh
+              readOnly: true
+            - name: nova-etc
+              mountPath: /etc/nova/nova-metadata-uwsgi.ini
+              subPath: nova-metadata-uwsgi.ini
               readOnly: true
             - name: nova-bin
               mountPath: /sbin/iptables
@@ -188,6 +193,10 @@ spec:
             - name: nova-etc
               mountPath: {{ .Values.conf.software.apache2.mods_dir }}/mpm_event.conf
               subPath: mpm_event.conf
+              readOnly: true
+            - name: nova-etc
+              mountPath: {{ .Values.conf.software.apache2.conf_dir }}/security.conf
+              subPath: security.conf
               readOnly: true
             {{- end }}
 {{- dict "enabled" .Values.manifests.certificates "name" .Values.endpoints.oslo_db.auth.admin.secret.tls.internal "path" "/etc/mysql/certs" | include "helm-toolkit.snippets.tls_volume_mount" | indent 12 }}

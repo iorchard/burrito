@@ -28,6 +28,10 @@ elif [ "${console_kind}" == "spice" ] ; then
     client_interface="{{- .Values.console.spice.proxy.server_proxyclient_interface -}}"
     client_network_cidr="{{- .Values.console.spice.proxy.server_proxyclient_network_cidr -}}"
     listen_ip="{{- .Values.conf.nova.spice.server_listen -}}"
+elif [ "${console_kind}" == "serial" ] ; then
+    client_address="{{- .Values.conf.nova.serial_console.proxyclient_address -}}"
+    client_interface="{{- .Values.console.serial.proxy.server_proxyclient_interface -}}"
+    client_network_cidr="{{- .Values.console.serial.proxy.server_proxyclient_network_cidr -}}"
 fi
 
 if [ -z "${client_address}" ] ; then
@@ -41,11 +45,8 @@ if [ -z "${client_address}" ] ; then
     # determine client ip dynamically based on interface provided
     client_address=$(ip a s $client_interface | grep 'inet ' | awk '{print $2}' | awk -F "/" '{print $1}' | head -1)
 fi
-# override listen_ip to client_address to listen on the mgmt interface only.
+# override listen_ip to client_address to listen on the mgmt iface of compute
 listen_ip=${client_address}
-if [ -z "${listen_ip}" ] ; then
-    listen_ip=$client_address
-fi
 
 if [ "${console_kind}" == "novnc" ] ; then
 cat <<EOF>/tmp/pod-shared/nova-vnc.ini
@@ -59,5 +60,10 @@ cat <<EOF>/tmp/pod-shared/nova-spice.ini
 [spice]
 server_proxyclient_address = $client_address
 server_listen = $listen_ip
+EOF
+elif [ "${console_kind}" == "serial" ] ; then
+cat <<EOF>/tmp/pod-shared/nova-serial.ini
+[serial_console]
+proxyclient_address = $client_address
 EOF
 fi

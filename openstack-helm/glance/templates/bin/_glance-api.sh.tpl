@@ -18,8 +18,8 @@ set -ex
 COMMAND="${@:-start}"
 
 function start () {
-  exec glance-api \
-        --config-file /etc/glance/glance-api.conf
+  #exec uwsgi --ini /etc/glance/glance-api-uwsgi.ini
+  exec glance-api --config-file /etc/glance/glance-api.conf
 }
 
 function stop () {

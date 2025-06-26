@@ -1,17 +1,15 @@
 ---
 images:
   tags:
-    mariadb: {{ docker_image_repo }}/jijisa/mariadb:10.11.7-ubuntu_jammy
-    ingress: {{ kube_image_repo }}/ingress-nginx/controller:v1.12.1
-    error_pages: {{ kube_image_repo }}/defaultbackend:1.4
-    prometheus_create_mysql_user: {{ docker_image_repo }}/jijisa/mariadb:10.11.7-ubuntu_jammy
-    dep_check: {{ quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0
-    ks_user: {{ docker_image_repo }}/jijisa/heat:2023.1-ubuntu_jammy
+    mariadb: {{ docker_image_repo }}/jijisa/mariadb:10.11.13-ubuntu_jammy
+    dep_check: {{ quay_image_repo }}/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy
+    mariadb_backup: {{ quay_image_repo }}/airshipit/porthole-mysqlclient-utility:latest-ubuntu_jammy
+    ks_user: {{ docker_image_repo }}/jijisa/heat:2024.1-ubuntu_jammy
+    mariadb_controller: {{ docker_image_repo }}/jijisa/mariadb:10.11.13-ubuntu_jammy
 
 pod:
   replicas:
     server: {{ pod.quorum_replicas }}
-    ingress: {{ pod.replicas }}
   security_context:
     server:
       container:
@@ -25,10 +23,12 @@ volume:
   enabled: true
   class_name: {{ storageclass_name }}
   size: {{ mariadb.volume_size }}
-  log:
-    class_name: {{ storageclass_name }}
-    size: 5Gi
+
 endpoints:
+  local_image_registry: null
+  monitoring: null
+  prometheus_mysql_exporter: null
+  identity: null
   oslo_db:
     host_fqdn_override:
       default:
@@ -48,10 +48,69 @@ monitoring:
     enabled: false
     mysqld_exporter:
       scrape: false
+
 conf:
+  backup:
+    enabled: false
+    days_to_keep: 7
   db_acl:
     enabled: true
-    cidr: {{ kube_pods_subnet }}
+    cidr: "{{ db_acl_cidrs|ansible.builtin.unique|join(',') }}"
+
+network_policy:
+  mariadb:
+    egress: null
+    ingress:
+      - from:
+{% for cidr in mariadb.netpol_cidr %}
+        - ipBlock:
+            cidr: {{ cidr }}
+{% endfor %}
+        - podSelector:
+            matchLabels:
+              application: mariadb
+        - podSelector:
+            matchLabels:
+              application: keystone
+        - podSelector:
+            matchLabels:
+              application: placement
+        - podSelector:
+            matchLabels:
+              application: glance
+        - podSelector:
+            matchLabels:
+              application: cinder
+        - podSelector:
+            matchLabels:
+              application: nova
+        - podSelector:
+            matchLabels:
+              application: neutron
+        - podSelector:
+            matchLabels:
+              application: horizon
+        - podSelector:
+            matchLabels:
+              application: barbican
+        - podSelector:
+            matchLabels:
+              application: btx
+        ports:
+          - protocol: TCP
+            port: 3306
+          - protocol: TCP
+            port: 4444
+          - protocol: TCP
+            port: 4567
+          - protocol: TCP
+            port: 4568
+  prometheus-mysql-exporter: null
+
 manifests:
   certificates: true
+  cron_job_mariadb_backup: false
+  job_ks_user: false
+  pvc_backup: false
+  network_policy: true
 ...

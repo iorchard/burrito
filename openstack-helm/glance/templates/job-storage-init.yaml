@@ -151,7 +151,7 @@ spec:
             {{ end }}
             {{- if has "pvc" .Values.storage }}
             - name: glance-images
-              mountPath: {{ .Values.conf.glance.glance_store.filesystem_store_datadir }}
+              mountPath: {{ .Values.conf.glance.file.filesystem_store_datadir }}
             {{ end }}
 {{- dict "enabled" .Values.manifests.certificates "name" .Values.secrets.tls.image.api.internal | include "helm-toolkit.snippets.tls_volume_mount" | indent 12 }}
       volumes:

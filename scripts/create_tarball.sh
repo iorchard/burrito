@@ -20,8 +20,8 @@ fi
 CURRENT_DIR=$( dirname "$(readlink -f "$0")" )
 DIST_DIR=${CURRENT_DIR}/dist
 
-curl -sLo ${CURRENT_DIR}/git-archive-all.sh \
-  https://raw.githubusercontent.com/fabacab/git-archive-all.sh/master/git-archive-all.sh
+#curl -sLo ${CURRENT_DIR}/git-archive-all.sh \
+#  https://raw.githubusercontent.com/fabacab/git-archive-all.sh/master/git-archive-all.sh
 chmod +x ${CURRENT_DIR}/git-archive-all.sh
 
 git clone --recursive -b ${SRC_VER} https://github.com/iorchard/burrito.git \

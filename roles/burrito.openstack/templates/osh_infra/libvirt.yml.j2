@@ -1,13 +1,15 @@
 ---
 images:
   tags:
-    libvirt: {{ docker_image_repo }}/openstackhelm/libvirt:2023.1-ubuntu_jammy
-    ceph_config_helper: {{ docker_image_repo }}/openstackhelm/ceph-config-helper:latest-ubuntu_focal
-    dep_check: {{ quay_image_repo }}/airshipit/kubernetes-entrypoint:v1.0.0
+    libvirt: {{ docker_image_repo }}/openstackhelm/libvirt:2024.1-ubuntu_jammy-20250510
+    ceph_config_helper: {{ docker_image_repo }}/openstackhelm/ceph-config-helper:ubuntu_jammy_19.2.2-1-20250414
+    dep_check: {{ quay_image_repo }}/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy
+    kubectl: {{ docker_image_repo }}/bitnami/kubectl:latest
 
 network:
   backend:
-  - {{ is_ovs|ternary('openvswitch', 'linuxbridge') }}
+    - ovn
+
 conf:
   ceph:
     enabled: {{ ('ceph' in storage_backends)|ternary('true', 'false') }}
@@ -18,31 +20,66 @@ conf:
       keyring: {{ ceph_cinder_key }}
       secret_uuid: {{ ceph_secret_uuid }}
 {% endif %}
-  libvirt:
-    listen_addr: 0.0.0.0
+  dynamic_options:
+    libvirt:
+      listen_interface: {{ mgmt_iface_name }}
   qemu:
     vnc_tls: "1"
     vnc_tls_x509_cert_dir: "/etc/pki/libvirt-vnc"
     vnc_tls_x509_verify: 1
+  vencrypt:
+    issuer:
+      kind: ClusterIssuer
+      name: ca-issuer
+    cert_init_sh: |
+      #!/bin/bash
+      set -x
 
-pod:
-  mounts:
-    libvirt:
-      init_container: null
-      libvirt:
-        volumeMounts:
-        - name: vnc-server-secret
-          mountPath: /etc/pki/libvirt-vnc
-          readOnly: true
-        volumes:
-        - name: vnc-server-secret
-          secret:
-            secretName: vnc-server-secret
-            items:
-            - key: ca_crt
-              path: ca-cert.pem
-            - key: server_crt
-              path: server-cert.pem
-            - key: server_key
-              path: server-key.pem
+      HOSTNAME_FQDN=$(hostname --fqdn)
+
+      # Script to create certs for each libvirt pod based on pod IP (by default).
+      cat <<EOF | kubectl apply -f -
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: ${POD_NAME}-${TYPE}
+        namespace: ${POD_NAMESPACE}
+        ownerReferences:
+          - apiVersion: v1
+            kind: Pod
+            name: ${POD_NAME}
+            uid: ${POD_UID}
+      spec:
+        secretName: ${POD_NAME}-${TYPE}
+        commonName: ${POD_IP}
+        duration: {{ tls.duration }}
+        renewBefore: {{ tls.renewBefore }}
+        usages:
+        - client auth
+        - server auth
+        dnsNames:
+        - ${HOSTNAME}
+        - ${HOSTNAME_FQDN}
+        ipAddresses:
+        - ${POD_IP}
+        issuerRef:
+          kind: ${ISSUER_KIND}
+          name: ${ISSUER_NAME}
+      EOF
+
+      kubectl -n ${POD_NAMESPACE} wait --for=condition=Ready --timeout=300s \
+        certificate/${POD_NAME}-${TYPE}
+
+      # NOTE(mnaser): cert-manager does not clean-up the secrets when the certificate
+      #               is deleted, so we should add an owner reference to the secret
+      #               to ensure that it is cleaned up when the pod is deleted.
+      kubectl -n ${POD_NAMESPACE} patch secret ${POD_NAME}-${TYPE} \
+        --type=json -p='[{"op": "add", "path": "/metadata/ownerReferences", "value": [{"apiVersion": "v1", "kind": "Pod", "name": "'${POD_NAME}'", "uid": "'${POD_UID}'"}]}]'
+
+      kubectl -n ${POD_NAMESPACE} get secret ${POD_NAME}-${TYPE} -o jsonpath='{.data.tls\.crt}' | base64 -d > /tmp/${TYPE}.crt
+      kubectl -n ${POD_NAMESPACE} get secret ${POD_NAME}-${TYPE} -o jsonpath='{.data.tls\.key}' | base64 -d > /tmp/${TYPE}.key
+      kubectl -n ${POD_NAMESPACE} get secret ${POD_NAME}-${TYPE} -o jsonpath='{.data.ca\.crt}' | base64 -d > /tmp/${TYPE}-ca.crt
+
+manifests:
+  role_cert_manager: true
 ...

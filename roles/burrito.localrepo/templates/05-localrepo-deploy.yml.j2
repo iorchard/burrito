@@ -21,7 +21,7 @@ spec:
       serviceAccount: localrepo
       containers:
       - name: localrepo
-        image: {{ docker_image_repo }}/library/nginx:1.25.3
+        image: {{ docker_image_repo }}/library/nginx:{{ localrepo.nginx_version }}
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80

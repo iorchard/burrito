@@ -5,6 +5,18 @@
   become: true
   when: inventory_hostname in groups['ceph_servers']
 
+- name: Bootstrap | set up ssh config
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.src }}"
+    mode: "0644"
+    owner: root
+    group: root
+  become: true
+  loop: "{{ ceph_bootstrap_templates_common }}"
+  when:
+    - inventory_hostname in groups['ceph_servers']
+
 - name: Bootstrap | set up insecure local registry for podman
   ansible.builtin.template:
     dest: "{{ item.dest }}"
