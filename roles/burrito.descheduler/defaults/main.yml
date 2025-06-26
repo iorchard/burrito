@@ -1,4 +1,5 @@
 ---
+install_descheduler: false
 artifacts_dir: "{{ ansible_env.HOME }}/descheduler-artifacts"
 pod:
   replicas: 1

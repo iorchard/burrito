@@ -36,6 +36,11 @@ metallb_enabled: false
 # Only one IP: 192.168.20.95/32
 metallb_ip_range: "192.168.20.95-192.168.20.98"
 
+### descheduler
+# https://github.com/kubernetes-sigs/descheduler
+# To install descheduler, change it to true (default: false)
+install_descheduler: false
+
 ### storage
 # storage backends
 # If there are multiple backends, the first one is the default backend.
@@ -471,6 +476,7 @@ ingress:
 mariadb:
   volume_size: "30Gi"
   admin_password: "{{ vault_mariadb_root_password }}"
+  netpol_cidr: "{{ (svc_cidr + ',' + ntp_allowed_cidr)|split(',')|unique }}"
 
 # rabbitmq
 rabbitmq:
@@ -713,4 +719,5 @@ dasel_download_url: "https://github.com/TomWright/dasel/releases/download/{{ das
 # you should get dellfcopy binary from Dell engineer 
 # and put it in your web server's root directory.
 dellfcopy_download_url: "http://your_web_server/dellfcopy"
+
 ...
