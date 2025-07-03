@@ -51,7 +51,8 @@ conf:
       <VirtualHost *:{% raw %}{{ tuple "dashboard" "internal" "web" . | include "helm-toolkit.endpoints.endpoint_port_lookup" }}{% endraw %}>
         ServerName horizon-int.openstack.svc.cluster.local
         WSGIScriptReloading On
-        WSGIDaemonProcess horizon-http processes=5 threads=1 user=horizon group=horizon display-name=%{GROUP} python-path=/var/lib/kolla/venv/lib/python2.7/site-packages
+        WSGIApplicationGroup %{GLOBAL}
+        WSGIDaemonProcess horizon-http processes=5 threads=1 user=horizon group=horizon display-name=%{GROUP}
         WSGIProcessGroup horizon-http
         WSGIScriptAlias / /var/www/cgi-bin/horizon/django.wsgi
         WSGIPassAuthorization On
