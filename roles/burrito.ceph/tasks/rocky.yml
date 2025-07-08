@@ -1,4 +1,11 @@
 ---
+- name: Rocky Linux | Import a ceph repo key
+  ansible.builtin.rpm_key:
+    state: present
+    key: "{{ ceph_repo_key_url }}"
+  become: true
+  when: not offline
+
 - name: Rocky Linux | Install online packages
   ansible.builtin.package:
     name: "{{ item }}"
@@ -8,6 +15,13 @@
   retries: 3
   delay: 3
   loop: "{{ online_pkgs }}"
+  become: true
+  when: not offline
+
+- name: Rocky Linux | Template ceph.repo
+  ansible.builtin.template:
+    dest: "/etc/yum.repos.d/ceph.repo"
+    src: "templates/ceph.repo.j2"
   become: true
   when: not offline
 

@@ -18,10 +18,22 @@
     - offline
     - inventory_hostname in groups['ceph_servers']
 
+- name: Bootstrap | create ssh_config
+  ansible.builtin.template:
+    dest: "{{ item.dest }}"
+    src: "{{ item.src }}"
+    mode: "0644"
+    owner: root
+    group: root
+  become: true
+  loop: "{{ ceph_ssh_templates }}"
+  when:
+    - inventory_hostname in groups['ceph_servers']
+
 - name: Bootstrap | bootstrap ceph cluster
   ansible.builtin.command: >-
     cephadm \
-        --image {{ quay_image_repo }}/ceph/ceph:{{ ceph_version }} \
+        --image {{ quay_image_repo }}/ceph/ceph:{{ ceph_image_tag }} \
         bootstrap {{ ceph_bootstrap_params }} \
         --allow-overwrite \
         --cluster-network {{ cluster_network }} \
