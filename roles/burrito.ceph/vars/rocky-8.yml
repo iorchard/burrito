@@ -1,7 +1,9 @@
 ---
 online_pkgs:
   - epel-release
-  - centos-release-ceph-reef
+
+ceph_repo_key_url: "https://download.ceph.com/keys/release.asc"
+ceph_image_tag: "v18.2.7"
 
 prereq_pkgs:
   - chrony
