@@ -1,6 +1,6 @@
---- kubespray/roles/network_plugin/calico/templates/calico-node.yml.j2	2025-02-19 15:21:12.111000000 +0900
-+++ patches/kubespray/roles/network_plugin/calico/templates/calico-node.yml.j2	2025-02-27 15:58:01.530338756 +0900
-@@ -222,6 +222,8 @@
+--- kubespray/roles/network_plugin/calico/templates/calico-node.yml.j2	2025-05-28 18:08:34.543480562 +0900
++++ patches/kubespray/roles/network_plugin/calico/templates/calico-node.yml.j2	2025-05-28 18:31:09.763035327 +0900
+@@ -246,6 +246,8 @@
                value: "{{ calico_endpoint_to_host_action | default('RETURN') }}"
              - name: FELIX_HEALTHHOST
                value: "{{ calico_healthhost }}"

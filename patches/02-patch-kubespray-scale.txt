@@ -1,7 +1,7 @@
---- kubespray/playbooks/scale.yml	2024-07-25 16:48:30.998503727 +0900
-+++ patches/kubespray/playbooks/scale.yml	2024-07-25 17:05:30.629812675 +0900
-@@ -87,6 +87,12 @@
-   gather_facts: False
+--- kubespray/playbooks/scale.yml	2025-06-02 14:26:13.961043721 +0900
++++ patches/kubespray/playbooks/scale.yml	2025-06-02 18:11:58.840963840 +0900
+@@ -76,6 +76,12 @@
+   gather_facts: false
    any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
    environment: "{{ proxy_disable_env }}"
 +
@@ -11,5 +11,5 @@
 +        discovery_type: "file"
 +
    roles:
-     - { role: kubespray-defaults }
+     - { role: kubespray_defaults }
      - { role: kubernetes/kubeadm, tags: kubeadm }
