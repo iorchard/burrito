@@ -1,5 +1,5 @@
 ---
 collections:
   - name: dellemc.powerflex
-    version: 2.6.0
+    version: 1.7.0
 ...
