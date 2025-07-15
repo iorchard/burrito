@@ -30,4 +30,5 @@
   loop:
     - {content: "{{ ceph_conf.content | b64decode }}", dest: "{{ ceph_conf_dir }}/ceph.conf", mode: "0644"}
     - {content: "{{ _client_admin_keyring }}", dest: "{{ ceph_conf_dir }}/ceph.client.admin.keyring", mode: "0600"}
+  no_log: true
 ...
