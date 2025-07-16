@@ -141,7 +141,7 @@
 - name: Genesis Registry | apply patch to kube-proxy daemonset
   ansible.builtin.command: >-
     kubectl patch ds kube-proxy -n kube-system -p \
-      '{"spec": {"template": {"spec": {"containers": [{"name": "kube-proxy", "image": "{{ containerd_insecure_registries.genesis_registry }}/kube-proxy:{{ kube_version }}"}]}}}}'
+      '{"spec": {"template": {"spec": {"containers": [{"name": "kube-proxy", "image": "{{ containerd_insecure_registries.genesis_registry }}/kube-proxy:v{{ kube_version }}"}]}}}}'
   become: true
   delegate_to: localhost
   run_once: true

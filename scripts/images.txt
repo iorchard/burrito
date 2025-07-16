@@ -19,11 +19,10 @@ docker.io/openstackhelm/ceph-config-helper:latest-ubuntu_focal
 docker.io/openstackhelm/libvirt:2023.1-ubuntu_jammy
 docker.io/openstackhelm/openvswitch:latest-ubuntu_jammy
 docker.io/postfinance/kubelet-csr-approver:v1.0.6
-quay.io/airshipit/kubernetes-entrypoint:v1.0.0
+quay.io/airshipit/kubernetes-entrypoint:latest-ubuntu_jammy
 quay.io/calico/cni:v3.27.3
 quay.io/calico/kube-controllers:v3.27.3
 quay.io/calico/node:v3.27.3
-quay.io/calico/pod2daemon-flexvol:v3.27.3
 quay.io/ceph/ceph:v18.2.7
 quay.io/cephcsi/cephcsi:v3.10.1
 quay.io/jetstack/cert-manager-cainjector:v1.15.3
