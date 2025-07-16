@@ -19,9 +19,9 @@ haproxy_conf_dir: "/etc/haproxy"
 service_conf:
   - {dest: "{{ haproxy_conf_dir }}/conf.d/registry.cfg", owner: "root", group: "haproxy", mode: "0640"}
 
-image_pull_cmd: "{{ bin_dir }}/ctr -n k8s.io images pull -k"
+image_pull_cmd: "{{ bin_dir }}/ctr -n k8s.io images pull -k --local"
 image_tag_cmd: "{{ bin_dir }}/ctr -n k8s.io images tag --force"
-image_push_cmd: "{{ bin_dir }}/ctr -n k8s.io images push -k"
+image_push_cmd: "{{ bin_dir }}/ctr -n k8s.io images push -k --local"
 
 # hitachi openshift csi driver version
 hitachi_namespace: "hspc-operator-system"
@@ -36,14 +36,13 @@ genesis_registry:
   common:
     - "jijisa/asklepios:{{ asklepios.version }}"
     - "library/registry:{{ registry_version }}"
-    - "kube-apiserver:{{ kube_version }}"
-    - "kube-controller-manager:{{ kube_version }}"
-    - "kube-proxy:{{ kube_version }}"
-    - "kube-scheduler:{{ kube_version }}"
-    - "calico/cni:{{ calico_version }}"
-    - "calico/kube-controllers:{{ calico_version }}"
-    - "calico/node:{{ calico_version }}"
-    - "calico/pod2daemon-flexvol:{{ calico_version }}"
+    - "kube-apiserver:v{{ kube_version }}"
+    - "kube-controller-manager:v{{ kube_version }}"
+    - "kube-proxy:v{{ kube_version }}"
+    - "kube-scheduler:v{{ kube_version }}"
+    - "calico/cni:v{{ calico_version }}"
+    - "calico/kube-controllers:v{{ calico_version }}"
+    - "calico/node:v{{ calico_version }}"
     - "sig-storage/csi-attacher:{{ csi_attacher_version }}"
     - "sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}"
     - "sig-storage/csi-provisioner:{{ csi_provisioner_version }}"

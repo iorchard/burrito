@@ -69,15 +69,15 @@
   delegate_to: localhost
   run_once: true
 
-- name: OpenStack | add openvswitch to osh_infra_charts if neutron_ml2_plugin is ovs
+- name: OpenStack | remove openvswitch from osh_infra_charts if neutron_ml2_plugin is not ovs
   ansible.builtin.set_fact:
-    osh_infra_charts: "{{ is_ovs|ternary(osh_infra_charts|union(['openvswitch']), osh_infra_charts) }}"
+    osh_infra_charts: "{{ is_ovs|ternary(osh_infra_charts, osh_infra_charts|reject('search', 'openvswitch')) }}"
   delegate_to: localhost
   run_once: true
 
-- name: OpenStack | add ceph-provisioners to osh_infra_charts if ceph in storage_backends
+- name: OpenStack | remove ceph-provisioners from osh_infra_charts if ceph is not in storage_backends
   ansible.builtin.set_fact:
-    osh_infra_charts: "{{ is_ceph|ternary(osh_infra_charts|union(['ceph-provisioners']), osh_infra_charts) }}"
+    osh_infra_charts: "{{ is_ceph|ternary(osh_infra_charts, osh_infra_charts|reject('search', 'ceph-provisioners')) }}"
   delegate_to: localhost
   run_once: true
 
@@ -151,9 +151,9 @@
   run_once: true
   tags: osh
 
-- name: OpenStack | add barbican to osh_charts if install_barbican is true
+- name: OpenStack | remove barbican from osh_charts if install_barbican is not true
   ansible.builtin.set_fact:
-    osh_charts: "{{ install_barbican|ternary(osh_charts|union(['barbican']), osh_charts) }}"
+    osh_charts: "{{ install_barbican|ternary(osh_charts, osh_charts|reject('search', 'barbican')) }}"
   delegate_to: localhost
   run_once: true
 
