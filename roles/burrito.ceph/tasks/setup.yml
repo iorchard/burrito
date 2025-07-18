@@ -20,4 +20,19 @@
   become: true
   delegate_to: "{{ groups['mons'][0] }}"
   run_once: true
+
+- name: Setup | set monitor size fact
+  ansible.builtin.set_fact:
+    _monitor_size: "{{ groups['mons']|length }}"
+
+- name: Setup | check all the monitors are in
+  ansible.builtin.shell: >-
+    ceph orch ls mon --format=json | jq '.[0].status.running'
+  become: true
+  register: _run
+  until: _run.stdout == _monitor_size
+  retries: "{{ ceph_health_retries }}"
+  delay: "{{ ceph_health_delay }}"
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
 ...
