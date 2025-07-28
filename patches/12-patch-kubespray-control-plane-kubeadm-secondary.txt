@@ -1,6 +1,14 @@
---- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2023-09-12 17:33:26.138128680 +0900
-+++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2023-09-12 17:32:38.913128680 +0900
-@@ -77,3 +77,20 @@
+--- kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2025-07-25 14:11:35.359961011 +0900
++++ patches/kubespray/roles/kubernetes/control-plane/tasks/kubeadm-secondary.yml	2025-07-25 14:13:05.020961011 +0900
+@@ -46,7 +46,6 @@
+     port: "{{ kubeadm_discovery_address.split(':')[1] }}"
+     timeout: 180
+ 
+-
+ - name: Check already run
+   debug:
+     msg: "{{ kubeadm_already_run.stat.exists }}"
+@@ -78,3 +77,20 @@
    when:
      - inventory_hostname != first_kube_control_plane
      - kubeadm_already_run is not defined or not kubeadm_already_run.stat.exists

@@ -1,6 +1,7 @@
 ---
 - name: Set kubeadm_discovery_address
   set_fact:
+    # noqa: jinja[spacing]
     kubeadm_discovery_address: >-
       {%- if "127.0.0.1" in kube_apiserver_endpoint or "localhost" in kube_apiserver_endpoint -%}
       {{ first_kube_control_plane_address }}:{{ kube_apiserver_port }}
@@ -45,8 +46,7 @@
     port: "{{ kubeadm_discovery_address.split(':')[1] }}"
     timeout: 180
 
-
-- name: check already run
+- name: Check already run
   debug:
     msg: "{{ kubeadm_already_run.stat.exists }}"
 

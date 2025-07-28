@@ -9,6 +9,8 @@ metadata:
     version: v{{ registry_image_tag }}
     addonmanager.kubernetes.io/mode: Reconcile
 spec:
+  strategy:
+    type: Recreate
 {% if registry_storage_class != "" and registry_storage_access_mode == "ReadWriteMany" %}
   replicas: {{ registry_replica_count }}
 {% else %}

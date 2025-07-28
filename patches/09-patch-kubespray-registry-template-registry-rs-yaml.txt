@@ -1,5 +1,5 @@
---- kubespray/roles/kubernetes-apps/registry/templates/registry-rs.yml.j2	2023-09-18 18:10:45.084000000 +0900
-+++ patches/kubespray/roles/kubernetes-apps/registry/templates/registry-rs.yml.j2	2023-09-18 18:05:19.304000000 +0900
+--- kubespray/roles/kubernetes-apps/registry/templates/registry-rs.yml.j2	2025-07-25 17:51:22.737961011 +0900
++++ patches/kubespray/roles/kubernetes-apps/registry/templates/registry-rs.yml.j2	2025-07-25 17:50:30.550961011 +0900
 @@ -1,6 +1,6 @@
  ---
  apiVersion: apps/v1
@@ -8,7 +8,16 @@
  metadata:
    name: registry
    namespace: {{ registry_namespace }}
-@@ -24,7 +24,8 @@
+@@ -9,6 +9,8 @@
+     version: v{{ registry_image_tag }}
+     addonmanager.kubernetes.io/mode: Reconcile
+ spec:
++  strategy:
++    type: Recreate
+ {% if registry_storage_class != "" and registry_storage_access_mode == "ReadWriteMany" %}
+   replicas: {{ registry_replica_count }}
+ {% else %}
+@@ -24,7 +26,8 @@
          k8s-app: registry
          version: v{{ registry_image_tag }}
      spec:
