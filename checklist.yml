@@ -406,6 +406,7 @@
         connect_timeout: 2
         sleep: 1
         timeout: 5
+      no_log: true
       loop: "{{ netapp }}"
       when:
         - "'netapp' in storage_backends"
