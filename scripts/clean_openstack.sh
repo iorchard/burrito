@@ -58,18 +58,16 @@ sudo ${KUBECTL} delete secret --all -n openstack ${KUBECTL_PARAM}
 sudo ${KUBECTL} delete jobs --all -n openstack ${KUBECTL_PARAM}
 sudo ${KUBECTL} delete pods --all -n openstack ${KUBECTL_PARAM}
 
+. ~/.envs/burrito/bin/activate
 # Kill qemu-system-x86_64 process
-. ~/.envs/burrito/bin/activate && \
-  ansible --background 30 --poll 5 --become compute-node \
-    -a 'killall --wait qemu-system-x86_64'
+ansible --background 30 --poll 5 --become compute-node \
+  -m ansible.builtin.shell -a 'killall --wait qemu-system-x86_64 || true'
 
 # Unmount /var/lib/nova/instances on compute nodes
-. ~/.envs/burrito/bin/activate && \
-  ansible --become compute-node -m ansible.posix.mount \
-    -a "path=/var/lib/nova/instances state=unmounted"
+ansible --become compute-node -m ansible.posix.mount \
+  -a "path=/var/lib/nova/instances state=unmounted"
 
 # Remove btx block in bashrc
-. ~/.envs/burrito/bin/activate && \
-  ansible kube_control_plane -m ansible.builtin.blockinfile \
-    -a "path=/home/$USER/.bashrc marker='# {mark} BTX ENV BLOCK' state=absent"
+ansible kube_control_plane -m ansible.builtin.blockinfile \
+  -a "path=/home/$USER/.bashrc marker='# {mark} BTX ENV BLOCK' state=absent"
 
