@@ -485,7 +485,7 @@ rabbitmq:
 
 enable_iscsi_map:
   ceph: false
-  netapp: true
+  netapp: false
   powerflex: false
   hitachi: true
   primera: true
