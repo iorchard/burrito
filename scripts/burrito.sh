@@ -73,8 +73,6 @@ install() {
 }
 uninstall() {
   set +e
-  sudo helm uninstall ${NAME} --namespace=openstack
-  sudo kubectl --namespace=openstack delete jobs,pods -l application=${NAME}
   sudo helm uninstall --wait ${NAME} --namespace=openstack &>/dev/null
   sudo kubectl --namespace=openstack delete --wait jobs,pods -l application=${NAME} --force --grace-period=0
   . ~/.envs/burrito/bin/activate
