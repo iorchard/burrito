@@ -38,7 +38,7 @@ pod:
     api: {{ pod.replicas }}
     backup: {{ pod.replicas }}
     scheduler: 1
-    volume: {% if "lvm" in storage_backends %}1{% else %}{{ pod.replicas }}{% endif %}
+    volume: 1
 
   useHostNetwork:
     volume: {{ enable_iscsi }}
