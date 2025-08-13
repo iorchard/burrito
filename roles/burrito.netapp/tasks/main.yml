@@ -22,9 +22,13 @@
 
 - name: netapp | create trident namespace
   kubernetes.core.k8s:
-    name: trident
-    api_version: v1
-    kind: Namespace
+    resource_definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: trident
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
     state: present
   become: true
   delegate_to: localhost
@@ -38,7 +42,6 @@
   run_once: true
   loop:
     - "{{ artifacts_dir }}"
-    - "/tmp/{{ unarchive_dir }}"
 
 - name: netapp | create netapp artifacts directory
   ansible.builtin.file:
@@ -59,19 +62,13 @@
 - name: netapp | download and unarchive the trident package
   ansible.builtin.unarchive:
     src: "{{ trident_download_url }}"
-    dest: /tmp
-    creates: "/tmp/{{ unarchive_dir }}"
+    dest: "{{ bin_dir }}"
     remote_src: true
-  delegate_to: localhost
-  run_once: true
-
-- name: netapp | copy tridentctl binary to bin_dir
-  ansible.builtin.copy:
-    src: "/tmp/{{ unarchive_dir }}/tridentctl"
-    dest: "{{ bin_dir }}/tridentctl"
-    mode: "0755"
-    owner: "root"
-    group: "root"
+    include:
+    - trident-installer/tridentctl
+    extra_opts:
+    - --transform
+    - s/^trident-installer//
   become: true
   delegate_to: localhost
   run_once: true

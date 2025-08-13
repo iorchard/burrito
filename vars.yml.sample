@@ -435,15 +435,15 @@ ceph_rgw_port: "{{ radosgw_frontend_port }}"
 ceph_pool: "{{ kube_pool.name }}"
 cephcsi_version: "v3.10.1"
 # common csi driver versions
-csi_attacher_version: "v4.6.1"
-csi_node_driver_registrar_version: "v2.10.1"
-csi_provisioner_version: "v5.0.1"
-csi_resizer_version: "v1.11.1"
-csi_snapshotter_version: "v8.0.1"
+csi_attacher_version: "v4.9.0"
+csi_node_driver_registrar_version: "v2.14.0"
+csi_provisioner_version: "v5.3.0"
+csi_resizer_version: "v1.14.0"
+csi_snapshotter_version: "v8.3.0"
 registry_ready_timeout: 300
 
 # burrito.netapp role variables
-trident_version: "24.06.1"
+trident_version: "25.06.1"
 
 # burrito.powerflex role variables
 pfx_version: "v2.13.0"
