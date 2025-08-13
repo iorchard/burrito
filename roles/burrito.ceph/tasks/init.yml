@@ -36,4 +36,11 @@
   delegate_to: "{{ groups['mons'][0] }}"
   run_once: true
   loop: "{{ ceph_keys }}"
+
+- name: init | set auth_client_required to cephx
+  ansible.builtin.command: >-
+    ceph config set mon auth_client_required cephx
+  become: true
+  delegate_to: "{{ groups['mons'][0] }}"
+  run_once: true
 ...
