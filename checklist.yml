@@ -419,6 +419,7 @@
         timeout: 3
         status_code: 200
       loop: "{{ powerstore }}"
+      no_log: true
       when:
         - "'powerstore' in storage_backends"
         - inventory_hostname in groups['kube_node']
