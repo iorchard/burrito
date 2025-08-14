@@ -3,7 +3,7 @@
   kubernetes.core.k8s_json_patch:
     kind: DaemonSet
     namespace: trident
-    name: trident-csi
+    name: trident-node-linux
     patch: "{{ trident_daemonset_patch_list }}"
   become: true
   delegate_to: localhost
@@ -13,7 +13,7 @@
   kubernetes.core.k8s_json_patch:
     kind: Deployment
     namespace: trident
-    name: trident-csi
+    name: trident-controller
     patch: "{{ trident_deploy_patch_list }}"
   become: true
   delegate_to: localhost
