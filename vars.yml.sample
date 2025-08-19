@@ -433,7 +433,7 @@ ceph_rgw_port: "{{ radosgw_frontend_port }}"
 
 # burrito.ceph-csi role variables
 ceph_pool: "{{ kube_pool.name }}"
-cephcsi_version: "v3.10.1"
+cephcsi_version: "v3.14.2"
 # common csi driver versions
 csi_attacher_version: "v4.9.0"
 csi_node_driver_registrar_version: "v2.14.0"

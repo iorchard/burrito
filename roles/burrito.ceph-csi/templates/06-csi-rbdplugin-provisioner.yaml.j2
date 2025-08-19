@@ -51,77 +51,7 @@ spec:
       serviceAccountName: rbd-csi-provisioner
       priorityClassName: system-cluster-critical
       containers:
-        - name: csi-provisioner
-          image: {{ kube_image_repo }}/sig-storage/csi-provisioner:{{ csi_provisioner_version }}
-          args:
-            - "--csi-address=$(ADDRESS)"
-            - "--v=1"
-            - "--timeout=150s"
-            - "--retry-interval-start=500ms"
-            - "--leader-election=true"
-            #  set it to true to use topology based provisioning
-            - "--feature-gates=Topology=false"
-            - "--feature-gates=HonorPVReclaimPolicy=true"
-            - "--prevent-volume-mode-conversion=true"
-            # if fstype is not specified in storageclass, ext4 is default
-            - "--default-fstype=ext4"
-            - "--extra-create-metadata=true"
-          env:
-            - name: ADDRESS
-              value: unix:///csi/csi-provisioner.sock
-          imagePullPolicy: "IfNotPresent"
-          volumeMounts:
-            - name: socket-dir
-              mountPath: /csi
-        - name: csi-snapshotter
-          image: {{ kube_image_repo }}/sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}
-          args:
-            - "--csi-address=$(ADDRESS)"
-            - "--v=1"
-            - "--timeout=150s"
-            - "--leader-election=true"
-            - "--extra-create-metadata=true"
-          env:
-            - name: ADDRESS
-              value: unix:///csi/csi-provisioner.sock
-          imagePullPolicy: "IfNotPresent"
-          volumeMounts:
-            - name: socket-dir
-              mountPath: /csi
-        - name: csi-attacher
-          image: {{ kube_image_repo }}/sig-storage/csi-attacher:{{ csi_attacher_version }}
-          args:
-            - "--v=1"
-            - "--csi-address=$(ADDRESS)"
-            - "--leader-election=true"
-            - "--retry-interval-start=500ms"
-            - "--default-fstype=ext4"
-          env:
-            - name: ADDRESS
-              value: /csi/csi-provisioner.sock
-          imagePullPolicy: "IfNotPresent"
-          volumeMounts:
-            - name: socket-dir
-              mountPath: /csi
-        - name: csi-resizer
-          image: {{ kube_image_repo }}/sig-storage/csi-resizer:{{ csi_resizer_version }}
-          args:
-            - "--csi-address=$(ADDRESS)"
-            - "--v=1"
-            - "--timeout=150s"
-            - "--leader-election"
-            - "--retry-interval-start=500ms"
-            - "--handle-volume-inuse-error=false"
-            - "--feature-gates=RecoverVolumeExpansionFailure=true"
-          env:
-            - name: ADDRESS
-              value: unix:///csi/csi-provisioner.sock
-          imagePullPolicy: "IfNotPresent"
-          volumeMounts:
-            - name: socket-dir
-              mountPath: /csi
         - name: csi-rbdplugin
-          # for stable functionality replace canary with latest release version
           image: {{ quay_image_repo }}/cephcsi/cephcsi:{{ cephcsi_version }}
           args:
             - "--nodeid=$(NODE_ID)"
@@ -177,8 +107,112 @@ spec:
             - name: oidc-token
               mountPath: /run/secrets/tokens
               readOnly: true
+        - name: csi-provisioner
+          image: {{ kube_image_repo }}/sig-storage/csi-provisioner:{{ csi_provisioner_version }}
+          args:
+            - "--csi-address=$(ADDRESS)"
+            - "--v=1"
+            - "--timeout=150s"
+            - "--retry-interval-start=500ms"
+            - "--leader-election=true"
+            - "--feature-gates=HonorPVReclaimPolicy=true"
+            - "--prevent-volume-mode-conversion=true"
+            # if fstype is not specified in storageclass, ext4 is default
+            - "--default-fstype=ext4"
+            - "--extra-create-metadata=true"
+            - "--immediate-topology=false"
+            - "--http-endpoint=$(POD_IP):8090"
+          env:
+            - name: ADDRESS
+              value: unix:///csi/csi-provisioner.sock
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 8090
+              name: http-endpoint
+              protocol: TCP
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
+        - name: csi-snapshotter
+          image: {{ kube_image_repo }}/sig-storage/csi-snapshotter:{{ csi_snapshotter_version }}
+          args:
+            - "--csi-address=$(ADDRESS)"
+            - "--v=1"
+            - "--timeout=150s"
+            - "--leader-election=true"
+            - "--extra-create-metadata=true"
+            - "--feature-gates=CSIVolumeGroupSnapshot=true"
+            - "--http-endpoint=$(POD_IP):8092"
+          env:
+            - name: ADDRESS
+              value: unix:///csi/csi-provisioner.sock
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 8092
+              name: http-endpoint
+              protocol: TCP
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
+        - name: csi-attacher
+          image: {{ kube_image_repo }}/sig-storage/csi-attacher:{{ csi_attacher_version }}
+          args:
+            - "--v=1"
+            - "--csi-address=$(ADDRESS)"
+            - "--leader-election=true"
+            - "--retry-interval-start=500ms"
+            - "--default-fstype=ext4"
+            - "--http-endpoint=$(POD_IP):8093"
+          env:
+            - name: ADDRESS
+              value: /csi/csi-provisioner.sock
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 8093
+              name: http-endpoint
+              protocol: TCP
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
+        - name: csi-resizer
+          image: {{ kube_image_repo }}/sig-storage/csi-resizer:{{ csi_resizer_version }}
+          args:
+            - "--csi-address=$(ADDRESS)"
+            - "--v=1"
+            - "--timeout=150s"
+            - "--leader-election"
+            - "--retry-interval-start=500ms"
+            - "--handle-volume-inuse-error=false"
+            - "--feature-gates=RecoverVolumeExpansionFailure=true"
+            - "--http-endpoint=$(POD_IP):8091"
+          env:
+            - name: ADDRESS
+              value: unix:///csi/csi-provisioner.sock
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 8091
+              name: http-endpoint
+              protocol: TCP
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
         - name: csi-rbdplugin-controller
-          # for stable functionality replace canary with latest release version
           image: {{ quay_image_repo }}/cephcsi/cephcsi:{{ cephcsi_version }}
           args:
             - "--type=controller"
@@ -215,6 +249,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+          ports:
+            - containerPort: 8680
+              name: http-metrics
+              protocol: TCP
           volumeMounts:
             - name: socket-dir
               mountPath: /csi

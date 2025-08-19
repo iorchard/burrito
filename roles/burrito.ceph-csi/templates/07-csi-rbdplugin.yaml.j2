@@ -21,35 +21,12 @@ spec:
       # resolved through k8s service, set dns policy to cluster first
       dnsPolicy: ClusterFirstWithHostNet
       containers:
-        - name: driver-registrar
-          # This is necessary only for systems with SELinux, where
-          # non-privileged sidecar containers cannot access unix domain socket
-          # created by privileged CSI driver container.
-          securityContext:
-            privileged: true
-            allowPrivilegeEscalation: true
-          image: {{ kube_image_repo }}/sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}
-          args:
-            - "--v=1"
-            - "--csi-address=/csi/csi.sock"
-            - "--kubelet-registration-path=/var/lib/kubelet/plugins/rbd.csi.ceph.com/csi.sock"
-          env:
-            - name: KUBE_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-          volumeMounts:
-            - name: socket-dir
-              mountPath: /csi
-            - name: registration-dir
-              mountPath: /registration
         - name: csi-rbdplugin
           securityContext:
             privileged: true
             capabilities:
               add: ["SYS_ADMIN"]
             allowPrivilegeEscalation: true
-          # for stable functionality replace canary with latest release version
           image: {{ quay_image_repo }}/cephcsi/cephcsi:{{ cephcsi_version }}
           args:
             - "--nodeid=$(NODE_ID)"
@@ -67,6 +44,15 @@ spec:
             # and pass the label names below, for CSI to consume and advertise
             # its equivalent topology domain
             # - "--domainlabels=failure-domain/region,failure-domain/zone"
+            #
+            # Options to enable read affinity.
+            # If enabled Ceph CSI will fetch labels from kubernetes node and
+            # pass `read_from_replica=localize,crush_location=type:value` during
+            # rbd map command. refer:
+            # https://docs.ceph.com/en/latest/man/8/rbd/#kernel-rbd-krbd-options
+            # for more details.
+            # - "--enable-read-affinity=true"
+            # - "--crush-location-labels=topology.io/zone,topology.io/rack"
           env:
             - name: POD_IP
               valueFrom:
@@ -121,6 +107,28 @@ spec:
             - name: oidc-token
               mountPath: /run/secrets/tokens
               readOnly: true
+        - name: driver-registrar
+          # This is necessary only for systems with SELinux, where
+          # non-privileged sidecar containers cannot access unix domain socket
+          # created by privileged CSI driver container.
+          securityContext:
+            privileged: true
+            allowPrivilegeEscalation: true
+          image: {{ kube_image_repo }}/sig-storage/csi-node-driver-registrar:{{ csi_node_driver_registrar_version }}
+          args:
+            - "--v=1"
+            - "--csi-address=/csi/csi.sock"
+            - "--kubelet-registration-path=/var/lib/kubelet/plugins/rbd.csi.ceph.com/csi.sock"
+          env:
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: socket-dir
+              mountPath: /csi
+            - name: registration-dir
+              mountPath: /registration
         - name: liveness-prometheus
           securityContext:
             privileged: true

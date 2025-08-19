@@ -65,4 +65,30 @@
     - role: burrito.powerstore
       when: '"powerstore" in storage_backends'
       tags: ['powerstore']
+
+- name: wait until registry is running.
+  hosts: localhost
+  any_errors_fatal: true
+  tasks:
+    - name: get registry pod info
+      kubernetes.core.k8s_info:
+        kind: Pod
+        label_selectors:
+          - k8s-app = registry
+        namespace: kube-system
+        wait: true
+        wait_sleep: 5
+        wait_timeout: "{{ registry_ready_timeout }}"
+      become: true
+      register: registry_pod
+      when:
+        - registry_enabled
+    - name: fail if registry is not running
+      ansible.builtin.fail:
+        msg: >-
+          Registry is not running after {{ registry_ready_timeout }} seconds.
+          Give up!
+      when:
+        - registry_enabled
+        - registry_pod.resources[0].status.phase != 'Running'
 ...
