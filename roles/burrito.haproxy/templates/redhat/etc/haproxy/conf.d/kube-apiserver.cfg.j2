@@ -1,6 +1,7 @@
 #jinja2: lstrip_blocks: "True"
 listen kube-apiserver
     bind {{ keepalived_vip }}:{{ kube_apiserver_port }}
+    bind 127.0.0.1:6443
     mode tcp
     option tcplog
     option log-health-checks
