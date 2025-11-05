@@ -1,0 +1,21 @@
+---
+- name: patch kube-apiserver manifest
+  hosts: kube_control_plane
+  any_errors_fatal: true
+  tasks:
+    - name: patch kube-apiserver
+      include_role:
+        name: burrito.aster-leap
+        tasks_from: patch
+      tags: ['patch']
+
+- name: import ha playbook
+  ansible.builtin.import_playbook: ha.yml
+
+- name: prepare aster k8s leaping service
+  hosts: localhost
+  any_errors_fatal: true
+  roles:
+    - role: burrito.aster-leap
+      tags: ['aster-leap']
+...

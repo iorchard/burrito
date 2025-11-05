@@ -1,0 +1,39 @@
+---
+- name: aster-leap | get the current calico configuration
+  ansible.builtin.command: >-
+    calicoctl.sh get ipPool default-pool -o json
+  become: true
+  register: calicoctl
+
+- name: aster-leap | set fact for calico_spec variable
+  ansible.builtin.set_fact:
+    calico_spec: "{{ calicoctl.stdout | ansible.builtin.from_json | community.general.json_query('spec') }}"
+
+- name: aster-leap | set leap_vars.yml
+  ansible.builtin.lineinfile:
+    path: "{{ playbook_dir }}/leap_vars.yml"
+    line: "{{ item }}"
+    create: true
+    state: present
+  loop:
+    - "kube_pods_subnet: {{ calico_spec.cidr }}"
+    - "kube_network_node_prefix: {{ calico_spec.blockSize }}"
+
+- name: aster-leap | remove local registry and local repo
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: "{{ item.kind }}"
+    namespace: "{{ item.namespace }}"
+    name: "{{ item.name }}"
+    state: absent
+  become: true
+  loop:
+    - {name: "registry", namespace: "kube-system", kind: "ReplicaSet"}
+    - {name: "localrepo", namespace: "burrito", kind: "Deployment"}
+
+- name: aster-leap | remove metallb
+  kubernetes.core.k8s:
+    src: "/etc/kubernetes/metallb.yml"
+    state: absent
+  become: true
+...

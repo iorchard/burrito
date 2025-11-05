@@ -1,0 +1,25 @@
+---
+- name: aster-leap | patch kube-apiserver 
+  ansible.builtin.replace:
+    path: "/etc/kubernetes/manifests/kube-apiserver.yaml"
+    regexp: "{{ item.search }}"
+    replace: "{{ item.replace }}"
+  become: true
+  loop:
+    - {search: 'anonymous-auth=false', replace: 'anonymous-auth=true'}
+    - {search: '(?P<bindaddr>bind-address=).*', replace: '\g<bindaddr>{{ ip }}'}
+  when: inventory_hostname in groups['kube_control_plane']
+
+- name: aster-leap | check kube-apiserver is healthy
+  ansible.builtin.uri:
+    url: "https://{{ item }}:6443/healthz"
+    validate_certs: false
+    return_content: true
+  register: kube_apiserver_healthz
+  loop: "{{ groups['kube_control_plane'] }}"
+  delay: 10
+  retries: 12
+  until: kube_apiserver_healthz.content == 'ok'
+  delegate_to: localhost
+  run_once: true
+...
