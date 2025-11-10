@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: trident-csi
+  name: trident-node-linux
   namespace: trident
   labels:
     app: node.csi.trident.netapp.io
@@ -27,19 +27,32 @@ spec:
         securityContext:
           privileged: true
           allowPrivilegeEscalation: true
+          capabilities:
+            drop:
+            - all
+            add:
+            - SYS_ADMIN
         image: {{ docker_image_repo }}/netapp/trident:{{ trident_version }}
         command:
         - /trident_orchestrator
         args:
         - "--no_persistence"
+        - "--k8s_pod"
         - "--rest=false"
         - "--csi_node_name=$(KUBE_NODE_NAME)"
         - "--csi_endpoint=$(CSI_ENDPOINT)"
         - "--csi_role=node"
         - "--log_format=text"
+        - "--log_level=info"
+        - "--log_workflows="
+        - "--log_layers="
+        - "--disable_audit_log=true"
         - "--http_request_timeout=1m30s"
         - "--https_rest"
         - "--https_port=17546"
+        - "--enable_force_detach=false"
+        - "--iscsi_self_healing_interval=5m0s"
+        - "--iscsi_self_healing_wait_time=7m0s"
         #- -debug
         startupProbe:
           httpGet:
@@ -47,15 +60,15 @@ spec:
             scheme: HTTPS
             port: 17546
           failureThreshold: 5
-          timeoutSeconds: 1
-          periodSeconds: 5
+          timeoutSeconds: 5
+          periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /liveness
             scheme: HTTPS
             port: 17546
-          failureThreshold: 3
-          timeoutSeconds: 1
+          failureThreshold: 5
+          timeoutSeconds: 5
           periodSeconds: 10
         readinessProbe:
           httpGet:
@@ -63,14 +76,17 @@ spec:
             scheme: HTTPS
             port: 17546
           failureThreshold: 5
-          initialDelaySeconds: 10
+          timeoutSeconds: 5
           periodSeconds: 10
+          initialDelaySeconds: 15
         env:
         - name: KUBE_NODE_NAME
           valueFrom:
             fieldRef:
               apiVersion: v1
               fieldPath: spec.nodeName
+        - name: KUBELET_DIR
+          value: /var/lib/kubelet
         - name: CSI_ENDPOINT
           value: unix://plugin/csi.sock
         - name: PATH
@@ -117,9 +133,29 @@ spec:
           mountPath: /plugin
         - name: registration-dir
           mountPath: /registration
-      nodeSelector:
-        kubernetes.io/os: linux
-        kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                    - arm64
+                    - amd64
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                    - linux
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - node.csi.trident.netapp.io
+              topologyKey: kubernetes.io/hostname
       tolerations:
       - effect: "NoExecute"
         operator: "Exists"

@@ -1,6 +1,6 @@
 ---
 artifacts_dir: "{{ ansible_env.HOME }}/netapp-artifacts"
-trident_version: "24.02.0"
+trident_version: "25.06.1"
 trident_download_url: "https://github.com/NetApp/trident/releases/download/v{{ trident_version }}/trident-installer-{{ trident_version }}.tar.gz"
 unarchive_dir: "trident-installer"
 bin_dir: "/usr/bin"

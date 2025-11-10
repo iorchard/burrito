@@ -4,7 +4,9 @@
 
 - name: Purge | check if ceph cluster is accessible
   ansible.builtin.shell: >-
-    cephadm --timeout=3 shell -- ceph fsid
+    cephadm --timeout=3 \
+      --image {{ quay_image_repo }}/ceph/ceph:{{ ceph_version }} shell -- \
+      ceph fsid
   become: true
   register: _res
   delegate_to: "{{ groups['mons'][0] }}"
@@ -36,14 +38,18 @@
 
 - name: Purge | disable cephadm mgr module
   ansible.builtin.shell: >-
-    cephadm --timeout=5 shell -- ceph mgr module disable cephadm
+    cephadm --timeout=5 \
+      --image {{ quay_image_repo }}/ceph/ceph:{{ ceph_version }} shell -- \
+      ceph mgr module disable cephadm
   become: true
   delegate_to: "{{ groups['mons'][0] }}"
   run_once: true
   
 - name: Purge | purge the ceph cluster
   ansible.builtin.shell: >-
-    cephadm rm-cluster --force --zap-osds --fsid {{ _fsid }}
+    cephadm \
+      --image {{ quay_image_repo }}/ceph/ceph:{{ ceph_version }} \
+      rm-cluster --force --zap-osds --fsid {{ _fsid }}
   become: true
   when: inventory_hostname in groups['ceph_servers']
 

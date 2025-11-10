@@ -73,8 +73,32 @@ install() {
 }
 uninstall() {
   set +e
-  sudo helm uninstall ${NAME} --namespace=openstack
-  sudo kubectl --namespace=openstack delete jobs,pods -l application=${NAME}
+  sudo helm uninstall --wait ${NAME} --namespace=openstack &>/dev/null
+  sudo kubectl --namespace=openstack delete --wait jobs,pods -l application=${NAME} --force --grace-period=0
+  . ~/.envs/burrito/bin/activate
+  if [ "${NAME}" = "nova" ]; then
+    LOOP=10
+    i=0
+    NOVA_MOUNTED=$(ansible compute-node -m ansible.builtin.setup -a filter=ansible_mounts|grep -c '/var/lib/nova/instances')
+    if [[ "${NOVA_MOUNTED}" != "0" ]]; then
+      # kill qemu processes before umount
+      ansible --background 30 --poll 5 --become compute-node \
+        -m ansible.builtin.shell -a 'killall --wait qemu-system-x86_64 || true'
+    fi
+    until [[ "${NOVA_MOUNTED}" = "0" ]]; do
+      if [ "${i}" = "${LOOP}" ]; then
+        echo "Tried to unmount /var/lib/nova/instances ${LOOP} times but it is still mounted."
+        break
+      fi
+      # Unmount /var/lib/nova/instances on compute nodes
+      echo "Try to unmount /var/lib/nova/instances."
+      ansible --become compute-node -m ansible.posix.mount \
+        -a "path=/var/lib/nova/instances state=unmounted"
+      NOVA_MOUNTED=$(ansible compute-node -m ansible.builtin.setup -a filter=ansible_mounts|grep -c '/var/lib/nova/instances')
+      ((i++))
+      sleep 1
+    done
+  fi
   set -e
 }
 
