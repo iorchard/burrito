@@ -31,10 +31,6 @@
     - {name: "registry", namespace: "kube-system", kind: "ReplicaSet"}
     - {name: "localrepo", namespace: "burrito", kind: "Deployment"}
     - {name: "localrepo", namespace: "burrito", kind: "Service"}
-
-- name: aster-leap | remove metallb
-  kubernetes.core.k8s:
-    src: "/etc/kubernetes/metallb.yml"
-    state: absent
-  become: true
+    - {name: "controller", namespace: "metallb-system", kind: "Deployment"}
+    - {name: "speaker", namespace: "metallb-system", kind: "DaemonSet"}
 ...
