@@ -18,6 +18,7 @@
   loop:
     - "kube_pods_subnet: {{ calico_spec.cidr }}"
     - "kube_network_node_prefix: {{ calico_spec.blockSize }}"
+    - "registry_enabled: false"
 
 - name: aster-leap | remove local registry and local repo
   kubernetes.core.k8s:
