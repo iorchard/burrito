@@ -1,9 +1,9 @@
 ---
-- name: patch kube-apiserver manifest
+- name: patch tasks
   hosts: kube_control_plane
   any_errors_fatal: true
   tasks:
-    - name: patch kube-apiserver
+    - name: patch tasks
       include_role:
         name: burrito.aster-leap
         tasks_from: patch

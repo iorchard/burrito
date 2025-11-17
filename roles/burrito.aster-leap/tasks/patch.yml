@@ -22,4 +22,10 @@
   until: kube_apiserver_healthz.content == 'ok'
   delegate_to: localhost
   run_once: true
+
+- name: aster-leap | remove btx block in bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    marker: '# {mark} BTX ENV BLOCK'
+    state: absent
 ...
